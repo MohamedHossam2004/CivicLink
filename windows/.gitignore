@@ -1,0 +1,39 @@
+flutter/ephemeral/
+
+# Visual Studio user-specific files.
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# Visual Studio build-related files.
+x64/
+x86/
+
+# Visual Studio cache files
+# files ending in .cache can be ignored
+*.[Cc]ache
+# but keep track of directories ending in .cache
+!*.[Cc]ache/
+
+
+################################################################################
+# Firebase configuration (do NOT commit these files/directories)
+################################################################################
+
+# Android Firebase config (contains API keys, project ID, etc.)
+google-services.json                    # Android client config :contentReference[oaicite:6]{index=6}
+
+# iOS Firebase config (contains API keys, project ID, etc.)
+**/GoogleService-Info.plist             # iOS client config :contentReference[oaicite:7]{index=7}
+
+# Firebase CLI project settings
+.firebaserc                              # CLI state & project aliases :contentReference[oaicite:8]{index=8}
+firebase.json                            # Hosting/emulator config :contentReference[oaicite:9]{index=9}
+
+# Local Firebase emulator & cache folder
+.firebase/                               # Emulator data & logs :contentReference[oaicite:10]{index=10} :contentReference[oaicite:11]{index=11}
+
+*/serviceAccountKey.json
+serviceAccountKey.json
+lib/serviceAccountKey.json               # Firebase service account key
