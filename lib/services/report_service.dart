@@ -20,7 +20,6 @@ class ReportService {
   Future<String> submitReport({
     required String issueType,
     required String description,
-    required String location,
     double? latitude,
     double? longitude,
     required List<File> photos,
@@ -42,14 +41,12 @@ class ReportService {
       final report = Report(
         issueType: issueType,
         description: description,
-        location: location,
         latitude: latitude,
         longitude: longitude,
         photoUrls: photoUrls,
         userId: user.uid,
       );
 
-      // Add report to Firestore
       final docRef = await _reportsCollection.add(report.toMap());
 
       return docRef.id;

@@ -37,17 +37,18 @@ class _ReportPreviewState extends State<ReportPreview> {
 
     try {
       // Create a list of non-null photos
-      final List<XFile> validPhotos = widget.photos.where((photo) => photo != null).cast<XFile>().toList();
+      final List<XFile> validPhotos =
+          widget.photos.where((photo) => photo != null).cast<XFile>().toList();
 
       // Create a list of File objects from XFile paths
-      final List<File> photoFiles = validPhotos.map((photo) => File(photo.path)).toList();
+      final List<File> photoFiles =
+          validPhotos.map((photo) => File(photo.path)).toList();
 
       // Use the ReportService to submit the report
       final reportService = ReportService();
       final reportId = await reportService.submitReport(
         issueType: widget.issueType,
         description: widget.description,
-        location: widget.location,
         latitude: widget.coordinates?.latitude,
         longitude: widget.coordinates?.longitude,
         photos: photoFiles,
@@ -79,7 +80,8 @@ class _ReportPreviewState extends State<ReportPreview> {
   @override
   Widget build(BuildContext context) {
     // Count valid photos
-    final validPhotoCount = widget.photos.where((photo) => photo != null).length;
+    final validPhotoCount =
+        widget.photos.where((photo) => photo != null).length;
 
     return Scaffold(
       appBar: AppBar(
@@ -125,7 +127,9 @@ class _ReportPreviewState extends State<ReportPreview> {
 
                   // Description
                   _buildSectionTitle('Description'),
-                  _buildInfoCard(widget.description.isEmpty ? 'No description provided' : widget.description),
+                  _buildInfoCard(widget.description.isEmpty
+                      ? 'No description provided'
+                      : widget.description),
                   const SizedBox(height: 16),
 
                   // Location
@@ -153,7 +157,8 @@ class _ReportPreviewState extends State<ReportPreview> {
                             Marker(
                               markerId: const MarkerId('selected_location'),
                               position: widget.coordinates!,
-                              infoWindow: const InfoWindow(title: 'Issue Location'),
+                              infoWindow:
+                                  const InfoWindow(title: 'Issue Location'),
                             ),
                           },
                           myLocationEnabled: false,
@@ -238,13 +243,13 @@ class _ReportPreviewState extends State<ReportPreview> {
                   ),
                   child: _isSubmitting
                       ? const SizedBox(
-                    width: 20,
-                    height: 20,
-                    child: CircularProgressIndicator(
-                      color: Colors.white,
-                      strokeWidth: 2,
-                    ),
-                  )
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(
+                            color: Colors.white,
+                            strokeWidth: 2,
+                          ),
+                        )
                       : const Text('Submit Report'),
                 ),
               ],

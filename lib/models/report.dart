@@ -2,7 +2,6 @@ class Report {
   final String? id;
   final String issueType;
   final String description;
-  final String location;
   final double? latitude;
   final double? longitude;
   final List<String> photoUrls;
@@ -14,7 +13,6 @@ class Report {
     this.id,
     required this.issueType,
     required this.description,
-    required this.location,
     this.latitude,
     this.longitude,
     this.photoUrls = const [],
@@ -28,8 +26,7 @@ class Report {
     return {
       'issueType': issueType,
       'description': description,
-      'location': location,
-      'coordinates': (latitude != null && longitude != null)
+      'location': (latitude != null && longitude != null)
           ? {'latitude': latitude, 'longitude': longitude}
           : null,
       'photoUrls': photoUrls,
@@ -41,13 +38,12 @@ class Report {
 
   // Create Report from Firestore document
   factory Report.fromMap(Map<String, dynamic> map, String id) {
-    final coordinates = map['coordinates'];
+    final coordinates = map['location'];
 
     return Report(
       id: id,
       issueType: map['issueType'] ?? '',
       description: map['description'] ?? '',
-      location: map['location'] ?? '',
       latitude: coordinates != null ? coordinates['latitude'] : null,
       longitude: coordinates != null ? coordinates['longitude'] : null,
       photoUrls: List<String>.from(map['photoUrls'] ?? []),
