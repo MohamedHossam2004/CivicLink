@@ -1,5 +1,6 @@
 // main.dart
 import 'package:flutter/material.dart';
+import 'package:gov_app/screens/Chat/chat_screen.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -14,10 +15,10 @@ import 'screens/ReportIssue/report_issue_step1.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  
+
   // Initialize Firebase
   await Firebase.initializeApp();
-  
+
   // Configure Firebase Auth settings globally
   try {
     await FirebaseAuth.instance.setSettings(
@@ -28,7 +29,7 @@ void main() async {
   } catch (e) {
     print('Main: Error configuring Firebase Auth settings: $e');
   }
-  
+
   await initializeDateFormatting();
   runApp(const MyApp());
 }
@@ -70,11 +71,11 @@ class MainScreen extends StatefulWidget {
 
 class _MainScreenState extends State<MainScreen> {
   int _currentIndex = 0;
-  
+
   final List<Widget> _screens = [
     const HomeScreen(),
     const CalendarPage(),
-    const Placeholder(), // Chat page
+    const ChatScreen(),
     const ReportIssueStep1(),
     const Placeholder(), // Profile page
   ];
