@@ -36,9 +36,9 @@ class BottomNavBar extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.spaceAround,
           children: [
             _buildNavItem(0, 'Home', Icons.home),
-            _buildNavItem(1, 'Tasks', Icons.check_circle_outline),
+            _buildNavItem(1, 'Calendar', Icons.calendar_today),
             _buildNavItem(2, 'Chat', Icons.chat_bubble_outline),
-            _buildNavItem(3, 'Calendar', Icons.calendar_today),
+            _buildNavItem(3, 'Reports', Icons.report),
             _buildNavItem(4, 'Profile', Icons.person_outline),
           ],
         ),

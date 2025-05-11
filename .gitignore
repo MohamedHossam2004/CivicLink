@@ -173,3 +173,16 @@ firebase.json                            # Hosting/emulator config :contentRefer
 .firebase/                               # Emulator data & logs :contentReference[oaicite:10]{index=10} :contentReference[oaicite:11]{index=11}
 
 google-services.json
+
+linux/
+
+windows/
+
+
+# API Keys and Secrets
+**/google-services.json
+**/GoogleService-Info.plist
+**/key.properties
+**/local.properties
+**/secrets.properties
+**/api_keys.properties
