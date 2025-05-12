@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:gov_app/config/theme.dart';
 import 'package:gov_app/screens/home/widgets/announcement_card.dart';
 import 'package:gov_app/screens/home/widgets/task_card.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:gov_app/screens/report_issue/report_issue_step1.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({Key? key}) : super(key: key);
@@ -11,8 +13,55 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  List<Map<String, dynamic>> _announcements = [];
+  List<Map<String, dynamic>> _tasks = [];
+  bool _isLoading = true;
+  String? _error;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchData();
+  }
+
+  Future<void> _fetchData() async {
+    try {
+      final announcementsSnapshot = await _firestore
+          .collection('announcements')
+          .orderBy('createdOn', descending: true)
+          .limit(2)
+          .get();
+      final announcements = announcementsSnapshot.docs.map((doc) => doc.data()).toList();
+      
+      final tasksSnapshot = await _firestore
+          .collection('tasks')
+          .orderBy('createdOn')
+          .limit(3)
+          .get();
+      final tasks = tasksSnapshot.docs.map((doc) => doc.data()).toList();
+      
+      setState(() {
+        _announcements = announcements;
+        _tasks = tasks;
+        _isLoading = false;
+      });
+    } catch (e) {
+      setState(() {
+        _error = e.toString();
+        _isLoading = false;
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    if (_isLoading) {
+      return const Center(child: CircularProgressIndicator());
+    }
+    if (_error != null) {
+      return Center(child: Text('Error: $_error'));
+    }
     return Scaffold(
       body: SafeArea(
         child: Column(
@@ -167,7 +216,12 @@ class _HomeScreenState extends State<HomeScreen> {
               color: Colors.red,
               bgColor: Colors.red.shade100,
               onTap: () {
-                // Navigate to report screen
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const ReportIssueStep1(),
+                  ),
+                );
               },
             ),
             _buildServiceItem(
@@ -427,36 +481,16 @@ class _HomeScreenState extends State<HomeScreen> {
           ],
         ),
         const SizedBox(height: 16),
-        const TaskCard(
-          title: 'Park Cleanup',
-          location: 'Central Park',
-          date: 'May 15, 2025',
-          time: '9:00 AM',
-          category: 'Environment',
-          participants: 12,
-          maxParticipants: 20,
-          color: AppTheme.environmentColor,
-        ),
-        const TaskCard(
-          title: 'Food Drive',
-          location: 'Community Center',
-          date: 'May 18, 2025',
-          time: '10:00 AM',
-          category: 'Community',
-          participants: 8,
-          maxParticipants: 15,
-          color: AppTheme.communityColor,
-        ),
-        const TaskCard(
-          title: 'Senior Assistance',
-          location: 'Riverside Homes',
-          date: 'May 22, 2025',
-          time: '2:00 PM',
-          category: 'Healthcare',
-          participants: 5,
-          maxParticipants: 10,
-          color: AppTheme.healthcareColor,
-        ),
+        ..._tasks.map((task) => TaskCard(
+          title: task['name'] ?? '',
+          location: task['location'] != null ? '${task['location']['latitude']}, ${task['location']['longitude']}' : '',
+          date: task['startTime'] ?? '',
+          time: task['endTime'] ?? '',
+          category: task['label'] ?? '',
+          participants: task['currVolunteers'] ?? 0,
+          maxParticipants: task['maxVolunteers'] ?? 0,
+          color: _getCategoryColor(task['label']),
+        )),
       ],
     );
   }
@@ -492,21 +526,29 @@ class _HomeScreenState extends State<HomeScreen> {
           ],
         ),
         const SizedBox(height: 16),
-        const AnnouncementCard(
-          title: 'Water Maintenance',
-          description: 'Water pipes will undergo maintenance from May 10 to May 12 in the downtown area.',
-          date: 'May 5, 2025',
-          category: 'Maintenance',
-          color: AppTheme.healthcareColor,
-        ),
-        const AnnouncementCard(
-          title: 'Road Closure',
-          description: 'Main Street will be closed on May 15 for repaving. Please use alternate routes.',
-          date: 'May 8, 2025',
-          category: 'Traffic',
-          color: AppTheme.communityColor,
-        ),
+        ..._announcements.map((announcement) => AnnouncementCard(
+          title: announcement['name'] ?? '',
+          description: announcement['description'] ?? '',
+          date: announcement['startTime'] ?? '',
+          category: announcement['label'] ?? '',
+          color: _getCategoryColor(announcement['label']),
+        )),
       ],
     );
+  }
+
+  Color _getCategoryColor(String category) {
+    switch (category) {
+      case 'Environment':
+        return AppTheme.environmentColor;
+      case 'Community':
+        return AppTheme.communityColor;
+      case 'Healthcare':
+        return AppTheme.healthcareColor;
+      case 'Education':
+        return AppTheme.educationColor;
+      default:
+        return Colors.grey;
+    }
   }
 }
