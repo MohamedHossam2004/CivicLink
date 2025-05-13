@@ -1,5 +1,8 @@
 // lib/screens/profile/profile_page.dart
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:intl/intl.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({Key? key}) : super(key: key);
@@ -11,21 +14,61 @@ class ProfilePage extends StatefulWidget {
 class _ProfilePageState extends State<ProfilePage>
     with SingleTickerProviderStateMixin {
   late final TabController _tabController;
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
-  // Hard-coded for now – swap with your Firebase calls later
-  final int tasksCompleted = 12;
-  final int reportsFiled = 8;
+  // Firestore-driven state
+  int _totalTasks = 0;
+  int _totalReports = 0;
+  List<Map<String, dynamic>> _tasks = [];
+  List<Map<String, dynamic>> _reports = [];
+  bool _isLoading = true;
+  String? _error;
 
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 3, vsync: this);
+    _fetchData();
   }
 
   @override
   void dispose() {
     _tabController.dispose();
     super.dispose();
+  }
+
+  Future<void> _fetchData() async {
+    try {
+      // 1) fetch a small page of tasks & reports for the Overview lists
+      final taskSnap = await _firestore
+          .collection('tasks')
+          .orderBy('createdOn')
+          .limit(3)
+          .get();
+      final repSnap = await _firestore
+          .collection('reports')
+          .orderBy('createdAt', descending: true)
+          .limit(2)
+          .get();
+
+      // 2) run count() aggregation to get the totals
+      final taskCountSnap = await _firestore.collection('tasks').count().get();
+      final reportCountSnap =
+          await _firestore.collection('reports').count().get();
+
+      setState(() {
+        _tasks = taskSnap.docs.map((d) => d.data()).toList();
+        _reports = repSnap.docs.map((d) => d.data()).toList();
+        _totalTasks = taskCountSnap.count!;
+        _totalReports = reportCountSnap.count!;
+        _isLoading = false;
+      });
+    } catch (e) {
+      setState(() {
+        _error = e.toString();
+        _isLoading = false;
+      });
+    }
   }
 
   @override
@@ -40,12 +83,10 @@ class _ProfilePageState extends State<ProfilePage>
         elevation: 0,
         actions: [
           IconButton(
-            icon: const Icon(Icons.settings, color: Colors.grey),
-            onPressed: () {},
-          )
+              icon: const Icon(Icons.settings, color: Colors.grey),
+              onPressed: () {}),
         ],
       ),
-
       // —— Body ——
       body: Column(
         children: [
@@ -82,25 +123,40 @@ class _ProfilePageState extends State<ProfilePage>
 
           const SizedBox(height: 16),
 
-          // 2) Three stat cards
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: Row(
-              children: [
-                Expanded(
-                  child: _StatCard(
-                      count: tasksCompleted.toString(),
-                      label: 'Tasks Completed'),
-                ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: _StatCard(
-                      count: reportsFiled.toString(), label: 'Reports Filed'),
-                ),
-                const SizedBox(width: 8),
-              ],
+          // 2) Re-added stat cards: Total Tasks & Total Reports
+          if (!_isLoading && _error == null)
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: _StatCard(
+                      count: _totalTasks.toString(),
+                      label: 'Total Tasks',
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: _StatCard(
+                      count: _totalReports.toString(),
+                      label: 'Total Reports',
+                    ),
+                  ),
+                ],
+              ),
             ),
-          ),
+
+          // Show loading or error instead of cards if needed
+          if (_isLoading)
+            const Padding(
+              padding: EdgeInsets.all(16),
+              child: Center(child: CircularProgressIndicator()),
+            ),
+          if (_error != null)
+            Padding(
+              padding: const EdgeInsets.all(16),
+              child: Center(child: Text('Error: $_error')),
+            ),
 
           const SizedBox(height: 16),
 
@@ -121,7 +177,7 @@ class _ProfilePageState extends State<ProfilePage>
                     const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
                 indicator: BoxDecoration(
                   color: Colors.white,
-                  borderRadius: BorderRadius.circular(50),
+                  borderRadius: BorderRadius.circular(24),
                 ),
                 labelColor: const Color(0xFF7E57C2),
                 unselectedLabelColor: Colors.grey,
@@ -140,10 +196,17 @@ class _ProfilePageState extends State<ProfilePage>
           Expanded(
             child: TabBarView(
               controller: _tabController,
-              children: const [
-                _OverviewTab(),
-                _ActivityTab(),
-                _SettingsTab(),
+              children: [
+                // Overview (with dynamic lists)
+                if (_isLoading)
+                  const Center(child: CircularProgressIndicator())
+                else if (_error != null)
+                  Center(child: Text('Error: $_error'))
+                else
+                  _OverviewTab(tasks: _tasks, reports: _reports),
+
+                const _ActivityTab(),
+                const _SettingsTab(),
               ],
             ),
           ),
@@ -180,103 +243,120 @@ class _StatCard extends StatelessWidget {
   }
 }
 
+// … keep the rest of your _OverviewTab, _ActivityTab, _SettingsTab, and
+//    item widgets exactly as before. They’ll now live below in the file. …
+
 /// The Overview tab, now with Upcoming Tasks & Recent Reports
 class _OverviewTab extends StatelessWidget {
-  const _OverviewTab();
+  final List<Map<String, dynamic>> tasks;
+  final List<Map<String, dynamic>> reports;
+
+  const _OverviewTab({
+    required this.tasks,
+    required this.reports,
+  });
 
   @override
   Widget build(BuildContext context) {
+    final dateFmt = DateFormat.yMMMMd();
+    final timeFmt = DateFormat.jm();
+
     return SingleChildScrollView(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        // — Upcoming Tasks header —
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            const Text('Upcoming Tasks',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-            TextButton(
-              onPressed: () {}, // TODO: View all tasks
-              child: const Text('View All',
-                  style: TextStyle(color: Color(0xFF7E57C2))),
-            ),
-          ],
-        ),
-        const SizedBox(height: 8),
-
-        // — Upcoming Tasks card —
-        Card(
-          color: Colors.white,
-          elevation: 2,
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-          child: Column(
-            children: const [
-              _UpcomingTaskItem(
-                title: 'Community Garden',
-                date: 'May 22, 2025',
-                time: '9:00 AM',
-                joined: true,
-                iconColor: Colors.green,
-              ),
-              Divider(height: 1),
-              _UpcomingTaskItem(
-                title: 'Food Drive',
-                date: 'May 30, 2025',
-                time: '1:00 PM',
-                joined: true,
-                iconColor: Colors.orange,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Upcoming Tasks header
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text('Upcoming Tasks',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+              TextButton(
+                onPressed: () {},
+                child: const Text('View All',
+                    style: TextStyle(color: Color(0xFF7E57C2))),
               ),
             ],
           ),
-        ),
-
-        const SizedBox(height: 24),
-
-        // — Recent Reports header —
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            const Text('Recent Reports',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-            TextButton(
-              onPressed: () {}, // TODO: View all reports
-              child: const Text('View All',
-                  style: TextStyle(color: Color(0xFF7E57C2))),
+          const SizedBox(height: 8),
+          Card(
+            color: Colors.white,
+            elevation: 2,
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            child: Column(
+              children: tasks.map((t) {
+                // Firestore Timestamp → DateTime
+                final ts = (t['createdOn'] as Timestamp).toDate();
+                return Column(
+                  children: [
+                    _UpcomingTaskItem(
+                      title: t['name'] as String,
+                      date: dateFmt.format(ts),
+                      time: timeFmt.format(ts),
+                      joined: true, // or use your logic
+                      iconColor: Colors.green,
+                    ),
+                    if (tasks.last != t) const Divider(height: 1),
+                  ],
+                );
+              }).toList(),
             ),
-          ],
-        ),
-        const SizedBox(height: 8),
+          ),
 
-        // — Recent Reports card —
-        Card(
-          color: Colors.white,
-          elevation: 2,
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-          child: Column(
-            children: const [
-              _RecentReportItem(
-                title: 'Street Light Not Working',
-                date: 'April 28, 2025',
-                status: 'In Progress',
-                statusBg: Color(0xFFFFF3E0), // light amber
-                statusColor: Color(0xFFFFA000),
-                iconColor: Color(0xFF90CAF9),
-              ),
-              Divider(height: 1),
-              _RecentReportItem(
-                title: 'Water Leak',
-                date: 'April 15, 2025',
-                status: 'Resolved',
-                statusBg: Color(0xFFE8F5E9), // light green
-                statusColor: Color(0xFF43A047),
-                iconColor: Color(0xFFEF9A9A),
+          const SizedBox(height: 24),
+
+          // Recent Reports header
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text('Recent Reports',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+              TextButton(
+                onPressed: () {},
+                child: const Text('View All',
+                    style: TextStyle(color: Color(0xFF7E57C2))),
               ),
             ],
           ),
-        ),
-      ]),
+          const SizedBox(height: 8),
+          Card(
+            color: Colors.white,
+            elevation: 2,
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            child: Column(
+              children: reports.map((r) {
+                final ts = (r['createdAt'] as Timestamp).toDate();
+                // choose colors by status
+                final status = r['status'] as String;
+                Color statusColor;
+                if (status == 'Resolved') {
+                  statusColor = Colors.green;
+                } else if (status == 'In Progress') {
+                  statusColor = Colors.orange;
+                } else {
+                  statusColor = Colors.grey;
+                }
+                return Column(
+                  children: [
+                    _RecentReportItem(
+                      title: r['description'] as String,
+                      date: dateFmt.format(ts),
+                      status: status,
+                      statusBg: statusColor.withOpacity(0.2),
+                      statusColor: statusColor,
+                      iconColor: Colors.blue,
+                    ),
+                    if (reports.last != r) const Divider(height: 1),
+                  ],
+                );
+              }).toList(),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
@@ -382,6 +462,7 @@ class _RecentReportItem extends StatelessWidget {
   }
 }
 
+// Add these imports at the top of your file
 class _SettingsTab extends StatefulWidget {
   const _SettingsTab();
 
@@ -390,156 +471,152 @@ class _SettingsTab extends StatefulWidget {
 }
 
 class _SettingsTabState extends State<_SettingsTab> {
-  // toggles
-  bool _pushEnabled = true;
-  bool _emailEnabled = true;
-  bool _smsEnabled = false;
+  // Firestore & Auth instances
+  final _firestore = FirebaseFirestore.instance;
+  final _auth = FirebaseAuth.instance;
+
+  // Controllers for each editable field
+  final _fullNameController = TextEditingController();
+  final _emailController = TextEditingController();
+  final _nationalIdController = TextEditingController();
+  final _addressController = TextEditingController();
+
+  bool _isLoading = true;
+  String? _error;
 
   @override
-  Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Personal Information
-          const Text(
-            'Personal Information',
-            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-          ),
-          const SizedBox(height: 8),
-          Card(
-            elevation: 2,
-            shape:
-                RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-            child: Column(
-              children: [
-                _buildInfoTile('Full Name', 'John Doe'),
-                const Divider(height: 1),
-                _buildInfoTile('Email Address', 'john.doe@example.com'),
-                const Divider(height: 1),
-                _buildInfoTile('Phone Number', '+1 (555) 123-4567'),
-                const Divider(height: 1),
-                _buildInfoTile('Address', '123 Main St, Anytown, ST 12345'),
-              ],
-            ),
-          ),
+  void initState() {
+    super.initState();
+    _loadProfile();
+  }
 
-          const SizedBox(height: 24),
+  @override
+  void dispose() {
+    _fullNameController.dispose();
+    _emailController.dispose();
+    _nationalIdController.dispose();
+    _addressController.dispose();
+    super.dispose();
+  }
 
-          // Notification Settings
-          const Text(
-            'Notification Settings',
-            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+  Future<void> _loadProfile() async {
+    try {
+      final uid = _auth.currentUser!.uid;
+      final doc = await _firestore.collection('users').doc(uid).get();
+      final data = doc.data() ?? {};
+
+      // Map Firestore fields into our controllers
+      _fullNameController.text = data['fullName'] ?? '';
+      _emailController.text = data['email'] ?? '';
+      _nationalIdController.text = data['nationalId'] ?? '';
+      _addressController.text = data['address'] ?? '';
+
+      setState(() => _isLoading = false);
+    } catch (e) {
+      setState(() {
+        _error = e.toString();
+        _isLoading = false;
+      });
+    }
+  }
+
+  Future<void> _updateField(String fieldKey, TextEditingController ctrl) async {
+    final newValue = ctrl.text.trim();
+    if (newValue.isEmpty) return;
+
+    final uid = _auth.currentUser!.uid;
+    await _firestore.collection('users').doc(uid).update({fieldKey: newValue});
+    // Controller is already updated, UI will reflect change immediately
+  }
+
+  Future<void> _showEditDialog(
+    String fieldKey,
+    TextEditingController controller,
+    String label,
+  ) async {
+    final editCtrl = TextEditingController(text: controller.text);
+
+    await showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text('Edit $label'),
+        content: TextField(
+          controller: editCtrl,
+          decoration: InputDecoration(labelText: label),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Cancel'),
           ),
-          const SizedBox(height: 8),
-          Card(
-            color: Colors.white,
-            elevation: 2,
-            shape:
-                RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-            child: Column(
-              children: [
-                SwitchListTile(
-                  title: const Text('Push Notifications'),
-                  subtitle: const Text('Receive alerts on your device'),
-                  value: _pushEnabled,
-                  onChanged: (v) => setState(() => _pushEnabled = v),
-                ),
-                const Divider(height: 1),
-                SwitchListTile(
-                  title: const Text('Email Notifications'),
-                  subtitle: const Text('Receive updates via email'),
-                  value: _emailEnabled,
-                  onChanged: (v) => setState(() => _emailEnabled = v),
-                ),
-                const Divider(height: 1),
-                SwitchListTile(
-                  title: const Text('SMS Notifications'),
-                  subtitle:
-                      const Text('Receive text messages for urgent updates'),
-                  value: _smsEnabled,
-                  onChanged: (v) => setState(() => _smsEnabled = v),
-                ),
-              ],
-            ),
-          ),
-
-          const SizedBox(height: 24),
-
-          // Account Actions
-          const Text(
-            'Account',
-            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-          ),
-          const SizedBox(height: 8),
-          Card(
-            elevation: 2,
-            shape:
-                RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-            child: Column(
-              children: [
-                ListTile(
-                  tileColor: Colors.white,
-                  leading: const Icon(Icons.lock_outline),
-                  title: const Text('Change Password'),
-                  trailing: const Icon(Icons.chevron_right),
-                  onTap: () {
-                    // TODO: navigate to change password
-                  },
-                ),
-                const Divider(height: 1),
-                ListTile(
-                  tileColor: Colors.white,
-                  leading: const Icon(Icons.privacy_tip_outlined),
-                  title: const Text('Privacy Settings'),
-                  trailing: const Icon(Icons.chevron_right),
-                  onTap: () {
-                    // TODO: navigate to privacy settings
-                  },
-                ),
-              ],
-            ),
-          ),
-
-          const SizedBox(height: 24),
-
-          // Sign Out Button
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 0),
-            child: ElevatedButton.icon(
-              icon: const Icon(Icons.logout),
-              label: const Text('Sign Out'),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.red,
-                minimumSize: const Size.fromHeight(48),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-              ),
-              onPressed: () {
-                // TODO: sign out logic
-              },
-            ),
+          ElevatedButton(
+            onPressed: () async {
+              controller.text = editCtrl.text;
+              await _updateField(fieldKey, controller);
+              Navigator.pop(ctx);
+            },
+            child: const Text('Save'),
           ),
         ],
       ),
     );
   }
 
-  /// Helper for each info row with an edit icon.
-  Widget _buildInfoTile(String label, String value) {
+  Widget _buildInfoTile(
+    String label,
+    TextEditingController ctrl,
+    String firestoreKey,
+  ) {
     return ListTile(
-      // tileColor: Colors.white,
       tileColor: Colors.white,
       title: Text(label),
-      subtitle: Text(value),
+      subtitle: Text(ctrl.text),
       trailing: IconButton(
         icon: const Icon(Icons.edit, color: Color(0xFF7E57C2)),
-        onPressed: () {
-          // TODO: open edit dialog
-        },
+        onPressed: () => _showEditDialog(firestoreKey, ctrl, label),
       ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (_isLoading) {
+      return const Center(child: CircularProgressIndicator());
+    }
+    if (_error != null) {
+      return Center(child: Text('Error: $_error'));
+    }
+
+    return SingleChildScrollView(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        // Personal Information
+        const Text(
+          'Personal Information',
+          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+        ),
+        const SizedBox(height: 8),
+        Card(
+          elevation: 2,
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          child: Column(
+            children: [
+              _buildInfoTile('Full Name', _fullNameController, 'fullName'),
+              const Divider(height: 1),
+              _buildInfoTile('Email Address', _emailController, 'email'),
+              const Divider(height: 1),
+              _buildInfoTile(
+                  'National ID', _nationalIdController, 'nationalId'),
+              const Divider(height: 1),
+              _buildInfoTile('Address', _addressController, 'address'),
+            ],
+          ),
+        ),
+
+        const SizedBox(height: 24),
+        // Keep your Notification Settings & Account sections here...
+      ]),
     );
   }
 }
