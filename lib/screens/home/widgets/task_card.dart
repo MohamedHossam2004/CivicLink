@@ -26,7 +26,7 @@ class TaskCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final progress = participants / maxParticipants;
+    final progress = maxParticipants > 0 ? participants / maxParticipants : 0.0;
 
     return Card(
       margin: const EdgeInsets.only(bottom: 12),

@@ -530,13 +530,22 @@ class _HomeScreenState extends State<HomeScreen> {
           ],
         ),
         const SizedBox(height: 16),
-        ..._announcements.map((announcement) => AnnouncementCard(
-              title: announcement['name'] ?? '',
-              description: announcement['description'] ?? '',
-              date: announcement['startTime'] ?? '',
-              category: announcement['label'] ?? '',
-              color: _getCategoryColor(announcement['label']),
-            )),
+        ..._announcements.map((announcement) {
+          final timestamp = announcement['startTime'];
+          final date = timestamp is Timestamp
+              ? timestamp
+                  .toDate()
+                  .toString() // Convert Timestamp to DateTime, then to String
+              : 'Unknown Date';
+
+          return AnnouncementCard(
+            title: announcement['name'] ?? '',
+            description: announcement['description'] ?? '',
+            date: date,
+            category: announcement['label'] ?? '',
+            color: _getCategoryColor(announcement['label']),
+          );
+        }),
       ],
     );
   }
