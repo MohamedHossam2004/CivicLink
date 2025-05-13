@@ -1,7 +1,6 @@
 // main.dart
 import 'package:flutter/material.dart';
 import 'package:gov_app/screens/Chat/chat_screen.dart';
-import 'package:gov_app/screens/ReportIssue/report_screen.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -12,6 +11,7 @@ import 'package:gov_app/widgets/bottom_nav_bar.dart';
 import 'package:gov_app/screens/volunteer/volunteer_page.dart';
 import 'package:gov_app/screens/Auth/loginPage.dart';
 import 'package:gov_app/screens/Auth/registrationPage.dart';
+import 'screens/ReportIssue/report_issue_step1.dart';
 import 'package:gov_app/services/auth_service.dart';
 
 void main() async {
@@ -125,7 +125,7 @@ class _MainScreenState extends State<MainScreen> {
     const HomeScreen(),
     const CalendarPage(),
     ChatScreen(),
-    ReportScreen(),
+    const ReportIssueStep1(),
     const Placeholder(), // Profile page
   ];
 
