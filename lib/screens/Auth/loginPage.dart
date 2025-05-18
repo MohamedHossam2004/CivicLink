@@ -186,7 +186,8 @@ class _LoginPageState extends State<LoginPage> {
                       ),
                       Expanded(
                         child: GestureDetector(
-                          onTap: () => Navigator.pushNamed(context, '/register'),
+                          onTap: () =>
+                              Navigator.pushNamed(context, '/register'),
                           child: const Center(
                             child: Text(
                               'Register',
@@ -233,9 +234,9 @@ class _LoginPageState extends State<LoginPage> {
                   ),
                 ),
                 const SizedBox(height: 16),
-                Row(
+                const Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: const [
+                  children: [
                     Text(
                       'Password',
                       style: TextStyle(fontWeight: FontWeight.w500),
@@ -309,8 +310,8 @@ class _LoginPageState extends State<LoginPage> {
                       : const Text('Login'),
                 ),
                 const SizedBox(height: 16),
-                Row(
-                  children: const [
+                const Row(
+                  children: [
                     Expanded(child: Divider()),
                     Padding(
                       padding: EdgeInsets.symmetric(horizontal: 8),

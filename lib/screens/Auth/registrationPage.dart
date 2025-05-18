@@ -141,7 +141,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
         default:
           message = e.message ?? 'Registration failed. Please try again.';
       }
-      
+
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(message)),
@@ -150,7 +150,8 @@ class _RegistrationPageState extends State<RegistrationPage> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Registration failed. Please try again.')),
+          const SnackBar(
+              content: Text('Registration failed. Please try again.')),
         );
       }
     } finally {
@@ -264,10 +265,12 @@ class _RegistrationPageState extends State<RegistrationPage> {
                             controller: _firstNameController,
                             decoration: InputDecoration(
                               hintText: 'Enter your first name',
-                              hintStyle: const TextStyle(color: Color(0xFF999999)),
+                              hintStyle:
+                                  const TextStyle(color: Color(0xFF999999)),
                               border: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(6),
-                                borderSide: const BorderSide(color: Color(0xFFE5E5E5)),
+                                borderSide:
+                                    const BorderSide(color: Color(0xFFE5E5E5)),
                               ),
                               contentPadding: const EdgeInsets.symmetric(
                                 horizontal: 12,
@@ -298,10 +301,12 @@ class _RegistrationPageState extends State<RegistrationPage> {
                             controller: _lastNameController,
                             decoration: InputDecoration(
                               hintText: 'Enter your last name',
-                              hintStyle: const TextStyle(color: Color(0xFF999999)),
+                              hintStyle:
+                                  const TextStyle(color: Color(0xFF999999)),
                               border: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(6),
-                                borderSide: const BorderSide(color: Color(0xFFE5E5E5)),
+                                borderSide:
+                                    const BorderSide(color: Color(0xFFE5E5E5)),
                               ),
                               contentPadding: const EdgeInsets.symmetric(
                                 horizontal: 12,
@@ -374,7 +379,9 @@ class _RegistrationPageState extends State<RegistrationPage> {
                     hintStyle: const TextStyle(color: Color(0xFF999999)),
                     suffixIcon: IconButton(
                       icon: Icon(
-                        _obscurePassword ? Icons.visibility_off : Icons.visibility,
+                        _obscurePassword
+                            ? Icons.visibility_off
+                            : Icons.visibility,
                         color: const Color(0xFF999999),
                       ),
                       onPressed: () {
@@ -438,14 +445,15 @@ class _RegistrationPageState extends State<RegistrationPage> {
                           width: 20,
                           child: CircularProgressIndicator(
                             strokeWidth: 2,
-                            valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                            valueColor:
+                                AlwaysStoppedAnimation<Color>(Colors.white),
                           ),
                         )
                       : const Text('Register'),
                 ),
                 const SizedBox(height: 16),
-                Row(
-                  children: const [
+                const Row(
+                  children: [
                     Expanded(child: Divider()),
                     Padding(
                       padding: EdgeInsets.symmetric(horizontal: 8),

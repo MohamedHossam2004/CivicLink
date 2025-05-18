@@ -6,19 +6,19 @@ class AppTheme {
   static const Color primaryColor = Color(0xFF8B5CF6); // violet-500
   static const Color primaryDarkColor = Color(0xFF7C3AED); // violet-600
   static const Color primaryLightColor = Color(0xFFEDE9FE); // violet-100
-  
+
   // Secondary colors
   static const Color secondaryColor = Color(0xFF4F46E5); // indigo-600
   static const Color secondaryLightColor = Color(0xFFE0E7FF); // indigo-100
-  
+
   // Background colors
   static const Color backgroundColor = Color(0xFFF8FAFC); // slate-50
   static const Color cardColor = Colors.white;
-  
+
   // Text colors
   static const Color textPrimaryColor = Color(0xFF1E293B); // slate-800
   static const Color textSecondaryColor = Color(0xFF64748B); // slate-500
-  
+
   // Category colors
   static const Color environmentColor = Color(0xFF10B981); // green-500
   static const Color communityColor = Color(0xFFF59E0B); // amber-500
@@ -76,7 +76,8 @@ class AppTheme {
           borderRadius: BorderRadius.circular(50),
           borderSide: const BorderSide(color: primaryColor),
         ),
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        contentPadding:
+            const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       ),
       cardTheme: CardTheme(
         color: cardColor,
@@ -86,11 +87,10 @@ class AppTheme {
         ),
         margin: EdgeInsets.zero,
       ),
-      colorScheme: ColorScheme.light(
+      colorScheme: const ColorScheme.light(
         primary: primaryColor,
         secondary: secondaryColor,
         error: Colors.red,
-        background: backgroundColor,
         surface: cardColor,
       ),
     );

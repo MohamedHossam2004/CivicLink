@@ -82,7 +82,8 @@ class _ReportIssueStep2State extends State<ReportIssueStep2> {
 
         // Update the location controller with a readable address
         // In a real implementation, you would use reverse geocoding here
-        _locationController.text = 'Current Location (${_selectedLocation!.latitude.toStringAsFixed(4)}, ${_selectedLocation!.longitude.toStringAsFixed(4)})';
+        _locationController.text =
+            'Current Location (${_selectedLocation!.latitude.toStringAsFixed(4)}, ${_selectedLocation!.longitude.toStringAsFixed(4)})';
       });
 
       // Move camera to the current location if map controller is available
@@ -118,7 +119,8 @@ class _ReportIssueStep2State extends State<ReportIssueStep2> {
       };
 
       // Update location text
-      _locationController.text = 'Selected Location (${tappedPoint.latitude.toStringAsFixed(4)}, ${tappedPoint.longitude.toStringAsFixed(4)})';
+      _locationController.text =
+          'Selected Location (${tappedPoint.latitude.toStringAsFixed(4)}, ${tappedPoint.longitude.toStringAsFixed(4)})';
     });
   }
 
@@ -143,10 +145,10 @@ class _ReportIssueStep2State extends State<ReportIssueStep2> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Row(
+                const Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    const Text('Step 2 of 3'),
+                    Text('Step 2 of 3'),
                     Text('67% Complete'),
                   ],
                 ),
@@ -213,23 +215,23 @@ class _ReportIssueStep2State extends State<ReportIssueStep2> {
                         borderRadius: BorderRadius.circular(4),
                         child: _selectedLocation != null
                             ? GoogleMap(
-                          initialCameraPosition: CameraPosition(
-                            target: _selectedLocation!,
-                            zoom: 15,
-                          ),
-                          markers: _markers,
-                          myLocationEnabled: true,
-                          myLocationButtonEnabled: true,
-                          mapToolbarEnabled: false,
-                          zoomControlsEnabled: true,
-                          onMapCreated: (controller) {
-                            _mapController = controller;
-                          },
-                          onTap: _handleMapTap,
-                        )
+                                initialCameraPosition: CameraPosition(
+                                  target: _selectedLocation!,
+                                  zoom: 15,
+                                ),
+                                markers: _markers,
+                                myLocationEnabled: true,
+                                myLocationButtonEnabled: true,
+                                mapToolbarEnabled: false,
+                                zoomControlsEnabled: true,
+                                onMapCreated: (controller) {
+                                  _mapController = controller;
+                                },
+                                onTap: _handleMapTap,
+                              )
                             : const Center(
-                          child: CircularProgressIndicator(),
-                        ),
+                                child: CircularProgressIndicator(),
+                              ),
                       ),
                     ),
                   ),
@@ -250,19 +252,19 @@ class _ReportIssueStep2State extends State<ReportIssueStep2> {
                         onPressed: _selectedLocation == null
                             ? null // Disable button if no location is selected
                             : () {
-                          // Navigate to next step
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => ReportIssueStep3(
-                                issueType: widget.issueType,
-                                description: widget.description,
-                                location: _locationController.text,
-                                coordinates: _selectedLocation,
-                              ),
-                            ),
-                          );
-                        },
+                                // Navigate to next step
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => ReportIssueStep3(
+                                      issueType: widget.issueType,
+                                      description: widget.description,
+                                      location: _locationController.text,
+                                      coordinates: _selectedLocation,
+                                    ),
+                                  ),
+                                );
+                              },
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.teal,
                           foregroundColor: Colors.white,

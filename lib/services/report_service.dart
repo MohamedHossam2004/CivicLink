@@ -66,7 +66,7 @@ class ReportService {
       try {
         // Generate unique filename with timestamp to avoid collisions
         final timestamp = DateTime.now().millisecondsSinceEpoch;
-        final uuid = Uuid();
+        const uuid = Uuid();
         final filename = 'report_${uuid.v4()}_$timestamp.jpg';
 
         // Create storage reference with a simpler path

@@ -1,6 +1,9 @@
 // main.dart
 import 'package:flutter/material.dart';
-import 'package:gov_app/screens/Chat/chat_screen.dart';
+import 'package:gov_app/screens/Chat/admin_chat_screen.dart';
+import 'package:gov_app/screens/Chat/citizen_chat_screen.dart';
+import 'package:gov_app/screens/Chat/government_chat_list.dart';
+import 'package:gov_app/services/auth_service.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -12,6 +15,12 @@ import 'package:gov_app/screens/volunteer/volunteer_page.dart';
 import 'package:gov_app/screens/Auth/loginPage.dart';
 import 'package:gov_app/screens/Auth/registrationPage.dart';
 import 'screens/ReportIssue/report_issue_step1.dart';
+
+AuthService _authService = AuthService();
+
+final Widget chatScreen = _authService.currentUser!.uid == "governmentId"
+    ? GovernmentChatListScreen()
+    : const ChatScreen();
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -31,11 +40,11 @@ void main() async {
   }
 
   await initializeDateFormatting();
-  runApp(const MyApp());
+  runApp(MyApp());
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({Key? key}) : super(key: key);
+  MyApp({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -71,13 +80,12 @@ class MainScreen extends StatefulWidget {
 
 class _MainScreenState extends State<MainScreen> {
   int _currentIndex = 0;
-
   final List<Widget> _screens = [
     const HomeScreen(),
     const CalendarPage(),
-    const ChatScreen(),
+    chatScreen,
     const ReportIssueStep1(),
-    const Placeholder(), // Profile page
+    const Placeholder(),
   ];
 
   @override

@@ -77,9 +77,9 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
               ),
               const SizedBox(width: 12),
-              Column(
+              const Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
-                children: const [
+                children: [
                   Text(
                     'Welcome back',
                     style: TextStyle(
@@ -222,107 +222,133 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildFeaturedTask() {
-  return Container(
-    padding: const EdgeInsets.all(20),
-    decoration: BoxDecoration(
-      gradient: LinearGradient(
-        colors: [
-          AppTheme.primaryColor,
-          AppTheme.secondaryColor,
-        ],
-        begin: Alignment.centerLeft,
-        end: Alignment.centerRight,
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          colors: [
+            AppTheme.primaryColor,
+            AppTheme.secondaryColor,
+          ],
+          begin: Alignment.centerLeft,
+          end: Alignment.centerRight,
+        ),
+        borderRadius: BorderRadius.circular(16),
       ),
-      borderRadius: BorderRadius.circular(16),
-    ),
-    child: Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Container(
-          padding: const EdgeInsets.symmetric(
-            horizontal: 8,
-            vertical: 4,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            padding: const EdgeInsets.symmetric(
+              horizontal: 8,
+              vertical: 4,
+            ),
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.2),
+              borderRadius: BorderRadius.circular(50),
+            ),
+            child: const Text(
+              'Featured Task',
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 12,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
           ),
-          decoration: BoxDecoration(
-            color: Colors.white.withOpacity(0.2),
-            borderRadius: BorderRadius.circular(50),
-          ),
-          child: const Text(
-            'Featured Task',
+          const SizedBox(height: 12),
+          const Text(
+            'Community Garden Project',
             style: TextStyle(
               color: Colors.white,
-              fontSize: 12,
-              fontWeight: FontWeight.w500,
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
             ),
           ),
-        ),
-        const SizedBox(height: 12),
-        const Text(
-          'Community Garden Project',
-          style: TextStyle(
-            color: Colors.white,
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        const SizedBox(height: 8),
-        Text(
-          'Help create a new community garden in the central district',
-          style: TextStyle(
-            color: Colors.white.withOpacity(0.8),
-            fontSize: 14,
-          ),
-        ),
-        const SizedBox(height: 16),
-        Row(
-          children: [
-            const Icon(
-              Icons.calendar_today,
-              color: Colors.white70,
-              size: 16,
+          const SizedBox(height: 8),
+          Text(
+            'Help create a new community garden in the central district',
+            style: TextStyle(
+              color: Colors.white.withOpacity(0.8),
+              fontSize: 14,
             ),
-            const SizedBox(width: 4),
-            const Text(
-              'May 20, 2025',
-              style: TextStyle(
+          ),
+          const SizedBox(height: 16),
+          const Row(
+            children: [
+              Icon(
+                Icons.calendar_today,
                 color: Colors.white70,
-                fontSize: 12,
+                size: 16,
               ),
-            ),
-            const SizedBox(width: 12),
-            const Icon(
-              Icons.access_time,
-              color: Colors.white70,
-              size: 16,
-            ),
-            const SizedBox(width: 4),
-            const Text(
-              '9:00 AM - 2:00 PM',
-              style: TextStyle(
+              SizedBox(width: 4),
+              Text(
+                'May 20, 2025',
+                style: TextStyle(
+                  color: Colors.white70,
+                  fontSize: 12,
+                ),
+              ),
+              SizedBox(width: 12),
+              Icon(
+                Icons.access_time,
                 color: Colors.white70,
-                fontSize: 12,
+                size: 16,
               ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 16),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Replace the overlapping avatars with a Stack
-                SizedBox(
-                  height: 28,
-                  width: 100, // Adjust width as needed
-                  child: Stack(
-                    children: [
-                      for (int i = 0; i < 3; i++)
+              SizedBox(width: 4),
+              Text(
+                '9:00 AM - 2:00 PM',
+                style: TextStyle(
+                  color: Colors.white70,
+                  fontSize: 12,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Replace the overlapping avatars with a Stack
+                  SizedBox(
+                    height: 28,
+                    width: 100, // Adjust width as needed
+                    child: Stack(
+                      children: [
+                        for (int i = 0; i < 3; i++)
+                          Positioned(
+                            left: i *
+                                20.0, // Position each avatar with some overlap
+                            child: Container(
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                border: Border.all(
+                                  color: AppTheme.primaryColor,
+                                  width: 2,
+                                ),
+                              ),
+                              child: const CircleAvatar(
+                                radius: 12,
+                                backgroundColor: Colors.white,
+                                child: Text(
+                                  'A',
+                                  style: TextStyle(
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.bold,
+                                    color: AppTheme.primaryColor,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
                         Positioned(
-                          left: i * 20.0, // Position each avatar with some overlap
+                          left: 60, // Position the +8 avatar
                           child: Container(
                             decoration: BoxDecoration(
+                              color: AppTheme.primaryLightColor,
                               shape: BoxShape.circle,
                               border: Border.all(
                                 color: AppTheme.primaryColor,
@@ -331,9 +357,9 @@ class _HomeScreenState extends State<HomeScreen> {
                             ),
                             child: const CircleAvatar(
                               radius: 12,
-                              backgroundColor: Colors.white,
+                              backgroundColor: Colors.transparent,
                               child: Text(
-                                'A',
+                                '+8',
                                 style: TextStyle(
                                   fontSize: 10,
                                   fontWeight: FontWeight.bold,
@@ -343,58 +369,33 @@ class _HomeScreenState extends State<HomeScreen> {
                             ),
                           ),
                         ),
-                      Positioned(
-                        left: 60, // Position the +8 avatar
-                        child: Container(
-                          decoration: BoxDecoration(
-                            color: AppTheme.primaryLightColor,
-                            shape: BoxShape.circle,
-                            border: Border.all(
-                              color: AppTheme.primaryColor,
-                              width: 2,
-                            ),
-                          ),
-                          child: const CircleAvatar(
-                            radius: 12,
-                            backgroundColor: Colors.transparent,
-                            child: Text(
-                              '+8',
-                              style: TextStyle(
-                                fontSize: 10,
-                                fontWeight: FontWeight.bold,
-                                color: AppTheme.primaryColor,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  '11 of 20 volunteers',
-                  style: TextStyle(
-                    color: Colors.white.withOpacity(0.7),
-                    fontSize: 12,
+                  const SizedBox(height: 4),
+                  Text(
+                    '11 of 20 volunteers',
+                    style: TextStyle(
+                      color: Colors.white.withOpacity(0.7),
+                      fontSize: 12,
+                    ),
                   ),
-                ),
-              ],
-            ),
-            ElevatedButton(
-              onPressed: () {},
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.white,
-                foregroundColor: AppTheme.primaryColor,
+                ],
               ),
-              child: const Text('Join Now'),
-            ),
-          ],
-        ),
-      ],
-    ),
-  );
-}
+              ElevatedButton(
+                onPressed: () {},
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.white,
+                  foregroundColor: AppTheme.primaryColor,
+                ),
+                child: const Text('Join Now'),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
 
   Widget _buildUpcomingTasksSection() {
     return Column(
@@ -414,8 +415,8 @@ class _HomeScreenState extends State<HomeScreen> {
               onPressed: () {
                 // Navigate to volunteer screen
               },
-              child: Row(
-                children: const [
+              child: const Row(
+                children: [
                   Text('View All'),
                   Icon(
                     Icons.chevron_right,
@@ -479,8 +480,8 @@ class _HomeScreenState extends State<HomeScreen> {
               onPressed: () {
                 // Navigate to announcements screen
               },
-              child: Row(
-                children: const [
+              child: const Row(
+                children: [
                   Text('View All'),
                   Icon(
                     Icons.chevron_right,
@@ -494,14 +495,16 @@ class _HomeScreenState extends State<HomeScreen> {
         const SizedBox(height: 16),
         const AnnouncementCard(
           title: 'Water Maintenance',
-          description: 'Water pipes will undergo maintenance from May 10 to May 12 in the downtown area.',
+          description:
+              'Water pipes will undergo maintenance from May 10 to May 12 in the downtown area.',
           date: 'May 5, 2025',
           category: 'Maintenance',
           color: AppTheme.healthcareColor,
         ),
         const AnnouncementCard(
           title: 'Road Closure',
-          description: 'Main Street will be closed on May 15 for repaving. Please use alternate routes.',
+          description:
+              'Main Street will be closed on May 15 for repaving. Please use alternate routes.',
           date: 'May 8, 2025',
           category: 'Traffic',
           color: AppTheme.communityColor,

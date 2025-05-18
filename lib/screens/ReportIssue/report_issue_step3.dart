@@ -77,10 +77,10 @@ class _ReportIssueStep3State extends State<ReportIssueStep3> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Row(
+                const Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    const Text('Step 3 of 3'),
+                    Text('Step 3 of 3'),
                     Text('100% Complete'),
                   ],
                 ),
@@ -127,19 +127,19 @@ class _ReportIssueStep3State extends State<ReportIssueStep3> {
                           ),
                           child: _photos[index] != null
                               ? ClipRRect(
-                            borderRadius: BorderRadius.circular(8),
-                            child: Image.file(
-                              File(_photos[index]!.path),
-                              fit: BoxFit.cover,
-                            ),
-                          )
+                                  borderRadius: BorderRadius.circular(8),
+                                  child: Image.file(
+                                    File(_photos[index]!.path),
+                                    fit: BoxFit.cover,
+                                  ),
+                                )
                               : index == 2
-                              ? const Icon(
-                            Icons.camera_alt,
-                            color: Colors.grey,
-                            size: 32,
-                          )
-                              : null,
+                                  ? const Icon(
+                                      Icons.camera_alt,
+                                      color: Colors.grey,
+                                      size: 32,
+                                    )
+                                  : null,
                         ),
                       );
                     }),

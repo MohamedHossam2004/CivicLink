@@ -49,10 +49,10 @@ class _ReportIssueStep1State extends State<ReportIssueStep1> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Row(
+                const Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    const Text('Step 1 of 3'),
+                    Text('Step 1 of 3'),
                     Text('33% Complete'),
                   ],
                 ),

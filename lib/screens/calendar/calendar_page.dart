@@ -9,29 +9,30 @@ class CalendarPage extends StatefulWidget {
   _CalendarPageState createState() => _CalendarPageState();
 }
 
-class _CalendarPageState extends State<CalendarPage> with SingleTickerProviderStateMixin {
+class _CalendarPageState extends State<CalendarPage>
+    with SingleTickerProviderStateMixin {
   late DateTime _currentMonth = DateTime.now();
   late int _selectedDate = DateTime.now().day;
   late TabController _tabController;
   String _selectedEventType = "all";
-  
+
   // Format the current month for display
   String get formattedMonth {
     return DateFormat('MMMM yyyy').format(_currentMonth);
   }
-  
+
   // Get the number of days in the current month
   int get daysInMonth {
     final nextMonth = DateTime(_currentMonth.year, _currentMonth.month + 1, 1);
     final lastDay = nextMonth.subtract(const Duration(days: 1));
     return lastDay.day;
   }
-  
+
   // Get the weekday of the first day of the month (0 = Sunday, 1 = Monday, etc.)
   int get firstWeekday {
     return DateTime(_currentMonth.year, _currentMonth.month, 1).weekday % 7;
   }
-  
+
   // Navigate to the previous month
   void _previousMonth() {
     setState(() {
@@ -42,7 +43,7 @@ class _CalendarPageState extends State<CalendarPage> with SingleTickerProviderSt
       }
     });
   }
-  
+
   // Navigate to the next month
   void _nextMonth() {
     setState(() {
@@ -53,13 +54,13 @@ class _CalendarPageState extends State<CalendarPage> with SingleTickerProviderSt
       }
     });
   }
-  
+
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 4, vsync: this);
   }
-  
+
   @override
   void dispose() {
     _tabController.dispose();
@@ -98,7 +99,7 @@ class _CalendarPageState extends State<CalendarPage> with SingleTickerProviderSt
       ),
     );
   }
-  
+
   Widget _buildHeader() {
     return Container(
       padding: const EdgeInsets.all(16),
@@ -131,12 +132,14 @@ class _CalendarPageState extends State<CalendarPage> with SingleTickerProviderSt
                     icon: const Icon(Icons.filter_list, size: 16),
                     label: const Text('Filter'),
                     style: OutlinedButton.styleFrom(
-                      foregroundColor: const Color(0xFF64748B), 
-                      side: const BorderSide(color: Color(0xFFCBD5E1)), // slate-300
+                      foregroundColor: const Color(0xFF64748B),
+                      side: const BorderSide(
+                          color: Color(0xFFCBD5E1)), // slate-300
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(20),
                       ),
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 12, vertical: 8),
                       minimumSize: Size.zero,
                       textStyle: const TextStyle(fontSize: 14),
                     ),
@@ -151,7 +154,8 @@ class _CalendarPageState extends State<CalendarPage> with SingleTickerProviderSt
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(20),
                       ),
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 12, vertical: 8),
                       minimumSize: Size.zero,
                       textStyle: const TextStyle(fontSize: 14),
                     ),
@@ -174,13 +178,13 @@ class _CalendarPageState extends State<CalendarPage> with SingleTickerProviderSt
                     splashRadius: 20,
                   ),
                   const SizedBox(width: 8),
-              Text(
-                DateFormat('MMMM yyyy').format(_currentMonth),
-                style: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
+                  Text(
+                    DateFormat('MMMM yyyy').format(_currentMonth),
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
                   const SizedBox(width: 8),
                   IconButton(
                     icon: const Icon(Icons.arrow_right, size: 16),
@@ -191,19 +195,19 @@ class _CalendarPageState extends State<CalendarPage> with SingleTickerProviderSt
                   ),
                 ],
               ),
-              Row(
+              const Row(
                 children: [
-                  const Icon(
+                  Icon(
                     Icons.public,
                     size: 16,
                     color: Color(0xFF64748B), // slate-500
                   ),
-                  const SizedBox(width: 4),
+                  SizedBox(width: 4),
                   Text(
                     'All City Events',
                     style: TextStyle(
                       fontSize: 14,
-                      color: const Color(0xFF64748B), // slate-500
+                      color: Color(0xFF64748B), // slate-500
                     ),
                   ),
                 ],
@@ -214,7 +218,7 @@ class _CalendarPageState extends State<CalendarPage> with SingleTickerProviderSt
       ),
     );
   }
-  
+
   Widget _buildEventTypeFilter() {
     final eventTypes = [
       {"id": "all", "label": "All Events"},
@@ -225,7 +229,7 @@ class _CalendarPageState extends State<CalendarPage> with SingleTickerProviderSt
       {"id": "payment", "label": "Payment"},
       {"id": "infrastructure", "label": "Infrastructure"},
     ];
-    
+
     return Container(
       height: 48,
       padding: const EdgeInsets.symmetric(vertical: 8),
@@ -246,7 +250,7 @@ class _CalendarPageState extends State<CalendarPage> with SingleTickerProviderSt
         itemBuilder: (context, index) {
           final eventType = eventTypes[index];
           final isSelected = _selectedEventType == eventType["id"];
-          
+
           return Padding(
             padding: const EdgeInsets.only(right: 8),
             child: GestureDetector(
@@ -256,9 +260,12 @@ class _CalendarPageState extends State<CalendarPage> with SingleTickerProviderSt
                 });
               },
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
                 decoration: BoxDecoration(
-                  color: isSelected ? const Color(0xFF8B5CF6) : const Color(0xFFF1F5F9), // violet-600 : slate-100
+                  color: isSelected
+                      ? const Color(0xFF8B5CF6)
+                      : const Color(0xFFF1F5F9), // violet-600 : slate-100
                   borderRadius: BorderRadius.circular(9999),
                 ),
                 child: Row(
@@ -270,13 +277,17 @@ class _CalendarPageState extends State<CalendarPage> with SingleTickerProviderSt
                         child: Icon(
                           eventType["icon"] as IconData,
                           size: 12,
-                          color: isSelected ? Colors.white : const Color(0xFF1E293B), // white : slate-800
+                          color: isSelected
+                              ? Colors.white
+                              : const Color(0xFF1E293B), // white : slate-800
                         ),
                       ),
                     Text(
                       eventType["label"] as String,
                       style: TextStyle(
-                        color: isSelected ? Colors.white : const Color(0xFF1E293B), // white : slate-800
+                        color: isSelected
+                            ? Colors.white
+                            : const Color(0xFF1E293B), // white : slate-800
                         fontSize: 12,
                         fontWeight: FontWeight.w500,
                       ),
@@ -290,7 +301,7 @@ class _CalendarPageState extends State<CalendarPage> with SingleTickerProviderSt
       ),
     );
   }
-  
+
   Widget _buildTabBar() {
     return Padding(
       padding: const EdgeInsets.all(16),
@@ -329,7 +340,7 @@ class _CalendarPageState extends State<CalendarPage> with SingleTickerProviderSt
       ),
     );
   }
-  
+
   // Fix for the main month view overflow - use SingleChildScrollView
   Widget _buildMonthView() {
     return SingleChildScrollView(
@@ -347,25 +358,25 @@ class _CalendarPageState extends State<CalendarPage> with SingleTickerProviderSt
       ),
     );
   }
-  
+
   Widget _buildCalendarGrid() {
     final weekdays = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
-    
+
     // Generate days for the month view
     List<int?> days = [];
     final firstDay = firstWeekday;
     final totalDays = daysInMonth;
-    
+
     // Add empty cells for days before the 1st of the month
     for (int i = 0; i < firstDay; i++) {
       days.add(null);
     }
-    
+
     // Add days of the month
     for (int i = 1; i <= totalDays; i++) {
       days.add(i);
     }
-    
+
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
@@ -410,7 +421,7 @@ class _CalendarPageState extends State<CalendarPage> with SingleTickerProviderSt
               }).toList(),
             ),
           ),
-          
+
           // Calendar days grid
           GridView.builder(
             shrinkWrap: true,
@@ -434,11 +445,12 @@ class _CalendarPageState extends State<CalendarPage> with SingleTickerProviderSt
                   ),
                 );
               }
-              
+
               // Get events for this day
-              final date = DateTime(_currentMonth.year, _currentMonth.month, day);
+              final date =
+                  DateTime(_currentMonth.year, _currentMonth.month, day);
               final events = _getEventsForDate(date);
-              
+
               // Filter events based on selected event type
               final filteredEvents = _selectedEventType == "all"
                   ? events
@@ -446,7 +458,7 @@ class _CalendarPageState extends State<CalendarPage> with SingleTickerProviderSt
                       // In a real app, you would filter based on actual event categories
                       return true; // For now, show all events regardless of filter
                     }).toList();
-              
+
               return _buildDayCell(
                 day: day,
                 isSelected: day == _selectedDate,
@@ -463,10 +475,10 @@ class _CalendarPageState extends State<CalendarPage> with SingleTickerProviderSt
   List<Map<String, dynamic>> _getEventsForDate(DateTime date) {
     // In a real app, you would fetch events from a database or API
     // For this example, we'll use hardcoded events for specific dates
-    
+
     // Format the date as a string for comparison (YYYY-MM-DD)
     final dateString = DateFormat('yyyy-MM-dd').format(date);
-    
+
     // Map of events by date
     final eventsByDate = {
       // May 2025
@@ -499,7 +511,7 @@ class _CalendarPageState extends State<CalendarPage> with SingleTickerProviderSt
         {"title": "Farmers Market", "color": const Color(0xFF6366F1)},
         {"title": "Youth Sports", "color": const Color(0xFF22C55E)},
       ],
-      
+
       // June 2025
       '2025-06-05': [
         {"title": "Summer Festival", "color": const Color(0xFF6366F1)},
@@ -515,7 +527,7 @@ class _CalendarPageState extends State<CalendarPage> with SingleTickerProviderSt
         {"title": "Park Concert", "color": const Color(0xFF6366F1)},
         {"title": "Beach Cleanup", "color": const Color(0xFF22C55E)},
       ],
-      
+
       // April 2025
       '2025-04-10': [
         {"title": "Spring Cleanup", "color": const Color(0xFF22C55E)},
@@ -530,11 +542,11 @@ class _CalendarPageState extends State<CalendarPage> with SingleTickerProviderSt
         {"title": "School Board", "color": const Color(0xFF3B82F6)},
       ],
     };
-    
+
     // Return events for the given date, or an empty list if none
     return eventsByDate[dateString] ?? [];
   }
-  
+
   // Fixed mini event widget with proper constraints
   Widget _buildMiniEvent(String title, Color color) {
     return Container(
@@ -557,71 +569,80 @@ class _CalendarPageState extends State<CalendarPage> with SingleTickerProviderSt
       ),
     );
   }
-  
-Widget _buildSelectedDayEvents() {
-  // Get the selected date as a DateTime
-  final selectedDateTime = DateTime(_currentMonth.year, _currentMonth.month, _selectedDate);
-  
-  // Get events for the selected date
-  final events = _getEventsForDate(selectedDateTime);
-  
-  // Filter events based on selected event type
-  final filteredEvents = _selectedEventType == "all"
-      ? events
-      : events.where((event) {
-          // In a real app, you would filter based on actual event categories
-          // This is just a placeholder
-          return true; // For now, show all events regardless of filter
-        }).toList();
-  
-  return Column(
-    crossAxisAlignment: CrossAxisAlignment.start,
-    children: [
-      // Fix the overflow in this Row by using Expanded for the Text widget
-      Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Expanded(  // Add Expanded here to allow text to wrap or be truncated
-            child: Text(
-              "Events for ${DateFormat('MMMM d, yyyy').format(selectedDateTime)}",
-              style: const TextStyle(
-                fontWeight: FontWeight.w600,
-                fontSize: 16,
-              ),
-              overflow: TextOverflow.ellipsis,  // Add this to handle text overflow
-            ),
-          ),
-          TextButton(
-            onPressed: () {},
-            child: const Text(
-              "View All",
-              style: TextStyle(
-                color: Color(0xFF8B5CF6), // violet-600
-                fontSize: 14,
+
+  Widget _buildSelectedDayEvents() {
+    // Get the selected date as a DateTime
+    final selectedDateTime =
+        DateTime(_currentMonth.year, _currentMonth.month, _selectedDate);
+
+    // Get events for the selected date
+    final events = _getEventsForDate(selectedDateTime);
+
+    // Filter events based on selected event type
+    final filteredEvents = _selectedEventType == "all"
+        ? events
+        : events.where((event) {
+            // In a real app, you would filter based on actual event categories
+            // This is just a placeholder
+            return true; // For now, show all events regardless of filter
+          }).toList();
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Fix the overflow in this Row by using Expanded for the Text widget
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Expanded(
+              // Add Expanded here to allow text to wrap or be truncated
+              child: Text(
+                "Events for ${DateFormat('MMMM d, yyyy').format(selectedDateTime)}",
+                style: const TextStyle(
+                  fontWeight: FontWeight.w600,
+                  fontSize: 16,
+                ),
+                overflow:
+                    TextOverflow.ellipsis, // Add this to handle text overflow
               ),
             ),
-            style: TextButton.styleFrom(
-              minimumSize: Size.zero,
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+            TextButton(
+              onPressed: () {},
+              style: TextButton.styleFrom(
+                minimumSize: Size.zero,
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              ),
+              child: const Text(
+                "View All",
+                style: TextStyle(
+                  color: Color(0xFF8B5CF6), // violet-600
+                  fontSize: 14,
+                ),
+              ),
             ),
-          ),
-        ],
-      ),
-      const SizedBox(height: 8),
+          ],
+        ),
+        const SizedBox(height: 8),
         if (filteredEvents.isNotEmpty)
           Column(
-            children: filteredEvents.map((event) => Padding(
-              padding: const EdgeInsets.only(bottom: 12),
-              child: _buildEventCard(
-                title: event["title"],
-                time: "9:00 AM - 12:00 PM", // In a real app, this would come from the event data
-                location: "Location", // In a real app, this would come from the event data
-                category: "Category", // In a real app, this would come from the event data
-                department: "Department", // In a real app, this would come from the event data
-                color: event["color"],
-              ),
-            )).toList(),
+            children: filteredEvents
+                .map((event) => Padding(
+                      padding: const EdgeInsets.only(bottom: 12),
+                      child: _buildEventCard(
+                        title: event["title"],
+                        time:
+                            "9:00 AM - 12:00 PM", // In a real app, this would come from the event data
+                        location:
+                            "Location", // In a real app, this would come from the event data
+                        category:
+                            "Category", // In a real app, this would come from the event data
+                        department:
+                            "Department", // In a real app, this would come from the event data
+                        color: event["color"],
+                      ),
+                    ))
+                .toList(),
           )
         else
           Container(
@@ -639,10 +660,10 @@ Widget _buildSelectedDayEvents() {
             ),
             child: Column(
               children: [
-                Text(
+                const Text(
                   "No events scheduled for this day",
                   style: TextStyle(
-                    color: const Color(0xFF64748B), // slate-500
+                    color: Color(0xFF64748B), // slate-500
                   ),
                 ),
                 const SizedBox(height: 12),
@@ -663,7 +684,7 @@ Widget _buildSelectedDayEvents() {
       ],
     );
   }
-  
+
   Widget _buildEventCard({
     required String title,
     required String time,
@@ -791,11 +812,11 @@ Widget _buildSelectedDayEvents() {
       ),
     );
   }
-  
+
   Widget _buildCategoryBadge(String category) {
     Color bgColor;
     Color textColor;
-    
+
     switch (category) {
       case 'Volunteer':
         bgColor = const Color(0xFFDCFCE7); // green-100
@@ -825,7 +846,7 @@ Widget _buildSelectedDayEvents() {
         bgColor = const Color(0xFFF1F5F9); // slate-100
         textColor = const Color(0xFF1E293B); // slate-800
     }
-    
+
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
@@ -842,7 +863,7 @@ Widget _buildSelectedDayEvents() {
       ),
     );
   }
-  
+
   // Fix for week view - use SingleChildScrollView
   Widget _buildWeekView() {
     final now = DateTime.now();
@@ -871,15 +892,15 @@ Widget _buildSelectedDayEvents() {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Expanded(
-                child: Text(
-                  "Week of ${DateFormat('MMM d').format(startOfWeek)} - ${DateFormat('d, yyyy').format(endOfWeek)}",
-                  style: const TextStyle(
-                    fontWeight: FontWeight.w600,
-                    fontSize: 16,
+                    child: Text(
+                      "Week of ${DateFormat('MMM d').format(startOfWeek)} - ${DateFormat('d, yyyy').format(endOfWeek)}",
+                      style: const TextStyle(
+                        fontWeight: FontWeight.w600,
+                        fontSize: 16,
+                      ),
+                      overflow: TextOverflow.ellipsis,
+                    ),
                   ),
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
                   // Wrap buttons in a Column for small screens
                   LayoutBuilder(
                     builder: (context, constraints) {
@@ -915,22 +936,26 @@ Widget _buildSelectedDayEvents() {
                   shrinkWrap: true,
                   children: [
                     _buildTimeSlot("8:00 AM", null),
-                    _buildTimeSlot("9:00 AM", _buildTimeEvent(
-                      "Park Cleanup",
-                      "9:00 AM - 12:00 PM",
-                      "Environmental Department",
-                      const Color(0xFF22C55E), // green-500
-                    )),
+                    _buildTimeSlot(
+                        "9:00 AM",
+                        _buildTimeEvent(
+                          "Park Cleanup",
+                          "9:00 AM - 12:00 PM",
+                          "Environmental Department",
+                          const Color(0xFF22C55E), // green-500
+                        )),
                     _buildTimeSlot("10:00 AM", null),
                     _buildTimeSlot("11:00 AM", null),
                     _buildTimeSlot("12:00 PM", null),
                     _buildTimeSlot("1:00 PM", null),
-                    _buildTimeSlot("2:00 PM", _buildTimeEvent(
-                      "City Council Meeting",
-                      "2:00 PM - 3:30 PM",
-                      "City Council",
-                      const Color(0xFF3B82F6), // blue-500
-                    )),
+                    _buildTimeSlot(
+                        "2:00 PM",
+                        _buildTimeEvent(
+                          "City Council Meeting",
+                          "2:00 PM - 3:30 PM",
+                          "City Council",
+                          const Color(0xFF3B82F6), // blue-500
+                        )),
                     _buildTimeSlot("3:00 PM", null),
                     _buildTimeSlot("4:00 PM", null),
                     _buildTimeSlot("5:00 PM", null),
@@ -943,7 +968,7 @@ Widget _buildSelectedDayEvents() {
       ),
     );
   }
-  
+
   Widget _buildTimeSlot(String time, Widget? event) {
     return Container(
       padding: const EdgeInsets.only(bottom: 8),
@@ -986,8 +1011,9 @@ Widget _buildSelectedDayEvents() {
       ),
     );
   }
-  
-  Widget _buildTimeEvent(String title, String time, String department, Color color) {
+
+  Widget _buildTimeEvent(
+      String title, String time, String department, Color color) {
     return Container(
       padding: const EdgeInsets.all(8),
       decoration: BoxDecoration(
@@ -1024,7 +1050,7 @@ Widget _buildSelectedDayEvents() {
       ),
     );
   }
-  
+
   // Fix for day view - use SingleChildScrollView
   Widget _buildDayView() {
     return SingleChildScrollView(
@@ -1050,25 +1076,28 @@ Widget _buildSelectedDayEvents() {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                DateFormat('MMMM d, yyyy').format(
-                  DateTime(_currentMonth.year, _currentMonth.month, _selectedDate)
-                ),
-                style: const TextStyle(
-                  fontWeight: FontWeight.w600,
-                  fontSize: 16,
-                ),
-              ),
+                    DateFormat('MMMM d, yyyy').format(DateTime(
+                        _currentMonth.year,
+                        _currentMonth.month,
+                        _selectedDate)),
+                    style: const TextStyle(
+                      fontWeight: FontWeight.w600,
+                      fontSize: 16,
+                    ),
+                  ),
                   OutlinedButton.icon(
                     onPressed: () {},
                     icon: const Icon(Icons.keyboard_arrow_down, size: 16),
                     label: const Text("Today"),
                     style: OutlinedButton.styleFrom(
-                      foregroundColor: const Color(0xFF64748B), 
-                      side: const BorderSide(color: Color(0xFFCBD5E1)), // slate-300
+                      foregroundColor: const Color(0xFF64748B),
+                      side: const BorderSide(
+                          color: Color(0xFFCBD5E1)), // slate-300
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(20),
                       ),
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 12, vertical: 8),
                       minimumSize: Size.zero,
                       textStyle: const TextStyle(fontSize: 14),
                     ),
@@ -1083,24 +1112,28 @@ Widget _buildSelectedDayEvents() {
                   shrinkWrap: true,
                   children: [
                     _buildTimeSlot("8:00 AM", null),
-                    _buildTimeSlot("9:00 AM", _buildDetailedTimeEvent(
-                      "Park Cleanup",
-                      "9:00 AM - 12:00 PM",
-                      "Central Park",
-                      "Environmental Department",
-                      const Color(0xFF22C55E), // green-500
-                    )),
+                    _buildTimeSlot(
+                        "9:00 AM",
+                        _buildDetailedTimeEvent(
+                          "Park Cleanup",
+                          "9:00 AM - 12:00 PM",
+                          "Central Park",
+                          "Environmental Department",
+                          const Color(0xFF22C55E), // green-500
+                        )),
                     _buildTimeSlot("10:00 AM", null),
                     _buildTimeSlot("11:00 AM", null),
                     _buildTimeSlot("12:00 PM", null),
                     _buildTimeSlot("1:00 PM", null),
-                    _buildTimeSlot("2:00 PM", _buildDetailedTimeEvent(
-                      "City Council Meeting",
-                      "2:00 PM - 3:30 PM",
-                      "City Hall",
-                      "City Council",
-                      const Color(0xFF3B82F6), // blue-500
-                    )),
+                    _buildTimeSlot(
+                        "2:00 PM",
+                        _buildDetailedTimeEvent(
+                          "City Council Meeting",
+                          "2:00 PM - 3:30 PM",
+                          "City Hall",
+                          "City Council",
+                          const Color(0xFF3B82F6), // blue-500
+                        )),
                     _buildTimeSlot("3:00 PM", null),
                     _buildTimeSlot("4:00 PM", null),
                     _buildTimeSlot("5:00 PM", null),
@@ -1113,8 +1146,9 @@ Widget _buildSelectedDayEvents() {
       ),
     );
   }
-  
-  Widget _buildDetailedTimeEvent(String title, String time, String location, String department, Color color) {
+
+  Widget _buildDetailedTimeEvent(String title, String time, String location,
+      String department, Color color) {
     return Container(
       padding: const EdgeInsets.all(8),
       decoration: BoxDecoration(
@@ -1169,7 +1203,7 @@ Widget _buildSelectedDayEvents() {
       ),
     );
   }
-  
+
   // Fix for agenda view - use SingleChildScrollView
   Widget _buildAgendaView() {
     final events = [
@@ -1253,16 +1287,16 @@ Widget _buildSelectedDayEvents() {
         "day": 8,
       },
     ];
-    
+
     // Filter events based on selected event type
     final filteredEvents = events.where((event) {
       if (_selectedEventType == "all") return true;
       return event["category"].toString().toLowerCase() == _selectedEventType;
     }).toList();
-    
+
     // Sort events by day
     filteredEvents.sort((a, b) => (a["day"] as int).compareTo(b["day"] as int));
-    
+
     return SingleChildScrollView(
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -1297,12 +1331,14 @@ Widget _buildSelectedDayEvents() {
                     icon: const Icon(Icons.filter_list, size: 16),
                     label: const Text("Department"),
                     style: OutlinedButton.styleFrom(
-                      foregroundColor: const Color(0xFF64748B), 
-                      side: const BorderSide(color: Color(0xFFCBD5E1)), // slate-300
+                      foregroundColor: const Color(0xFF64748B),
+                      side: const BorderSide(
+                          color: Color(0xFFCBD5E1)), // slate-300
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(20),
                       ),
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 12, vertical: 8),
                       minimumSize: Size.zero,
                       textStyle: const TextStyle(fontSize: 14),
                     ),
@@ -1343,13 +1379,16 @@ Widget _buildSelectedDayEvents() {
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
                               Text(
-                        DateFormat('MMM').format(DateTime(_currentMonth.year, _currentMonth.month, event["day"] as int)),
-                        style: const TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.bold,
-                          color: Color(0xFF1E293B), // slate-800
-                        ),
-                      ),
+                                DateFormat('MMM').format(DateTime(
+                                    _currentMonth.year,
+                                    _currentMonth.month,
+                                    event["day"] as int)),
+                                style: const TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.bold,
+                                  color: Color(0xFF1E293B), // slate-800
+                                ),
+                              ),
                               Text(
                                 "${event["day"]}",
                                 style: const TextStyle(
@@ -1367,7 +1406,8 @@ Widget _buildSelectedDayEvents() {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
                                 children: [
                                   Expanded(
                                     child: Text(
@@ -1379,7 +1419,8 @@ Widget _buildSelectedDayEvents() {
                                       overflow: TextOverflow.ellipsis,
                                     ),
                                   ),
-                                  _buildCategoryBadge(event["category"] as String),
+                                  _buildCategoryBadge(
+                                      event["category"] as String),
                                 ],
                               ),
                               const SizedBox(height: 4),
@@ -1454,7 +1495,7 @@ Widget _buildSelectedDayEvents() {
       ),
     );
   }
-  
+
   Widget _buildBottomNavBar() {
     return Container(
       decoration: const BoxDecoration(
@@ -1513,7 +1554,7 @@ Widget _buildSelectedDayEvents() {
       ),
     );
   }
-  
+
   Widget _buildNavItem({
     required IconData icon,
     required String label,
@@ -1532,12 +1573,16 @@ Widget _buildSelectedDayEvents() {
               width: 40,
               height: 40,
               decoration: BoxDecoration(
-                color: isSelected ? const Color(0xFFEDE9FE) : const Color(0xFFF1F5F9), // violet-100 : slate-100
+                color: isSelected
+                    ? const Color(0xFFEDE9FE)
+                    : const Color(0xFFF1F5F9), // violet-100 : slate-100
                 shape: BoxShape.circle,
               ),
               child: Icon(
                 icon,
-                color: isSelected ? const Color(0xFF8B5CF6) : const Color(0xFF64748B), // violet-600 : slate-500
+                color: isSelected
+                    ? const Color(0xFF8B5CF6)
+                    : const Color(0xFF64748B), // violet-600 : slate-500
                 size: 20,
               ),
             ),
@@ -1546,7 +1591,9 @@ Widget _buildSelectedDayEvents() {
               label,
               style: TextStyle(
                 fontSize: 10,
-                color: isSelected ? const Color(0xFF8B5CF6) : const Color(0xFF64748B), // violet-600 : slate-500
+                color: isSelected
+                    ? const Color(0xFF8B5CF6)
+                    : const Color(0xFF64748B), // violet-600 : slate-500
               ),
             ),
           ],
@@ -1573,7 +1620,9 @@ Widget _buildSelectedDayEvents() {
             right: BorderSide(color: Color(0xFFE2E8F0)), // slate-200
             bottom: BorderSide(color: Color(0xFFE2E8F0)), // slate-200
           ),
-          color: isSelected ? const Color(0xFFEDE9FE) : Colors.white, // violet-50 : white
+          color: isSelected
+              ? const Color(0xFFEDE9FE)
+              : Colors.white, // violet-50 : white
         ),
         child: Column(
           children: [
@@ -1587,7 +1636,9 @@ Widget _buildSelectedDayEvents() {
                 height: 24,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: isSelected ? const Color(0xFF8B5CF6) : Colors.transparent, // violet-600 : transparent
+                  color: isSelected
+                      ? const Color(0xFF8B5CF6)
+                      : Colors.transparent, // violet-600 : transparent
                 ),
                 alignment: Alignment.center,
                 child: Text(
@@ -1595,24 +1646,27 @@ Widget _buildSelectedDayEvents() {
                   style: TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.w500,
-                    color: isSelected ? Colors.white : const Color(0xFF1E293B), // white : slate-700
+                    color: isSelected
+                        ? Colors.white
+                        : const Color(0xFF1E293B), // white : slate-700
                   ),
                 ),
               ),
             ),
-            
+
             // Mini events with ListView
             if (events.isNotEmpty)
               Expanded(
                 child: LayoutBuilder(
                   builder: (context, constraints) {
                     // Calculate how many events we can show
-                    final maxEventsToShow = 2;
-                    final visibleEvents = events.length > maxEventsToShow 
-                        ? events.sublist(0, maxEventsToShow) 
+                    const maxEventsToShow = 2;
+                    final visibleEvents = events.length > maxEventsToShow
+                        ? events.sublist(0, maxEventsToShow)
                         : events;
-                    final remainingEvents = events.length - visibleEvents.length;
-                    
+                    final remainingEvents =
+                        events.length - visibleEvents.length;
+
                     return Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
@@ -1632,7 +1686,7 @@ Widget _buildSelectedDayEvents() {
                             },
                           ),
                         ),
-                        
+
                         // "+X more" indicator if needed
                         if (remainingEvents > 0)
                           Padding(
@@ -1659,13 +1713,13 @@ Widget _buildSelectedDayEvents() {
     );
   }
 
-    Widget _buildWeekViewButton(String label, IconData icon) {
+  Widget _buildWeekViewButton(String label, IconData icon) {
     return OutlinedButton.icon(
       onPressed: () {},
       icon: Icon(icon, size: 16),
       label: Text(label),
       style: OutlinedButton.styleFrom(
-        foregroundColor: const Color(0xFF64748B), 
+        foregroundColor: const Color(0xFF64748B),
         side: const BorderSide(color: Color(0xFFCBD5E1)), // slate-300
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(20),
