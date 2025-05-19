@@ -281,4 +281,22 @@ class AuthService {
       return null;
     }
   }
+  Future<Map<String, String>> getUserNamefromID(String userId) async {
+    try {
+      // Get user details from Firestore
+      final userDoc = await _firestore.collection('users').doc(userId).get();
+
+      if (!userDoc.exists) return {'firstName': '', 'lastName': ''};
+
+      final userData = userDoc.data()!;
+
+      return {
+        'firstName': userData['firstName'] ?? '',
+        'lastName': userData['lastName'] ?? '',
+      };
+    } catch (e) {
+      print('Error getting user name: $e');
+      return {'firstName': '', 'lastName': ''};
+    }
+  }
 }

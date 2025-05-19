@@ -31,8 +31,7 @@ class GovernmentChatListScreen extends StatelessWidget {
               const SizedBox(height: 16),
               ElevatedButton(
                 onPressed: () {
-                  // TODO: Navigate to login screen
-                  print('Navigate to login screen');
+                  Navigator.pushNamed(context, '/login');
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.teal,

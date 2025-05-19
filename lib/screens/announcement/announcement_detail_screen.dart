@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../models/announcement.dart';
 import '../../services/announcement_service.dart';
+import '../../services/auth_service.dart';
 import '../../utils/date_formatter.dart';
 
 class AnnouncementDetailScreen extends StatefulWidget {
@@ -18,6 +19,7 @@ class AnnouncementDetailScreen extends StatefulWidget {
 
 class _AnnouncementDetailScreenState extends State<AnnouncementDetailScreen> {
   final AnnouncementService _service = AnnouncementService();
+  final AuthService _authService = AuthService();
   final TextEditingController _commentController = TextEditingController();
   bool _isLiked = false;
 
@@ -28,11 +30,22 @@ class _AnnouncementDetailScreenState extends State<AnnouncementDetailScreen> {
   }
 
   void _addComment() {
-    if (_commentController.text.trim().isEmpty) return;
+    final commentText = _commentController.text.trim();
+    if (commentText.isEmpty) return;
 
-    // TODO: Get current user ID from auth service
-    const userId = 'current_user_id';
-    _service.addComment(widget.announcementId, userId);
+    final user = _authService.currentUser;
+    if (user == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please log in to add a comment')),
+      );
+      return;
+    }
+
+    _service.addComment(
+      widget.announcementId,
+      user.uid,
+      commentText,
+    );
     _commentController.clear();
     FocusScope.of(context).unfocus();
   }
@@ -409,7 +422,7 @@ class _AnnouncementDetailScreenState extends State<AnnouncementDetailScreen> {
               radius: 16,
               backgroundColor: Colors.grey.shade200,
               child: Text(
-                comment.userId.substring(0, 1),
+                comment.displayName.substring(0, 1),
                 style: TextStyle(
                   color: Colors.grey.shade700,
                   fontWeight: FontWeight.bold,
@@ -424,7 +437,7 @@ class _AnnouncementDetailScreenState extends State<AnnouncementDetailScreen> {
                   Row(
                     children: [
                       Text(
-                        comment.userId,
+                        comment.displayName,
                         style: const TextStyle(
                           fontWeight: FontWeight.bold,
                         ),
@@ -441,7 +454,7 @@ class _AnnouncementDetailScreenState extends State<AnnouncementDetailScreen> {
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    'Comment content', // TODO: Add comment content to the model
+                    comment.content,
                     style: const TextStyle(
                       fontSize: 14,
                       height: 1.4,

@@ -186,15 +186,21 @@ class Comment {
   final String id;
   final String announcementId;
   final String userId;
+  final String content;
   final DateTime createdAt;
   final int likesCount;
+  final String? firstName;
+  final String? lastName;
 
   Comment({
     required this.id,
     required this.announcementId,
     required this.userId,
+    required this.content,
     required this.createdAt,
     this.likesCount = 0,
+    this.firstName,
+    this.lastName,
   });
 
   // Convert Firestore document to Comment
@@ -204,8 +210,11 @@ class Comment {
       id: doc.id,
       announcementId: data['announcementId'] ?? '',
       userId: data['userId'] ?? '',
+      content: data['content'] ?? '',
       createdAt: (data['createdAt'] as Timestamp).toDate(),
       likesCount: data['likesCount'] ?? 0,
+      firstName: data['firstName'],
+      lastName: data['lastName'],
     );
   }
 
@@ -214,9 +223,41 @@ class Comment {
     return {
       'announcementId': announcementId,
       'userId': userId,
+      'content': content,
       'createdAt': Timestamp.fromDate(createdAt),
       'likesCount': likesCount,
+      if (firstName != null) 'firstName': firstName,
+      if (lastName != null) 'lastName': lastName,
     };
+  }
+
+  String get displayName {
+    if (firstName != null && lastName != null) {
+      return '$firstName $lastName';
+    }
+    return userId;
+  }
+
+  Comment copyWith({
+    String? id,
+    String? announcementId,
+    String? userId,
+    String? content,
+    DateTime? createdAt,
+    int? likesCount,
+    String? firstName,
+    String? lastName,
+  }) {
+    return Comment(
+      id: id ?? this.id,
+      announcementId: announcementId ?? this.announcementId,
+      userId: userId ?? this.userId,
+      content: content ?? this.content,
+      createdAt: createdAt ?? this.createdAt,
+      likesCount: likesCount ?? this.likesCount,
+      firstName: firstName ?? this.firstName,
+      lastName: lastName ?? this.lastName,
+    );
   }
 }
 

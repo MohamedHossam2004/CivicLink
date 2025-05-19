@@ -104,7 +104,29 @@ class _AnnouncementsScreenState extends State<AnnouncementsScreen> with SingleTi
                 ),
               ),
               onChanged: (value) {
-                // TODO: Implement search functionality
+                setState(() {
+                  if (value.isEmpty) {
+                    // Reset to current filter if search is empty
+                    switch (_currentFilter) {
+                      case 'All':
+                        _announcementsStream = _service.getAllAnnouncements();
+                        break;
+                      case 'Important':
+                        _announcementsStream = _service.getImportantAnnouncements();
+                        break;
+                      default:
+                        if (_currentFilter == 'Saved') {
+                          // TODO: Implement saved announcements
+                          _announcementsStream = Stream.value([]);
+                        } else {
+                          _announcementsStream = _service.filterByDepartment(_currentFilter);
+                        }
+                    }
+                  } else {
+                    // Apply search filter
+                    _announcementsStream = _service.searchAnnouncements(value);
+                  }
+                });
               },
             ),
           ),
