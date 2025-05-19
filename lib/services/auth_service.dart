@@ -1,10 +1,12 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:flutter_facebook_auth/flutter_facebook_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class AuthService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final GoogleSignIn _googleSignIn = GoogleSignIn();
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
   AuthService() {
     // Configure Firebase Auth settings when service is initialized
@@ -82,6 +84,9 @@ class AuthService {
       final token = await userCredential.user?.getIdToken();
       print('User signed in successfully. Token: ${token?.substring(0, 20)}...');
       
+      final userDetails = await getUserDetails();
+      print('User Details: $userDetails');
+      
       return userCredential;
     } catch (e) {
       print('Error signing in: $e');
@@ -128,6 +133,10 @@ class AuthService {
       final token = await userCredential.user?.getIdToken();
       print('User signed in with Google successfully. Token: ${token?.substring(0, 20)}...');
       
+      // Get and print user details
+      // final userDetails = await getUserDetails();
+      // print('User Details: $userDetails');
+      
       return userCredential;
     } catch (e) {
       print('Error signing in with Google: $e');
@@ -150,6 +159,10 @@ class AuthService {
         final token = await userCredential.user?.getIdToken();
         print('User signed in with Facebook successfully. Token: ${token?.substring(0, 20)}...');
         
+        // Get and print user details
+        // final userDetails = await getUserDetails();
+        // print('User Details: $userDetails');
+        
         return userCredential;
       } else {
         throw 'Facebook sign in failed';
@@ -170,6 +183,38 @@ class AuthService {
     } catch (e) {
       print('Error signing out: $e');
       rethrow;
+    }
+  }
+
+  // Get current user details
+  Future<Map<String, dynamic>?> getUserDetails() async {
+    try {
+      final user = _auth.currentUser;
+      if (user == null) return null;
+
+      // Get user details from Firestore
+      final userDoc = await _firestore
+          .collection('users')
+          .doc(user.uid)
+          .get();
+
+      if (!userDoc.exists) return null;
+
+      final userData = userDoc.data()!;
+      
+      return {
+        'firstName': userData['firstName'] ?? '',
+        'lastName': userData['lastName'] ?? '',
+        'email': userData['email'] ?? '',
+        'address': userData['address'] ?? '',
+        'nationalId': userData['nationalId'] ?? '',
+        'profilePictureUrl': userData['profilePictureUrl'] ?? '',
+        'createdAt': userData['createdAt']?.toDate()?.toIso8601String(),
+        'type': userData['type'] ?? 'User'
+      };
+    } catch (e) {
+      print('Error getting user details: $e');
+      return null;
     }
   }
 }

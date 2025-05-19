@@ -3,7 +3,7 @@ import 'package:gov_app/config/theme.dart';
 import 'package:gov_app/screens/home/widgets/announcement_card.dart';
 import 'package:gov_app/screens/home/widgets/task_card.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:gov_app/screens/report_issue/report_issue_step1.dart';
+import 'package:gov_app/screens/ReportIssue/report_issue_step1.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({Key? key}) : super(key: key);
