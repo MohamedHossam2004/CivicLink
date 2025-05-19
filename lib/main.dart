@@ -13,7 +13,6 @@ import 'package:gov_app/screens/Auth/loginPage.dart';
 import 'package:gov_app/screens/Auth/registrationPage.dart';
 import 'screens/ReportIssue/report_issue_step1.dart';
 import 'package:gov_app/screens/profile/profile_page.dart';
-import 'package:gov_app/screens/admin/add_sample_data_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -62,7 +61,6 @@ class MyApp extends StatelessWidget {
         '/chat': (context) => const ChatScreen(),
         '/calendar': (context) => const CalendarPage(),
         '/profile': (context) => const ProfilePage(),
-        '/add-sample-data': (context) => const AddSampleDataScreen(),
       },
     );
   }

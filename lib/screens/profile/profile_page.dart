@@ -98,43 +98,6 @@ class _ProfilePageState extends State<ProfilePage>
             style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
         backgroundColor: Colors.white,
         elevation: 0,
-        actions: [
-          IconButton(
-            icon: Icon(
-              Icons.admin_panel_settings,
-              color: _isAdmin ? Colors.deepPurple : Colors.grey,
-            ),
-            onPressed: () {
-              if (_isAdmin) {
-                Navigator.pushNamed(context, '/add-sample-data');
-              } else {
-                showDialog(
-                  context: context,
-                  builder: (context) => AlertDialog(
-                    title: const Text('Admin Status'),
-                    content: const Text('You are not an admin. Would you like to make yourself an admin for testing?'),
-                    actions: [
-                      TextButton(
-                        onPressed: () => Navigator.pop(context),
-                        child: const Text('Cancel'),
-                      ),
-                      ElevatedButton(
-                        onPressed: () {
-                          _makeUserAdmin();
-                          Navigator.pop(context);
-                        },
-                        child: const Text('Make Admin'),
-                      ),
-                    ],
-                  ),
-                );
-              }
-            },
-          ),
-          IconButton(
-              icon: const Icon(Icons.settings, color: Colors.grey),
-              onPressed: () {}),
-        ],
       ),
       // —— Body ——
       body: Column(
