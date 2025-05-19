@@ -12,6 +12,7 @@ import 'package:gov_app/screens/volunteer/volunteer_page.dart';
 import 'package:gov_app/screens/Auth/loginPage.dart';
 import 'package:gov_app/screens/Auth/registrationPage.dart';
 import 'screens/ReportIssue/report_issue_step1.dart';
+import 'package:gov_app/screens/profile/profile_page.dart';
 import 'package:gov_app/services/auth_service.dart';
 
 void main() async {
@@ -126,7 +127,7 @@ class _MainScreenState extends State<MainScreen> {
     const CalendarPage(),
     ChatScreen(),
     const ReportIssueStep1(),
-    const Placeholder(), // Profile page
+    const ProfilePage(), // Profile page
   ];
 
   @override
