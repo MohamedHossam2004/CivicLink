@@ -174,9 +174,9 @@ firebase.json                            # Hosting/emulator config :contentRefer
 
 google-services.json
 
-linux/
+linux/**
 
-windows/
+windows/**
 
 
 # API Keys and Secrets

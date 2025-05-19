@@ -2,11 +2,16 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:flutter_facebook_auth/flutter_facebook_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class AuthService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final GoogleSignIn _googleSignIn = GoogleSignIn();
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  static const String _userEmailKey = 'user_email';
+  static const String _userPasswordKey = 'user_password';
+  static const String _isLoggedInKey = 'is_logged_in';
+  static const String _loginMethodKey = 'login_method';
 
   AuthService() {
     // Configure Firebase Auth settings when service is initialized
@@ -23,6 +28,58 @@ class AuthService {
       print('Auth Service: Firebase Auth settings configured successfully');
     } catch (e) {
       print('Auth Service: Error configuring Firebase Auth settings: $e');
+    }
+  }
+
+  // Save login credentials
+  Future<void> _saveLoginCredentials(String email, String password, String method) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_userEmailKey, email);
+    await prefs.setString(_userPasswordKey, password);
+    await prefs.setBool(_isLoggedInKey, true);
+    await prefs.setString(_loginMethodKey, method);
+  }
+
+  // Clear login credentials
+  Future<void> _clearLoginCredentials() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove(_userEmailKey);
+    await prefs.remove(_userPasswordKey);
+    await prefs.setBool(_isLoggedInKey, false);
+    await prefs.remove(_loginMethodKey);
+  }
+
+  // Check if user is logged in
+  Future<bool> isUserLoggedIn() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getBool(_isLoggedInKey) ?? false;
+  }
+
+  // Auto login if credentials exist
+  Future<UserCredential?> autoLogin() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final isLoggedIn = prefs.getBool(_isLoggedInKey) ?? false;
+      
+      if (!isLoggedIn) return null;
+
+      final loginMethod = prefs.getString(_loginMethodKey);
+      final email = prefs.getString(_userEmailKey);
+      final password = prefs.getString(_userPasswordKey);
+
+      if (loginMethod == 'email' && email != null && password != null) {
+        return await signInWithEmailAndPassword(email, password);
+      } else if (loginMethod == 'google') {
+        return await signInWithGoogle();
+      } else if (loginMethod == 'facebook') {
+        return await signInWithFacebook();
+      }
+      
+      return null;
+    } catch (e) {
+      print('Error during auto login: $e');
+      await _clearLoginCredentials();
+      return null;
     }
   }
 
@@ -80,6 +137,9 @@ class AuthService {
         password: password,
       );
 
+      // Save login credentials
+      await _saveLoginCredentials(email, password, 'email');
+
       // Get and print token for debugging
       final token = await userCredential.user?.getIdToken();
       print(
@@ -103,6 +163,9 @@ class AuthService {
         email: email,
         password: password,
       );
+
+      // Save login credentials
+      await _saveLoginCredentials(email, password, 'email');
 
       // Get and print token for debugging
       final token = await userCredential.user?.getIdToken();
@@ -131,14 +194,13 @@ class AuthService {
 
       final userCredential = await _auth.signInWithCredential(credential);
 
+      // Save login method
+      await _saveLoginCredentials('', '', 'google');
+
       // Get and print token for debugging
       final token = await userCredential.user?.getIdToken();
       print(
           'User signed in with Google successfully. Token: ${token?.substring(0, 20)}...');
-
-      // Get and print user details
-      // final userDetails = await getUserDetails();
-      // print('User Details: $userDetails');
 
       return userCredential;
     } catch (e) {
@@ -158,14 +220,13 @@ class AuthService {
 
         final userCredential = await _auth.signInWithCredential(credential);
 
+        // Save login method
+        await _saveLoginCredentials('', '', 'facebook');
+
         // Get and print token for debugging
         final token = await userCredential.user?.getIdToken();
         print(
             'User signed in with Facebook successfully. Token: ${token?.substring(0, 20)}...');
-
-        // Get and print user details
-        // final userDetails = await getUserDetails();
-        // print('User Details: $userDetails');
 
         return userCredential;
       } else {
@@ -183,6 +244,7 @@ class AuthService {
       await _googleSignIn.signOut();
       await FacebookAuth.instance.logOut();
       await _auth.signOut();
+      await _clearLoginCredentials();
       print('User signed out successfully');
     } catch (e) {
       print('Error signing out: $e');

@@ -4,6 +4,7 @@ import 'package:gov_app/screens/home/widgets/announcement_card.dart';
 import 'package:gov_app/screens/home/widgets/task_card.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:gov_app/screens/ReportIssue/report_issue_step1.dart';
+import '../announcement/announcements_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({Key? key}) : super(key: key);
@@ -515,10 +516,15 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
             TextButton(
               onPressed: () {
-                // Navigate to announcements screen
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const AnnouncementsScreen(),
+                  ),
+                );
               },
-              child: Row(
-                children: const [
+              child: const Row(
+                children: [
                   Text('View All'),
                   Icon(
                     Icons.chevron_right,

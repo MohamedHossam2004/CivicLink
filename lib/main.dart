@@ -12,6 +12,7 @@ import 'package:gov_app/widgets/bottom_nav_bar.dart';
 import 'package:gov_app/screens/volunteer/volunteer_page.dart';
 import 'package:gov_app/screens/Auth/loginPage.dart';
 import 'package:gov_app/screens/Auth/registrationPage.dart';
+import 'package:gov_app/services/auth_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -50,7 +51,7 @@ class MyApp extends StatelessWidget {
           elevation: 1,
         ),
       ),
-      home: const LoginPage(),
+      home: const AuthWrapper(),
       routes: {
         '/home': (context) => const MainScreen(),
         '/event-details': (context) => const EventDetailPage(),
@@ -59,6 +60,54 @@ class MyApp extends StatelessWidget {
         '/register': (context) => const RegistrationPage(),
       },
     );
+  }
+}
+
+class AuthWrapper extends StatefulWidget {
+  const AuthWrapper({Key? key}) : super(key: key);
+
+  @override
+  State<AuthWrapper> createState() => _AuthWrapperState();
+}
+
+class _AuthWrapperState extends State<AuthWrapper> {
+  final AuthService _authService = AuthService();
+  bool _isLoading = true;
+  bool _isLoggedIn = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _checkLoginStatus();
+  }
+
+  Future<void> _checkLoginStatus() async {
+    try {
+      final userCredential = await _authService.autoLogin();
+      setState(() {
+        _isLoggedIn = userCredential != null;
+        _isLoading = false;
+      });
+    } catch (e) {
+      print('Error checking login status: $e');
+      setState(() {
+        _isLoggedIn = false;
+        _isLoading = false;
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (_isLoading) {
+      return const Scaffold(
+        body: Center(
+          child: CircularProgressIndicator(),
+        ),
+      );
+    }
+
+    return _isLoggedIn ? const MainScreen() : const LoginPage();
   }
 }
 
