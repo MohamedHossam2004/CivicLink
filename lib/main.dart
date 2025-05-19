@@ -1,5 +1,6 @@
 // main.dart
 import 'package:flutter/material.dart';
+import 'package:gov_app/models/task.dart';
 import 'package:gov_app/screens/Chat/chat_screen.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -124,10 +125,10 @@ class _MainScreenState extends State<MainScreen> {
 
   final List<Widget> _screens = [
     const HomeScreen(),
-    const CalendarPage(),
-    ChatScreen(),
     const ReportIssueStep1(),
-    const ProfilePage(), // Profile page
+    ChatScreen(),
+    const CalendarPage(),
+    const ProfilePage(),
   ];
 
   @override
