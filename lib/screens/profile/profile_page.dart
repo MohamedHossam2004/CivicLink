@@ -621,53 +621,119 @@ class _SettingsTabState extends State<_SettingsTab> {
   }
 }
 
-/// ----------------------------------
 /// Activity Tab & Timeline Widgets
 /// ----------------------------------
 
 /// ----------------------------
 /// Activity Tab (no line/dots)
 /// ----------------------------
-class _ActivityTab extends StatelessWidget {
+Future<List<Map<String, dynamic>>> _fetchActivityItems() async {
+  final firestore = FirebaseFirestore.instance;
+  final List<Map<String, dynamic>> activity = [];
+
+  // Fetch from each collection
+  final tasksSnap = await firestore.collection('tasks').get();
+  final reportsSnap = await firestore.collection('reports').get();
+  final announcementsSnap = await firestore.collection('announcements').get();
+
+  // Append tasks
+  for (var doc in tasksSnap.docs) {
+    final data = doc.data();
+    final ts = (data['createdAt'] as Timestamp?)?.toDate() ?? DateTime(1970);
+    activity.add({
+      'type': 'Task',
+      'title': data['title'] ?? 'Unnamed Task',
+      'description': data['description'] ?? '',
+      'timestamp': ts,
+      'color': const Color(0xFF7E57C2),
+      'bg': const Color(0xFFEDE7F6),
+    });
+  }
+
+  // Append reports
+  for (var doc in reportsSnap.docs) {
+    final data = doc.data();
+    final ts = (data['createdAt'] as Timestamp?)?.toDate() ?? DateTime(1970);
+    activity.add({
+      'type': 'Report',
+      'title': data['issueType'] ?? 'Report',
+      'description': data['description'] ?? '',
+      'timestamp': ts,
+      'color': const Color(0xFFD32F2F),
+      'bg': const Color(0xFFFFEBEE),
+    });
+  }
+
+  // Append announcements
+  for (var doc in announcementsSnap.docs) {
+    final data = doc.data();
+    final ts = (data['createdOn'] as Timestamp?)?.toDate() ?? DateTime(1970);
+    activity.add({
+      'type': 'Announcement',
+      'title': data['label'] ?? data['name'] ?? 'Announcement',
+      'description': data['description'] ?? '',
+      'timestamp': ts,
+      'color': const Color(0xFF1976D2),
+      'bg': const Color(0xFFE3F2FD),
+    });
+  }
+
+  // Sort all items by timestamp DESC
+  activity.sort((a, b) {
+    final aTime = a['timestamp'] ?? DateTime(1970);
+    final bTime = b['timestamp'] ?? DateTime(1970);
+    return bTime.compareTo(aTime); // newest first
+  });
+
+  return activity;
+}
+
+class _ActivityTab extends StatefulWidget {
   const _ActivityTab();
 
   @override
+  State<_ActivityTab> createState() => _ActivityTabState();
+}
+
+class _ActivityTabState extends State<_ActivityTab> {
+  late Future<List<Map<String, dynamic>>> _futureActivity;
+
+  @override
+  void initState() {
+    super.initState();
+    _futureActivity = _fetchActivityItems();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      child: Column(
-        children: [
-          _ActivityItem(
-            type: 'Task Joined',
-            timestamp: 'Today, 10:30 AM',
-            title: 'Community Garden',
-            description:
-                'You joined as a volunteer for the Community Garden project on May 22.',
-            typeBgColor: const Color(0xFFEDE7F6),
-            typeColor: const Color(0xFF7E57C2),
-          ),
-          const SizedBox(height: 16),
-          _ActivityItem(
-            type: 'Comment',
-            timestamp: 'Yesterday, 3:45 PM',
-            title: 'Water Maintenance Announcement',
-            description:
-                'You commented on the Water Maintenance announcement: “Will there be any compensation for businesses that need to close during this period?”',
-            typeBgColor: const Color(0xFFE3F2FD),
-            typeColor: const Color(0xFF1976D2),
-          ),
-          const SizedBox(height: 16),
-          _ActivityItem(
-            type: 'Report Filed',
-            timestamp: 'April 28, 2025, 2:15 PM',
-            title: 'Street Light Not Working',
-            description:
-                'You reported a broken street light at 123 Main Street. Status: In Progress.',
-            typeBgColor: const Color(0xFFFFEBEE),
-            typeColor: const Color(0xFFD32F2F),
-          ),
-        ],
-      ),
+    return FutureBuilder<List<Map<String, dynamic>>>(
+      future: _futureActivity,
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator());
+        }
+        if (snapshot.hasError) {
+          return Center(child: Text('Error: ${snapshot.error}'));
+        }
+
+        final items = snapshot.data!;
+        return ListView.separated(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          itemCount: items.length,
+          separatorBuilder: (_, __) => const SizedBox(height: 16),
+          itemBuilder: (context, index) {
+            final item = items[index];
+            return _ActivityItem(
+              type: item['type'],
+              timestamp: DateFormat.yMMMMd().add_jm().format(item['timestamp']),
+              title: item['title'],
+              description: item['description'],
+              typeBgColor: item['bg'],
+              typeColor: item['color'],
+            );
+          },
+        );
+      },
     );
   }
 }
