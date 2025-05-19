@@ -1,4 +1,6 @@
 // lib/screens/profile/profile_page.dart
+import 'dart:core';
+
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
@@ -15,6 +17,7 @@ class _ProfilePageState extends State<ProfilePage>
     with SingleTickerProviderStateMixin {
   late final TabController _tabController;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final FirebaseAuth _auth = FirebaseAuth.instance;
 
   // Firestore-driven state
   int _totalTasks = 0;
@@ -23,6 +26,8 @@ class _ProfilePageState extends State<ProfilePage>
   List<Map<String, dynamic>> _reports = [];
   bool _isLoading = true;
   String? _error;
+  String? _fullName;
+  DateTime? _createdAt;
 
   @override
   void initState() {
@@ -39,28 +44,51 @@ class _ProfilePageState extends State<ProfilePage>
 
   Future<void> _fetchData() async {
     try {
-      // 1) fetch a small page of tasks & reports for the Overview lists
+      final user = _auth.currentUser;
+      if (user == null) throw Exception('No authenticated user');
+
+      final uid = user.uid;
+
+      // Fetch user's full name
+      final userDoc = await _firestore.collection('users').doc(uid).get();
+      _fullName = userDoc.data()?['fullName'] ?? 'Unknown User';
+      final createdAtField = userDoc.data()?['createdAt'];
+      _createdAt = createdAtField is Timestamp ? createdAtField.toDate() : null;
+
+      // Fetch tasks volunteered by user
       final taskSnap = await _firestore
           .collection('tasks')
-          .orderBy('createdOn')
+          .where('volunteeredUsers', arrayContains: uid)
+          .orderBy('createdAt')
           .limit(3)
           .get();
-      final repSnap = await _firestore
+
+      // Fetch reports created by user
+      final reportSnap = await _firestore
           .collection('reports')
+          .where('userId', isEqualTo: uid)
           .orderBy('createdAt', descending: true)
           .limit(2)
           .get();
 
-      // 2) run count() aggregation to get the totals
-      final taskCountSnap = await _firestore.collection('tasks').count().get();
-      final reportCountSnap =
-          await _firestore.collection('reports').count().get();
+      // Count tasks and reports for user
+      final taskCountSnap = await _firestore
+          .collection('tasks')
+          .where('volunteeredUsers', arrayContains: uid)
+          .count()
+          .get();
+
+      final reportCountSnap = await _firestore
+          .collection('reports')
+          .where('userId', isEqualTo: uid)
+          .count()
+          .get();
 
       setState(() {
         _tasks = taskSnap.docs.map((d) => d.data()).toList();
-        _reports = repSnap.docs.map((d) => d.data()).toList();
-        _totalTasks = taskCountSnap.count!;
-        _totalReports = reportCountSnap.count!;
+        _reports = reportSnap.docs.map((d) => d.data()).toList();
+        _totalTasks = taskCountSnap.count ?? 0;
+        _totalReports = reportCountSnap.count ?? 0;
         _isLoading = false;
       });
     } catch (e) {
@@ -109,14 +137,18 @@ class _ProfilePageState extends State<ProfilePage>
                   backgroundImage: AssetImage('assets/avatar_placeholder.png'),
                 ),
                 const SizedBox(height: 8),
-                const Text('John Doe',
-                    style: TextStyle(
+                Text(_fullName ?? 'Loading...',
+                    style: const TextStyle(
                         color: Colors.white,
                         fontSize: 20,
                         fontWeight: FontWeight.bold)),
                 const SizedBox(height: 4),
-                const Text('Joined January 2025',
-                    style: TextStyle(color: Colors.white70, fontSize: 14)),
+                Text(
+                  _createdAt != null
+                      ? 'Joined ${DateFormat.yMMMM().format(_createdAt!)}'
+                      : 'Join date unavailable',
+                  style: const TextStyle(color: Colors.white70, fontSize: 14),
+                ),
               ],
             ),
           ),
@@ -288,13 +320,18 @@ class _OverviewTab extends StatelessWidget {
             child: Column(
               children: tasks.map((t) {
                 // Firestore Timestamp → DateTime
-                final ts = (t['createdOn'] as Timestamp).toDate();
+                final ts = (t['createdAt'] as Timestamp).toDate();
+                final DateFormat dateFmt =
+                    DateFormat.yMMMd(); // e.g. May 18, 2025
+                final DateFormat timeFmt = DateFormat.jm(); // e.g. 11:07 AM
                 return Column(
                   children: [
                     _UpcomingTaskItem(
-                      title: t['name'] as String,
-                      date: dateFmt.format(ts),
-                      time: timeFmt.format(ts),
+                      title: t['title'] as String,
+                      date: dateFmt
+                          .format((t['createdAt'] as Timestamp).toDate()),
+                      time: timeFmt
+                          .format((t['createdAt'] as Timestamp).toDate()),
                       joined: true, // or use your logic
                       iconColor: Colors.green,
                     ),
@@ -388,9 +425,9 @@ class _UpcomingTaskItem extends StatelessWidget {
         const SizedBox(width: 4),
         Text(date, style: const TextStyle(color: Colors.grey)),
         const SizedBox(width: 16),
-        const Icon(Icons.access_time, size: 16, color: Colors.grey),
-        const SizedBox(width: 4),
-        Text(time, style: const TextStyle(color: Colors.grey)),
+        // const Icon(Icons.access_time, size: 16, color: Colors.grey),
+        // const SizedBox(width: 4),
+        // Text(time, style: const TextStyle(color: Colors.grey)),
       ]),
       trailing: Container(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
@@ -480,6 +517,7 @@ class _SettingsTabState extends State<_SettingsTab> {
   final _emailController = TextEditingController();
   final _nationalIdController = TextEditingController();
   final _addressController = TextEditingController();
+  bool _pushNotifications = false;
 
   bool _isLoading = true;
   String? _error;
@@ -510,6 +548,7 @@ class _SettingsTabState extends State<_SettingsTab> {
       _emailController.text = data['email'] ?? '';
       _nationalIdController.text = data['nationalId'] ?? '';
       _addressController.text = data['address'] ?? '';
+      _pushNotifications = data['pushNotifications'] ?? false;
 
       setState(() => _isLoading = false);
     } catch (e) {
@@ -517,6 +556,24 @@ class _SettingsTabState extends State<_SettingsTab> {
         _error = e.toString();
         _isLoading = false;
       });
+    }
+  }
+
+  Future<void> _togglePushNotifications(bool newValue) async {
+    final uid = _auth.currentUser!.uid;
+    await _firestore.collection('users').doc(uid).update({
+      'pushNotifications': newValue,
+    });
+    setState(() {
+      _pushNotifications = newValue;
+    });
+  }
+
+  Future<void> _signOut() async {
+    await FirebaseAuth.instance.signOut();
+    if (context.mounted) {
+      Navigator.of(context)
+          .pushReplacementNamed('/login'); // change route if needed
     }
   }
 
@@ -615,6 +672,86 @@ class _SettingsTabState extends State<_SettingsTab> {
         ),
 
         const SizedBox(height: 24),
+        const Text(
+          'Notification Settings',
+          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+        ),
+        const SizedBox(height: 8),
+        Card(
+          elevation: 2,
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          child: Column(
+            children: [
+              SwitchListTile(
+                title: const Text('Push Notifications'),
+                subtitle: const Text('Receive alerts on your device'),
+                value: _pushNotifications,
+                onChanged: _togglePushNotifications,
+              ),
+              const Divider(height: 1),
+              SwitchListTile(
+                title: const Text('Email Notifications'),
+                subtitle: const Text('Receive updates via email'),
+                value: false,
+                onChanged: null, // Implement later
+              ),
+              const Divider(height: 1),
+              SwitchListTile(
+                title: const Text('SMS Notifications'),
+                subtitle:
+                    const Text('Receive text messages for urgent updates'),
+                value: false,
+                onChanged: null, // Implement later
+              ),
+            ],
+          ),
+        ),
+
+        const SizedBox(height: 24),
+// Account Section
+        const Text(
+          'Account',
+          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+        ),
+        const SizedBox(height: 8),
+        Card(
+          elevation: 2,
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          child: Column(
+            children: [
+              ListTile(
+                leading: const Icon(Icons.lock_outline),
+                title: const Text('Change Password'),
+                onTap: () {
+                  // TODO: Navigate to change password screen
+                },
+              ),
+              const Divider(height: 1),
+              ListTile(
+                leading: const Icon(Icons.privacy_tip_outlined),
+                title: const Text('Privacy Settings'),
+                onTap: () {
+                  // TODO: Navigate to privacy settings
+                },
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 16),
+        ElevatedButton.icon(
+          style: ElevatedButton.styleFrom(
+            foregroundColor: Colors.white,
+            backgroundColor: Colors.red,
+            minimumSize: const Size.fromHeight(48),
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          ),
+          icon: const Icon(Icons.logout),
+          label: const Text('Sign Out'),
+          onPressed: _signOut,
+        ),
         // Keep your Notification Settings & Account sections here...
       ]),
     );
@@ -629,16 +766,23 @@ class _SettingsTabState extends State<_SettingsTab> {
 /// ----------------------------
 Future<List<Map<String, dynamic>>> _fetchActivityItems() async {
   final firestore = FirebaseFirestore.instance;
+  final userId = FirebaseAuth.instance.currentUser?.uid;
   final List<Map<String, dynamic>> activity = [];
+
+  if (userId == null) return activity;
 
   // Fetch from each collection
   final tasksSnap = await firestore.collection('tasks').get();
   final reportsSnap = await firestore.collection('reports').get();
   final announcementsSnap = await firestore.collection('announcements').get();
+  final pollsSnap = await firestore.collection('polls').get();
 
-  // Append tasks
+  // Append tasks — only if user is in volunteeredUsers[]
   for (var doc in tasksSnap.docs) {
     final data = doc.data();
+    final volunteered = List<String>.from(data['volunteeredUsers'] ?? []);
+    if (!volunteered.contains(userId)) continue;
+
     final ts = (data['createdAt'] as Timestamp?)?.toDate() ?? DateTime(1970);
     activity.add({
       'type': 'Task',
@@ -650,9 +794,11 @@ Future<List<Map<String, dynamic>>> _fetchActivityItems() async {
     });
   }
 
-  // Append reports
+  // Append reports — only if userId matches
   for (var doc in reportsSnap.docs) {
     final data = doc.data();
+    if (data['userId'] != userId) continue;
+
     final ts = (data['createdAt'] as Timestamp?)?.toDate() ?? DateTime(1970);
     activity.add({
       'type': 'Report',
@@ -664,7 +810,7 @@ Future<List<Map<String, dynamic>>> _fetchActivityItems() async {
     });
   }
 
-  // Append announcements
+  // Append announcements (shown to everyone)
   for (var doc in announcementsSnap.docs) {
     final data = doc.data();
     final ts = (data['createdOn'] as Timestamp?)?.toDate() ?? DateTime(1970);
@@ -678,7 +824,6 @@ Future<List<Map<String, dynamic>>> _fetchActivityItems() async {
     });
   }
 
-  // Sort all items by timestamp DESC
   activity.sort((a, b) {
     final aTime = a['timestamp'] ?? DateTime(1970);
     final bTime = b['timestamp'] ?? DateTime(1970);
