@@ -331,29 +331,29 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ),
           const SizedBox(height: 16),
-          Row(
+          const Row(
             children: [
-              const Icon(
+              Icon(
                 Icons.calendar_today,
                 color: Colors.white70,
                 size: 16,
               ),
-              const SizedBox(width: 4),
-              const Text(
+              SizedBox(width: 4),
+              Text(
                 'May 20, 2025',
                 style: TextStyle(
                   color: Colors.white70,
                   fontSize: 12,
                 ),
               ),
-              const SizedBox(width: 12),
-              const Icon(
+              SizedBox(width: 12),
+              Icon(
                 Icons.access_time,
                 color: Colors.white70,
                 size: 16,
               ),
-              const SizedBox(width: 4),
-              const Text(
+              SizedBox(width: 4),
+              Text(
                 '9:00 AM - 2:00 PM',
                 style: TextStyle(
                   color: Colors.white70,
