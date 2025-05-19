@@ -86,11 +86,12 @@ class ReportConfirmation extends StatelessWidget {
                       children: [
                         _buildDetailRow('Report ID:', '#$reportId'),
                         const SizedBox(height: 8),
-                        _buildDetailRow('Issue Type:', _formatIssueType(issueType)),
+                        _buildDetailRow(
+                            'Issue Type:', _formatIssueType(issueType)),
                         const SizedBox(height: 8),
                         _buildDetailRow(
                           'Status:',
-                          'Under Review',
+                          'Pending',
                           valueColor: Colors.orange,
                           valueBackground: Colors.orange[50],
                         ),
@@ -123,10 +124,7 @@ class ReportConfirmation extends StatelessWidget {
                       const SizedBox(width: 16),
                       ElevatedButton(
                         onPressed: () {
-                          Navigator.pushNamed(
-                            context,
-                            '/home'
-                          );
+                          Navigator.pushNamed(context, '/home');
                         },
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.teal,
@@ -146,7 +144,8 @@ class ReportConfirmation extends StatelessWidget {
     );
   }
 
-  Widget _buildDetailRow(String label, String value, {Color? valueColor, Color? valueBackground}) {
+  Widget _buildDetailRow(String label, String value,
+      {Color? valueColor, Color? valueBackground}) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
@@ -159,27 +158,27 @@ class ReportConfirmation extends StatelessWidget {
         ),
         valueBackground != null
             ? Container(
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-          decoration: BoxDecoration(
-            color: valueBackground,
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: Text(
-            value,
-            style: TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.bold,
-              color: valueColor,
-            ),
-          ),
-        )
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                decoration: BoxDecoration(
+                  color: valueBackground,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Text(
+                  value,
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.bold,
+                    color: valueColor,
+                  ),
+                ),
+              )
             : Text(
-          value,
-          style: const TextStyle(
-            fontSize: 14,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
+                value,
+                style: const TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
       ],
     );
   }

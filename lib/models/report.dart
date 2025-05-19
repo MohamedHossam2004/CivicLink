@@ -16,7 +16,7 @@ class Report {
     this.latitude,
     this.longitude,
     this.photoUrls = const [],
-    this.status = 'Under Review',
+    this.status = 'Pending',
     DateTime? createdAt,
     required this.userId,
   }) : createdAt = createdAt ?? DateTime.now();
@@ -26,7 +26,7 @@ class Report {
     return {
       'issueType': issueType,
       'description': description,
-      'location': (latitude != null && longitude != null)
+      'coordinates': (latitude != null && longitude != null)
           ? {'latitude': latitude, 'longitude': longitude}
           : null,
       'photoUrls': photoUrls,
@@ -38,7 +38,7 @@ class Report {
 
   // Create Report from Firestore document
   factory Report.fromMap(Map<String, dynamic> map, String id) {
-    final coordinates = map['location'];
+    final coordinates = map['coordinates'];
 
     return Report(
       id: id,
@@ -47,7 +47,7 @@ class Report {
       latitude: coordinates != null ? coordinates['latitude'] : null,
       longitude: coordinates != null ? coordinates['longitude'] : null,
       photoUrls: List<String>.from(map['photoUrls'] ?? []),
-      status: map['status'] ?? 'Under Review',
+      status: map['status'] ?? 'Pending',
       createdAt: map['createdAt']?.toDate() ?? DateTime.now(),
       userId: map['userId'] ?? '',
     );
