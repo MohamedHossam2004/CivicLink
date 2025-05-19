@@ -79,14 +79,15 @@ class AuthService {
         email: email,
         password: password,
       );
-      
+
       // Get and print token for debugging
       final token = await userCredential.user?.getIdToken();
-      print('User signed in successfully. Token: ${token?.substring(0, 20)}...');
-      
+      print(
+          'User signed in successfully. Token: ${token?.substring(0, 20)}...');
+
       final userDetails = await getUserDetails();
       print('User Details: $userDetails');
-      
+
       return userCredential;
     } catch (e) {
       print('Error signing in: $e');
@@ -102,11 +103,12 @@ class AuthService {
         email: email,
         password: password,
       );
-      
+
       // Get and print token for debugging
       final token = await userCredential.user?.getIdToken();
-      print('User registered successfully. Token: ${token?.substring(0, 20)}...');
-      
+      print(
+          'User registered successfully. Token: ${token?.substring(0, 20)}...');
+
       return userCredential;
     } catch (e) {
       print('Error registering: $e');
@@ -128,15 +130,16 @@ class AuthService {
       );
 
       final userCredential = await _auth.signInWithCredential(credential);
-      
+
       // Get and print token for debugging
       final token = await userCredential.user?.getIdToken();
-      print('User signed in with Google successfully. Token: ${token?.substring(0, 20)}...');
-      
+      print(
+          'User signed in with Google successfully. Token: ${token?.substring(0, 20)}...');
+
       // Get and print user details
       // final userDetails = await getUserDetails();
       // print('User Details: $userDetails');
-      
+
       return userCredential;
     } catch (e) {
       print('Error signing in with Google: $e');
@@ -152,17 +155,18 @@ class AuthService {
         final AccessToken accessToken = result.accessToken!;
         final OAuthCredential credential =
             FacebookAuthProvider.credential(accessToken.tokenString);
-            
+
         final userCredential = await _auth.signInWithCredential(credential);
-        
+
         // Get and print token for debugging
         final token = await userCredential.user?.getIdToken();
-        print('User signed in with Facebook successfully. Token: ${token?.substring(0, 20)}...');
-        
+        print(
+            'User signed in with Facebook successfully. Token: ${token?.substring(0, 20)}...');
+
         // Get and print user details
         // final userDetails = await getUserDetails();
         // print('User Details: $userDetails');
-        
+
         return userCredential;
       } else {
         throw 'Facebook sign in failed';
@@ -193,15 +197,12 @@ class AuthService {
       if (user == null) return null;
 
       // Get user details from Firestore
-      final userDoc = await _firestore
-          .collection('users')
-          .doc(user.uid)
-          .get();
+      final userDoc = await _firestore.collection('users').doc(user.uid).get();
 
       if (!userDoc.exists) return null;
 
       final userData = userDoc.data()!;
-      
+
       return {
         'firstName': userData['firstName'] ?? '',
         'lastName': userData['lastName'] ?? '',
@@ -210,7 +211,8 @@ class AuthService {
         'nationalId': userData['nationalId'] ?? '',
         'profilePictureUrl': userData['profilePictureUrl'] ?? '',
         'createdAt': userData['createdAt']?.toDate()?.toIso8601String(),
-        'type': userData['type'] ?? 'User'
+        'type': userData['type'] ?? 'User',
+        'uid': userData['uid']
       };
     } catch (e) {
       print('Error getting user details: $e');

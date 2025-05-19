@@ -12,6 +12,7 @@ import 'package:gov_app/screens/volunteer/volunteer_page.dart';
 import 'package:gov_app/screens/Auth/loginPage.dart';
 import 'package:gov_app/screens/Auth/registrationPage.dart';
 import 'screens/ReportIssue/report_issue_step1.dart';
+import 'services/auth_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -75,7 +76,7 @@ class _MainScreenState extends State<MainScreen> {
   final List<Widget> _screens = [
     const HomeScreen(),
     const CalendarPage(),
-    const ChatScreen(),
+    ChatScreen(),
     const ReportIssueStep1(),
     const Placeholder(), // Profile page
   ];
