@@ -13,6 +13,7 @@ import 'package:gov_app/screens/Auth/loginPage.dart';
 import 'package:gov_app/screens/Auth/registrationPage.dart';
 import 'screens/ReportIssue/report_issue_step1.dart';
 import 'package:gov_app/screens/profile/profile_page.dart';
+import 'package:gov_app/screens/admin/add_sample_data_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -53,32 +54,45 @@ class MyApp extends StatelessWidget {
       ),
       home: const LoginPage(),
       routes: {
-        '/home': (context) => const MainScreen(),
+        '/home': (context) => const MainScreen(initialIndex: 0),
         '/event-details': (context) => const EventDetailPage(),
-        '/volunteer': (context) => const VolunteerPage(),
+        '/volunteer': (context) => const MainScreen(initialIndex: 3),
         '/login': (context) => const LoginPage(),
         '/register': (context) => const RegistrationPage(),
+        '/chat': (context) => const ChatScreen(),
+        '/calendar': (context) => const CalendarPage(),
+        '/profile': (context) => const ProfilePage(),
+        '/add-sample-data': (context) => const AddSampleDataScreen(),
       },
     );
   }
 }
 
 class MainScreen extends StatefulWidget {
-  const MainScreen({Key? key}) : super(key: key);
+  final int initialIndex;
+  
+  const MainScreen({Key? key, this.initialIndex = 0}) : super(key: key);
 
   @override
   State<MainScreen> createState() => _MainScreenState();
 }
 
 class _MainScreenState extends State<MainScreen> {
-  int _currentIndex = 0;
+  late int _currentIndex;
+
+  @override
+  void initState() {
+    super.initState();
+    _currentIndex = widget.initialIndex;
+  }
 
   final List<Widget> _screens = [
     const HomeScreen(),
     const CalendarPage(),
     const ChatScreen(),
+    VolunteerPage(userId: FirebaseAuth.instance.currentUser?.uid ?? ''),
     const ReportIssueStep1(),
-    const ProfilePage(), // Profile page
+    const ProfilePage(),
   ];
 
   @override

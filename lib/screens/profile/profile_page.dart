@@ -15,6 +15,8 @@ class _ProfilePageState extends State<ProfilePage>
     with SingleTickerProviderStateMixin {
   late final TabController _tabController;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+  bool _isAdmin = false;
 
   // Firestore-driven state
   int _totalTasks = 0;
@@ -29,6 +31,7 @@ class _ProfilePageState extends State<ProfilePage>
     super.initState();
     _tabController = TabController(length: 3, vsync: this);
     _fetchData();
+    _checkAdminStatus();
   }
 
   @override
@@ -71,6 +74,20 @@ class _ProfilePageState extends State<ProfilePage>
     }
   }
 
+  Future<void> _checkAdminStatus() async {
+    try {
+      final user = _auth.currentUser;
+      if (user != null) {
+        final doc = await _firestore.collection('users').doc(user.uid).get();
+        setState(() {
+          _isAdmin = doc.data()?['isAdmin'] == true;
+        });
+      }
+    } catch (e) {
+      print('Error checking admin status: $e');
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -82,6 +99,38 @@ class _ProfilePageState extends State<ProfilePage>
         backgroundColor: Colors.white,
         elevation: 0,
         actions: [
+          IconButton(
+            icon: Icon(
+              Icons.admin_panel_settings,
+              color: _isAdmin ? Colors.deepPurple : Colors.grey,
+            ),
+            onPressed: () {
+              if (_isAdmin) {
+                Navigator.pushNamed(context, '/add-sample-data');
+              } else {
+                showDialog(
+                  context: context,
+                  builder: (context) => AlertDialog(
+                    title: const Text('Admin Status'),
+                    content: const Text('You are not an admin. Would you like to make yourself an admin for testing?'),
+                    actions: [
+                      TextButton(
+                        onPressed: () => Navigator.pop(context),
+                        child: const Text('Cancel'),
+                      ),
+                      ElevatedButton(
+                        onPressed: () {
+                          _makeUserAdmin();
+                          Navigator.pop(context);
+                        },
+                        child: const Text('Make Admin'),
+                      ),
+                    ],
+                  ),
+                );
+              }
+            },
+          ),
           IconButton(
               icon: const Icon(Icons.settings, color: Colors.grey),
               onPressed: () {}),
@@ -242,9 +291,6 @@ class _StatCard extends StatelessWidget {
     );
   }
 }
-
-// … keep the rest of your _OverviewTab, _ActivityTab, _SettingsTab, and
-//    item widgets exactly as before. They’ll now live below in the file. …
 
 /// The Overview tab, now with Upcoming Tasks & Recent Reports
 class _OverviewTab extends StatelessWidget {
@@ -652,7 +698,7 @@ class _ActivityTab extends StatelessWidget {
             timestamp: 'Yesterday, 3:45 PM',
             title: 'Water Maintenance Announcement',
             description:
-                'You commented on the Water Maintenance announcement: “Will there be any compensation for businesses that need to close during this period?”',
+                'You commented on the Water Maintenance announcement: "Will there be any compensation for businesses that need to close during this period?"',
             typeBgColor: const Color(0xFFE3F2FD),
             typeColor: const Color(0xFF1976D2),
           ),

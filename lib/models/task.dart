@@ -1,5 +1,13 @@
 // models/task.dart
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+
+enum TaskDepartment {
+  Healthcare,
+  Environment,
+  Education,
+  Community,
+}
 
 class Task {
   final String id;
@@ -10,10 +18,13 @@ class Task {
   final String time;
   final int participants;
   final int maxParticipants;
-  final String category;
+  final TaskDepartment department;
   final Color color;
   final bool joined;
   final bool completed;
+  final String createdBy; // Admin who created the task
+  final DateTime createdAt;
+  final List<String> volunteeredUsers; // List of user IDs who volunteered
 
   Task({
     required this.id,
@@ -24,11 +35,128 @@ class Task {
     required this.time,
     required this.participants,
     required this.maxParticipants,
-    required this.category,
+    required this.department,
     required this.color,
+    required this.createdBy,
+    DateTime? createdAt,
+    List<String>? volunteeredUsers,
     this.joined = false,
     this.completed = false,
-  });
+  }) : this.createdAt = createdAt ?? DateTime.now(),
+       this.volunteeredUsers = volunteeredUsers ?? [];
+
+  // Convert Firestore document to Task object
+  factory Task.fromFirestore(DocumentSnapshot doc) {
+    Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+    print('Converting Firestore doc to Task. ID: ${doc.id}, Data: $data');
+    
+    // Get the volunteered users list and calculate participants
+    List<String> volunteeredUsers = List<String>.from(data['volunteeredUsers'] ?? []);
+    int participants = volunteeredUsers.length;
+    print('Volunteers: $volunteeredUsers, Participants: $participants');
+
+    return Task(
+      id: data['id'] ?? doc.id, // Try to use stored ID first, fallback to doc.id
+      title: data['title'] ?? '',
+      description: data['description'] ?? '',
+      location: data['location'] ?? '',
+      date: data['date'] ?? '',
+      time: data['time'] ?? '',
+      participants: participants,
+      maxParticipants: data['maxParticipants'] ?? 0,
+      department: TaskDepartment.values.firstWhere(
+        (e) => e.toString().split('.').last.toLowerCase() == (data['department'] ?? '').toLowerCase(),
+        orElse: () => TaskDepartment.Community,
+      ),
+      color: getColorForDepartment(TaskDepartment.values.firstWhere(
+        (e) => e.toString().split('.').last.toLowerCase() == (data['department'] ?? '').toLowerCase(),
+        orElse: () => TaskDepartment.Community,
+      )),
+      createdBy: data['createdBy'] ?? '',
+      createdAt: (data['createdAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
+      volunteeredUsers: volunteeredUsers,
+      completed: data['completed'] ?? false,
+    );
+  }
+
+  // Convert Task object to Firestore document
+  Map<String, dynamic> toFirestore() {
+    final data = {
+      'id': id,
+      'title': title,
+      'description': description,
+      'location': location,
+      'date': date,
+      'time': time,
+      'maxParticipants': maxParticipants,
+      'department': department.toString().split('.').last,
+      'createdBy': createdBy,
+      'createdAt': Timestamp.fromDate(createdAt),
+      'volunteeredUsers': volunteeredUsers,
+      'completed': completed,
+    };
+    print('Converting Task to Firestore data: $data');
+    return data;
+  }
+
+  // Convert department string to enum
+  static TaskDepartment getDepartmentFromString(String department) {
+    return TaskDepartment.values.firstWhere(
+      (e) => e.toString().split('.').last.toLowerCase() == department.toLowerCase(),
+      orElse: () => TaskDepartment.Community,
+    );
+  }
+
+  // Get color based on department
+  static Color getColorForDepartment(TaskDepartment department) {
+    switch (department) {
+      case TaskDepartment.Healthcare:
+        return Colors.blue;
+      case TaskDepartment.Environment:
+        return Colors.green;
+      case TaskDepartment.Education:
+        return Colors.indigo;
+      case TaskDepartment.Community:
+        return Colors.amber;
+    }
+  }
+
+  // Create a copy of this task with updated fields
+  Task copyWith({
+    String? id,
+    String? title,
+    String? description,
+    String? location,
+    String? date,
+    String? time,
+    int? participants,
+    int? maxParticipants,
+    TaskDepartment? department,
+    Color? color,
+    String? createdBy,
+    DateTime? createdAt,
+    List<String>? volunteeredUsers,
+    bool? joined,
+    bool? completed,
+  }) {
+    return Task(
+      id: id ?? this.id,
+      title: title ?? this.title,
+      description: description ?? this.description,
+      location: location ?? this.location,
+      date: date ?? this.date,
+      time: time ?? this.time,
+      participants: participants ?? this.participants,
+      maxParticipants: maxParticipants ?? this.maxParticipants,
+      department: department ?? this.department,
+      color: color ?? this.color,
+      createdBy: createdBy ?? this.createdBy,
+      createdAt: createdAt ?? this.createdAt,
+      volunteeredUsers: volunteeredUsers ?? List.from(this.volunteeredUsers),
+      joined: joined ?? this.joined,
+      completed: completed ?? this.completed,
+    );
+  }
 }
 
 // Sample tasks data
@@ -43,8 +171,9 @@ List<Task> getTasks() {
       time: "9:00 AM - 12:00 PM",
       participants: 12,
       maxParticipants: 20,
-      category: "Environment",
+      department: TaskDepartment.Environment,
       color: Colors.green,
+      createdBy: "admin1",
     ),
     Task(
       id: "2",
@@ -55,8 +184,9 @@ List<Task> getTasks() {
       time: "10:00 AM - 2:00 PM",
       participants: 8,
       maxParticipants: 15,
-      category: "Community",
+      department: TaskDepartment.Community,
       color: Colors.amber,
+      createdBy: "admin1",
     ),
     Task(
       id: "3",
@@ -67,8 +197,9 @@ List<Task> getTasks() {
       time: "2:00 PM - 5:00 PM",
       participants: 5,
       maxParticipants: 10,
-      category: "Healthcare",
+      department: TaskDepartment.Healthcare,
       color: Colors.blue,
+      createdBy: "admin2",
     ),
     Task(
       id: "4",
@@ -79,8 +210,9 @@ List<Task> getTasks() {
       time: "8:00 AM - 1:00 PM",
       participants: 15,
       maxParticipants: 25,
-      category: "Environment",
+      department: TaskDepartment.Environment,
       color: Colors.green,
+      createdBy: "admin1",
     ),
     Task(
       id: "5",
@@ -91,8 +223,9 @@ List<Task> getTasks() {
       time: "2:00 PM - 4:00 PM",
       participants: 12,
       maxParticipants: 20,
-      category: "Education",
+      department: TaskDepartment.Education,
       color: Colors.indigo,
+      createdBy: "admin2",
     ),
     Task(
       id: "6",
@@ -103,8 +236,9 @@ List<Task> getTasks() {
       time: "9:00 AM - 11:00 AM",
       participants: 7,
       maxParticipants: 10,
-      category: "Environment",
+      department: TaskDepartment.Environment,
       color: Colors.green,
+      createdBy: "admin1",
       joined: true,
     ),
     Task(
@@ -116,8 +250,9 @@ List<Task> getTasks() {
       time: "1:00 PM - 5:00 PM",
       participants: 20,
       maxParticipants: 25,
-      category: "Environment",
+      department: TaskDepartment.Environment,
       color: Colors.green,
+      createdBy: "admin2",
       joined: true,
     ),
     Task(
@@ -129,8 +264,9 @@ List<Task> getTasks() {
       time: "8:00 AM - 12:00 PM",
       participants: 30,
       maxParticipants: 30,
-      category: "Environment",
+      department: TaskDepartment.Environment,
       color: Colors.grey,
+      createdBy: "admin1",
       completed: true,
     ),
     Task(
@@ -142,8 +278,9 @@ List<Task> getTasks() {
       time: "9:00 AM - 4:00 PM",
       participants: 15,
       maxParticipants: 15,
-      category: "Healthcare",
+      department: TaskDepartment.Healthcare,
       color: Colors.grey,
+      createdBy: "admin2",
       completed: true,
     ),
   ];

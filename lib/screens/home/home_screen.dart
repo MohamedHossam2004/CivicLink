@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:gov_app/config/theme.dart';
 import 'package:gov_app/screens/home/widgets/announcement_card.dart';
-import 'package:gov_app/screens/home/widgets/task_card.dart';
+import 'package:gov_app/screens/volunteer/widgets/task_card.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:gov_app/screens/reportIssue/report_issue_step1.dart';
+import 'package:gov_app/screens/volunteer/volunteer_page.dart';
+import 'package:gov_app/models/task.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({Key? key}) : super(key: key);
@@ -199,7 +201,7 @@ class _HomeScreenState extends State<HomeScreen> {
               color: AppTheme.primaryColor,
               bgColor: AppTheme.primaryLightColor,
               onTap: () {
-                // Navigate to volunteer screen
+                Navigator.of(context).pushReplacementNamed('/volunteer');
               },
             ),
             _buildServiceItem(
@@ -468,7 +470,7 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
             TextButton(
               onPressed: () {
-                // Navigate to volunteer screen
+                Navigator.of(context).pushReplacementNamed('/volunteer');
               },
               child: Row(
                 children: const [
@@ -483,18 +485,47 @@ class _HomeScreenState extends State<HomeScreen> {
           ],
         ),
         const SizedBox(height: 16),
-        ..._tasks.map((task) => TaskCard(
-              title: task['name'] ?? '',
-              location: task['location'] != null
-                  ? '${task['location']['latitude']}, ${task['location']['longitude']}'
-                  : '',
-              date: task['startTime'] ?? '',
-              time: task['endTime'] ?? '',
-              category: task['label'] ?? '',
-              participants: task['currVolunteers'] ?? 0,
-              maxParticipants: task['maxVolunteers'] ?? 0,
-              color: _getCategoryColor(task['label']),
-            )),
+        ..._tasks.map((task) {
+          // Safely extract values with null checks
+          final id = task['id'] as String? ?? '';
+          final title = task['title'] as String? ?? task['name'] as String? ?? 'Untitled Task';
+          final description = task['description'] as String? ?? '';
+          
+          // Handle location which could be either a string or a map
+          String locationStr;
+          if (task['location'] is Map) {
+            final locationMap = task['location'] as Map<String, dynamic>;
+            locationStr = '${locationMap['latitude']}, ${locationMap['longitude']}';
+          } else {
+            locationStr = task['location'] as String? ?? 'No location specified';
+          }
+
+          final date = task['date'] as String? ?? task['startTime'] as String? ?? 'Date not specified';
+          final time = task['time'] as String? ?? task['endTime'] as String? ?? 'Time not specified';
+          final participants = (task['participants'] ?? task['currVolunteers'] ?? 0) as int;
+          final maxParticipants = (task['maxParticipants'] ?? task['maxVolunteers'] ?? 0) as int;
+          final department = task['department'] as String? ?? task['label'] as String? ?? 'Community';
+          final createdBy = task['createdBy'] as String? ?? '';
+
+          return TaskCard(
+            task: Task(
+              id: id,
+              title: title,
+              description: description,
+              location: locationStr,
+              date: date,
+              time: time,
+              participants: participants,
+              maxParticipants: maxParticipants,
+              department: TaskDepartment.values.firstWhere(
+                (d) => d.toString().split('.').last.toLowerCase() == department.toLowerCase(),
+                orElse: () => TaskDepartment.Community,
+              ),
+              color: _getCategoryColor(department),
+              createdBy: createdBy,
+            ),
+          );
+        }).toList(),
       ],
     );
   }
