@@ -30,22 +30,39 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  table_calendar: ^3.2.0
-  intl: ^0.20.2
-  firebase_core: ^3.13.0
-  firebase_auth: ^5.5.3
-  cloud_firestore: ^5.6.7
-  url_launcher: ^6.3.1
-  google_sign_in: ^6.3.0
-  google_maps_flutter: ^2.12.1
-  image_picker: ^1.1.2
-  location: ^8.0.0
-  firebase_storage: ^12.4.5
-  uuid: ^4.5.1
-  shared_preferences: ^2.2.2
-  http: ^1.1.0
-  dart_openai: ^4.0.0
-  flutter_dotenv: ^5.1.0
+  # Calendar & Localization
+  table_calendar: ^3.2.0   # unchanged :contentReference[oaicite:12]{index=12}
+  intl: ^0.20.2            # unchanged :contentReference[oaicite:13]{index=13}
+
+  # Firebase Core & Auth
+  firebase_core: ^3.13.1   # updated from 3.13.0 → 3.13.1 :contentReference[oaicite:14]{index=14}
+  firebase_auth: ^5.5.4    # updated from 5.5.3 → 5.5.4 :contentReference[oaicite:15]{index=15}
+  cloud_firestore: ^5.6.8  # updated from 5.6.7 → 5.6.8 :contentReference[oaicite:16]{index=16}
+
+  # URL & Sign-In
+  url_launcher: ^6.3.1     # unchanged :contentReference[oaicite:17]{index=17}
+  google_sign_in: ^6.3.0   # unchanged :contentReference[oaicite:18]{index=18}
+
+  # Maps & Images
+  google_maps_flutter: ^2.12.2  # updated from 2.12.1 → 2.12.2 :contentReference[oaicite:19]{index=19}
+  image_picker: ^1.1.2         # unchanged :contentReference[oaicite:20]{index=20}
+
+  # Location & Storage
+  location: ^8.0.0           # unchanged :contentReference[oaicite:21]{index=21}
+  firebase_storage: ^12.4.6  # updated from 12.4.5 → 12.4.6 :contentReference[oaicite:22]{index=22}
+  firebase_messaging: 15.2.5 # updated from 14.1.0 → 15.2.6 :contentReference[oaicite:23]{index=23}
+  
+  # Notifications & Utilities
+  flutter_local_notifications: ^19.2.1  # updated from 16.3.1+1 → 19.2.1 :contentReference[oaicite:24]{index=24}
+  uuid: ^4.5.1                         # unchanged :contentReference[oaicite:25]{index=25}
+  shared_preferences: ^2.5.3           # updated from 2.2.2 → 2.5.3 :contentReference[oaicite:26]{index=26}
+
+  # Networking & AI
+  http: ^1.4.0        # updated from 1.1.0 → 1.4.0 :contentReference[oaicite:27]{index=27}
+  dart_openai: ^5.1.0  # updated from 4.0.0 → 5.1.0 :contentReference[oaicite:28]{index=28}
+
+  # Environment Variables
+  flutter_dotenv: ^5.2.1  # updated from 5.1.0 → 5.2.1 :contentReference[oaicite:29]{index=29}
 
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.

@@ -5,9 +5,13 @@ import 'package:gov_app/screens/Chat/chat_screen.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:gov_app/screens/calendar/calendar_page.dart';
 import 'package:gov_app/screens/calendar/event_detail_page.dart';
 import 'package:gov_app/screens/home/home_screen.dart';
+import 'package:gov_app/services/notification_service.dart';
+import 'package:gov_app/services/announcement_service.dart';
+import 'package:gov_app/services/task_service.dart';
 import 'package:gov_app/widgets/bottom_nav_bar.dart';
 import 'package:gov_app/screens/volunteer/volunteer_page.dart';
 import 'package:gov_app/screens/Auth/loginPage.dart';
@@ -17,6 +21,14 @@ import 'package:gov_app/screens/profile/profile_page.dart';
 import 'package:gov_app/services/auth_service.dart';
 import 'package:gov_app/services/content_moderation_service.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+
+// Top-level function for handling background messages
+@pragma('vm:entry-point')
+Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
+  // Ensure Firebase is initialized
+  await Firebase.initializeApp();
+  print('Background message received: ${message.notification?.title}');
+}
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -31,6 +43,9 @@ void main() async {
 
   // Initialize Firebase
   await Firebase.initializeApp();
+
+  // Set up background message handler
+  FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
 
   // Configure Firebase Auth settings globally
   try {
@@ -103,6 +118,7 @@ class AuthWrapper extends StatefulWidget {
 
 class _AuthWrapperState extends State<AuthWrapper> {
   final AuthService _authService = AuthService();
+  final NotificationService _notificationService = NotificationService();
   bool _isLoading = true;
   bool _isLoggedIn = false;
 
@@ -119,6 +135,13 @@ class _AuthWrapperState extends State<AuthWrapper> {
         _isLoggedIn = userCredential != null;
         _isLoading = false;
       });
+      
+      // Initialize notification service after login status is determined
+      if (_isLoggedIn) {
+        await _notificationService.initialize(context);
+        // Subscribe to relevant topics based on user role or preferences
+        await _notificationService.subscribeToTopic('announcements');
+      }
     } catch (e) {
       print('Error checking login status: $e');
       setState(() {
@@ -151,6 +174,8 @@ class MainScreen extends StatefulWidget {
 
 class MainScreenState extends State<MainScreen> {
   int _currentIndex = 0;
+  final AnnouncementService _announcementService = AnnouncementService();
+  final TaskService _taskService = TaskService();
 
   final List<Widget> _screens = [
     const HomeScreen(),
@@ -159,6 +184,15 @@ class MainScreenState extends State<MainScreen> {
     CalendarPage(userId: FirebaseAuth.instance.currentUser?.uid ?? ''),
     const ProfilePage(),
   ];
+
+  @override
+  void initState() {
+    super.initState();
+    
+    // Start listeners for notifications
+    _announcementService.startAnnouncementListener();
+    _taskService.startTaskUpdateListener();
+  }
 
   void changeIndex(int index) {
     setState(() {

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../models/announcement.dart';
 import 'auth_service.dart';
+import 'notification_service.dart';
 
 class AnnouncementService {
   // Singleton pattern
@@ -17,6 +18,49 @@ class AnnouncementService {
   final CollectionReference _savedAnnouncementsCollection =
       FirebaseFirestore.instance.collection('savedAnnouncements');
   final AuthService _authService = AuthService();
+  final NotificationService _notificationService = NotificationService();
+
+  // Listen for new announcements and notify
+  void startAnnouncementListener() {
+    _announcementsCollection
+        .orderBy('createdOn', descending: true)
+        .limit(1)
+        .snapshots()
+        .listen((snapshot) async {
+      if (snapshot.docs.isNotEmpty) {
+        final latestAnnouncement = Announcement.fromFirestore(snapshot.docs.first);
+        
+        // Check if it's a new announcement (created within the last minute)
+        final now = DateTime.now();
+        final difference = now.difference(latestAnnouncement.createdOn);
+        
+        if (difference.inMinutes <= 1) {
+          // This is likely a new announcement
+          
+          // If it's important, send to all users
+          if (latestAnnouncement.isImportant) {
+            // Instead of individual notifications, we can use a topic
+            // Assuming all users subscribe to 'announcements' topic on login
+            
+            // But we can also notify specific users directly if needed
+            final allUsers = await _firestore.collection('users').get();
+            for (final userDoc in allUsers.docs) {
+              final userId = userDoc.id;
+              await _notificationService.sendNotificationToUser(
+                userId: userId,
+                title: 'Important Announcement',
+                body: latestAnnouncement.name,
+                type: 'announcement',
+                data: {
+                  'announcementId': latestAnnouncement.id,
+                },
+              );
+            }
+          }
+        }
+      }
+    });
+  }
 
   // Get all announcements
   Stream<List<Announcement>> getAllAnnouncements() {
@@ -67,7 +111,7 @@ class AnnouncementService {
     // Get user details
     final userDetails = await _authService.getUserNamefromID(userId);
 
-    await _commentsCollection.add({
+    final commentDoc = await _commentsCollection.add({
       'announcementId': announcementId,
       'userId': userId,
       'content': content,
@@ -77,6 +121,42 @@ class AnnouncementService {
       'lastName': userDetails['lastName'],
       'isAnonymous': isAnonymous,
     });
+
+    // Get the announcement details
+    final announcement = await getAnnouncementById(announcementId);
+    
+    // Check if this is a reply to another comment (notifications would be handled differently)
+    // For now, we notify the announcement creator if different from commenter
+    if (announcement != null) {
+      // Fetch all users who have commented on this announcement before
+      // to notify them of new activity
+      final previousComments = await _commentsCollection
+          .where('announcementId', isEqualTo: announcementId)
+          .where('userId', isNotEqualTo: userId) // Don't notify the commenter
+          .get();
+      
+      // Get unique user IDs
+      final Set<String> usersToNotify = {};
+      for (final doc in previousComments.docs) {
+        final commentData = doc.data() as Map<String, dynamic>;
+        final commentUserId = commentData['userId'] as String;
+        usersToNotify.add(commentUserId);
+      }
+      
+      // Send notifications
+      for (final userToNotify in usersToNotify) {
+        await _notificationService.sendNotificationToUser(
+          userId: userToNotify,
+          title: 'New Comment on Announcement',
+          body: 'Someone commented on an announcement you\'re following',
+          type: 'announcement_comment',
+          data: {
+            'announcementId': announcementId,
+            'commentId': commentDoc.id,
+          },
+        );
+      }
+    }
   }
 
   // Like a comment

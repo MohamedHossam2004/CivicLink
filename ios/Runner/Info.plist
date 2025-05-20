@@ -45,5 +45,24 @@
 	<true/>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
+	<key>FirebaseAppDelegateProxyEnabled</key>
+	<false/>
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>fetch</string>
+		<string>remote-notification</string>
+	</array>
+	<key>NSAppleMusicUsageDescription</key>
+	<string>We do not access Apple Music but this is needed for proper permissions handling.</string>
+	<key>NSCalendarsUsageDescription</key>
+	<string>We need calendar access for task scheduling.</string>
+	<key>NSCameraUsageDescription</key>
+	<string>We need camera access for profile photo uploads and issue reporting.</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>Your location is needed to show nearby tasks and events.</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>We need microphone access for voice messages.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>We need photo library access for profile photo uploads and issue reporting.</string>
 </dict>
 </plist>
