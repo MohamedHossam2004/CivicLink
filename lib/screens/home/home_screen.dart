@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:gov_app/config/theme.dart';
+import 'package:gov_app/screens/emergency/emergency_page.dart';
 import 'package:gov_app/screens/home/widgets/announcement_card.dart';
 import 'package:gov_app/screens/home/widgets/task_card.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -23,13 +24,13 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final FirebaseAuth _auth = FirebaseAuth.instance;
-  
+
   List<Map<String, dynamic>> _announcements = [];
   List<Map<String, dynamic>> _tasks = [];
   Map<String, dynamic>? _featuredTask;
   bool _isLoading = true;
   String? _error;
-  
+
   // User data fields
   String _fullName = '';
   String _userInitials = '';
@@ -40,7 +41,7 @@ class _HomeScreenState extends State<HomeScreen> {
     _fetchUserData();
     _fetchData();
   }
-  
+
   // Fetch current user's data
   Future<void> _fetchUserData() async {
     try {
@@ -51,7 +52,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
       // Fetch user data from Firestore
       final userDoc = await _firestore.collection('users').doc(uid).get();
-      
+
       if (userDoc.exists) {
         final userData = userDoc.data();
         if (userData != null) {
@@ -59,12 +60,12 @@ class _HomeScreenState extends State<HomeScreen> {
           final firstName = userData['firstName'] ?? '';
           final lastName = userData['lastName'] ?? '';
           final fullName = userData['fullName'] ?? '$firstName $lastName';
-          
+
           // Create initials from the first letters of first and last name
           String initials = '';
           if (firstName.isNotEmpty) initials += firstName[0];
           if (lastName.isNotEmpty) initials += lastName[0];
-          
+
           setState(() {
             _fullName = fullName;
             _userInitials = initials.toUpperCase();
@@ -369,7 +370,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 // Navigate to announcements screen
               },
             ),
-            const SizedBox(width: 32),
+            const SizedBox(width: 16),
             _buildServiceItem(
               icon: Icons.campaign_outlined,
               label: 'Advertisements',
@@ -380,6 +381,21 @@ class _HomeScreenState extends State<HomeScreen> {
                   context,
                   MaterialPageRoute(
                     builder: (context) => const AdvertisementsScreen(),
+                  ),
+                );
+              },
+            ),
+            const SizedBox(width: 16),
+            _buildServiceItem(
+              icon: Icons.warning_amber_outlined,
+              label: 'Emergency\nNumbers',
+              color: Colors.red,
+              bgColor: Colors.red.shade100,
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const EmergencyNumbersPage(),
                   ),
                 );
               },
@@ -417,9 +433,10 @@ class _HomeScreenState extends State<HomeScreen> {
           const SizedBox(height: 8),
           Text(
             label,
-            style: const TextStyle(
-              fontSize: 12,
-            ),
+            textAlign: TextAlign.center,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+            style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
           ),
         ],
       ),
