@@ -82,6 +82,7 @@ class _CreateAdvertisementPageState extends State<CreateAdvertisementPage> {
         'documentUrl': _documentUrlController.text.isNotEmpty 
             ? _documentUrlController.text 
             : null,
+        'status': 'pending',
       });
 
       if (mounted) {
