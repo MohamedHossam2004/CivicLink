@@ -75,22 +75,16 @@ class _PollDetailScreenState extends State<PollDetailScreen> {
             .get();
         final userType = userDoc.data()?['type'] as String?;
 
-        // Only check for votes if user is a regular user
-        if (userType == null || userType == 'Regular') {
-          final voteDoc = await FirebaseFirestore.instance
-              .collection('pollVotes')
-              .where('pollId', isEqualTo: widget.pollId)
-              .where('userId', isEqualTo: user.uid)
-              .get();
-          setState(() {
-            _hasVoted = voteDoc.docs.isNotEmpty;
-          });
-        } else {
-          // Admin or advertiser users can't vote
-          setState(() {
-            _hasVoted = true;
-          });
-        }
+        // Check if user has voted
+        final voteDoc = await FirebaseFirestore.instance
+            .collection('pollVotes')
+            .where('pollId', isEqualTo: widget.pollId)
+            .where('userId', isEqualTo: user.uid)
+            .get();
+
+        setState(() {
+          _hasVoted = voteDoc.docs.isNotEmpty;
+        });
       }
     } catch (e) {
       print('Error checking vote status: $e');
@@ -122,7 +116,7 @@ class _PollDetailScreenState extends State<PollDetailScreen> {
       final userType = userDoc.data()?['type'] as String?;
 
       // Only allow regular users to vote
-      if (userType != null && userType != 'Regular') {
+      if (userType != null && userType != 'User') {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
               content: Text('Admin and advertiser users cannot vote')),
@@ -140,6 +134,10 @@ class _PollDetailScreenState extends State<PollDetailScreen> {
       setState(() {
         _hasVoted = true;
       });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Vote submitted successfully')),
+      );
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Error submitting vote: $e')),
@@ -322,147 +320,186 @@ class _PollDetailScreenState extends State<PollDetailScreen> {
                       ),
                       const SizedBox(height: 16),
 
-                      if (_hasVoted)
-                        StreamBuilder<QuerySnapshot>(
-                          stream: FirebaseFirestore.instance
-                              .collection('pollVotes')
-                              .where('pollId', isEqualTo: widget.pollId)
-                              .snapshots(),
-                          builder: (context, snapshot) {
-                            if (!snapshot.hasData) {
-                              return const Center(
-                                  child: CircularProgressIndicator());
-                            }
+                      StreamBuilder<DocumentSnapshot>(
+                        stream: FirebaseFirestore.instance
+                            .collection('users')
+                            .doc(FirebaseAuth.instance.currentUser?.uid)
+                            .snapshots(),
+                        builder: (context, userSnapshot) {
+                          final userType =
+                              userSnapshot.data?.get('type') as String?;
+                          final isRegularUser =
+                              userType == null || userType == 'User';
+                          final showVotingOptions = isRegularUser && !_hasVoted;
 
-                            final votes = snapshot.data!.docs;
-                            final totalVotes = votes.length;
-                            final choiceVotes = <String, int>{};
-
-                            for (var vote in votes) {
-                              final data = vote.data() as Map<String, dynamic>;
-                              final choiceId = data['choiceId'] as String;
-                              choiceVotes[choiceId] =
-                                  (choiceVotes[choiceId] ?? 0) + 1;
-                            }
-
+                          if (showVotingOptions) {
+                            // Show voting options for regular users who haven't voted
                             return Column(
                               children: _choices.map((choice) {
-                                final votes = choiceVotes[choice.id] ?? 0;
-                                final percentage = totalVotes > 0
-                                    ? (votes / totalVotes * 100)
-                                        .toStringAsFixed(1)
-                                    : '0.0';
-
                                 return Container(
                                   margin: const EdgeInsets.only(bottom: 12),
-                                  padding: const EdgeInsets.all(16),
-                                  decoration: BoxDecoration(
-                                    color: Colors.grey.shade50,
-                                    borderRadius: BorderRadius.circular(12),
-                                    border: Border.all(
-                                      color: _selectedChoiceId == choice.id
-                                          ? AppTheme.primary
-                                          : Colors.grey.shade200,
-                                      width: 2,
+                                  child: RadioListTile<String>(
+                                    value: choice.id,
+                                    groupValue: _selectedChoiceId,
+                                    onChanged: (value) {
+                                      setState(() {
+                                        _selectedChoiceId = value;
+                                      });
+                                    },
+                                    title: Text(choice.text),
+                                    activeColor: AppTheme.primary,
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(12),
+                                      side: BorderSide(
+                                        color: Colors.grey.shade200,
+                                      ),
                                     ),
-                                  ),
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        choice.text,
-                                        style: const TextStyle(
-                                          fontSize: 16,
-                                          fontWeight: FontWeight.w500,
-                                        ),
-                                      ),
-                                      const SizedBox(height: 8),
-                                      LinearProgressIndicator(
-                                        value: totalVotes > 0
-                                            ? votes / totalVotes
-                                            : 0,
-                                        backgroundColor: Colors.grey.shade200,
-                                        valueColor:
-                                            AlwaysStoppedAnimation<Color>(
-                                          AppTheme.primary,
-                                        ),
-                                      ),
-                                      const SizedBox(height: 4),
-                                      Text(
-                                        '$percentage% ($votes votes)',
-                                        style: TextStyle(
-                                          fontSize: 12,
-                                          color: AppTheme.text.withOpacity(0.5),
-                                        ),
-                                      ),
-                                    ],
                                   ),
                                 );
                               }).toList(),
                             );
-                          },
-                        )
-                      else
-                        Column(
-                          children: _choices.map((choice) {
-                            return Container(
-                              margin: const EdgeInsets.only(bottom: 12),
-                              child: RadioListTile<String>(
-                                value: choice.id,
-                                groupValue: _selectedChoiceId,
-                                onChanged: (value) {
-                                  setState(() {
-                                    _selectedChoiceId = value;
-                                  });
-                                },
-                                title: Text(choice.text),
-                                activeColor: AppTheme.primary,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(12),
-                                  side: BorderSide(
-                                    color: Colors.grey.shade200,
-                                  ),
-                                ),
-                              ),
+                          } else {
+                            // Show results for everyone else
+                            return StreamBuilder<QuerySnapshot>(
+                              stream: FirebaseFirestore.instance
+                                  .collection('pollVotes')
+                                  .where('pollId', isEqualTo: widget.pollId)
+                                  .snapshots(),
+                              builder: (context, snapshot) {
+                                if (!snapshot.hasData) {
+                                  return const Center(
+                                      child: CircularProgressIndicator());
+                                }
+
+                                final votes = snapshot.data!.docs;
+                                final totalVotes = votes.length;
+                                final choiceVotes = <String, int>{};
+
+                                for (var vote in votes) {
+                                  final data =
+                                      vote.data() as Map<String, dynamic>;
+                                  final choiceId = data['choiceId'] as String;
+                                  choiceVotes[choiceId] =
+                                      (choiceVotes[choiceId] ?? 0) + 1;
+                                }
+
+                                return Column(
+                                  children: _choices.map((choice) {
+                                    final votes = choiceVotes[choice.id] ?? 0;
+                                    final percentage = totalVotes > 0
+                                        ? (votes / totalVotes * 100)
+                                            .toStringAsFixed(1)
+                                        : '0.0';
+
+                                    return Container(
+                                      margin: const EdgeInsets.only(bottom: 12),
+                                      padding: const EdgeInsets.all(16),
+                                      decoration: BoxDecoration(
+                                        color: Colors.grey.shade50,
+                                        borderRadius: BorderRadius.circular(12),
+                                        border: Border.all(
+                                          color: _selectedChoiceId == choice.id
+                                              ? AppTheme.primary
+                                              : Colors.grey.shade200,
+                                          width: 2,
+                                        ),
+                                      ),
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            choice.text,
+                                            style: const TextStyle(
+                                              fontSize: 16,
+                                              fontWeight: FontWeight.w500,
+                                            ),
+                                          ),
+                                          const SizedBox(height: 8),
+                                          LinearProgressIndicator(
+                                            value: totalVotes > 0
+                                                ? votes / totalVotes
+                                                : 0,
+                                            backgroundColor:
+                                                Colors.grey.shade200,
+                                            valueColor:
+                                                AlwaysStoppedAnimation<Color>(
+                                              AppTheme.primary,
+                                            ),
+                                          ),
+                                          const SizedBox(height: 4),
+                                          Text(
+                                            '$percentage% ($votes votes)',
+                                            style: TextStyle(
+                                              fontSize: 12,
+                                              color: AppTheme.text
+                                                  .withOpacity(0.5),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    );
+                                  }).toList(),
+                                );
+                              },
                             );
-                          }).toList(),
-                        ),
+                          }
+                        },
+                      ),
 
                       if (!_hasVoted) ...[
                         const SizedBox(height: 24),
-                        SizedBox(
-                          width: double.infinity,
-                          child: ElevatedButton(
-                            onPressed: _isSubmitting ? null : _submitVote,
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: AppTheme.primary,
-                              foregroundColor: Colors.white,
-                              padding: const EdgeInsets.symmetric(vertical: 16),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              disabledBackgroundColor:
-                                  AppTheme.primary.withOpacity(0.5),
-                            ),
-                            child: _isSubmitting
-                                ? const SizedBox(
-                                    height: 20,
-                                    width: 20,
-                                    child: CircularProgressIndicator(
-                                      strokeWidth: 2,
-                                      valueColor: AlwaysStoppedAnimation<Color>(
-                                          Colors.white),
-                                    ),
-                                  )
-                                : const Text(
-                                    'Submit Vote',
-                                    style: TextStyle(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.bold,
-                                    ),
+                        StreamBuilder<DocumentSnapshot>(
+                          stream: FirebaseFirestore.instance
+                              .collection('users')
+                              .doc(FirebaseAuth.instance.currentUser?.uid)
+                              .snapshots(),
+                          builder: (context, userSnapshot) {
+                            final userType =
+                                userSnapshot.data?.get('type') as String?;
+                            final isRegularUser =
+                                userType == null || userType == 'User';
+
+                            if (!isRegularUser) {
+                              return const SizedBox.shrink();
+                            }
+
+                            return SizedBox(
+                              width: double.infinity,
+                              child: ElevatedButton(
+                                onPressed: _isSubmitting ? null : _submitVote,
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: AppTheme.primary,
+                                  foregroundColor: Colors.white,
+                                  padding:
+                                      const EdgeInsets.symmetric(vertical: 16),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(12),
                                   ),
-                          ),
+                                  disabledBackgroundColor:
+                                      AppTheme.primary.withOpacity(0.5),
+                                ),
+                                child: _isSubmitting
+                                    ? const SizedBox(
+                                        height: 20,
+                                        width: 20,
+                                        child: CircularProgressIndicator(
+                                          strokeWidth: 2,
+                                          valueColor:
+                                              AlwaysStoppedAnimation<Color>(
+                                                  Colors.white),
+                                        ),
+                                      )
+                                    : const Text(
+                                        'Submit Vote',
+                                        style: TextStyle(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                              ),
+                            );
+                          },
                         ),
                       ],
                       const SizedBox(height: 32),
