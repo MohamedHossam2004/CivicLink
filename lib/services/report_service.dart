@@ -1,107 +1,65 @@
-// lib/services/report_service.dart
 import 'dart:io';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_storage/firebase_storage.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:uuid/uuid.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 
-import '../models/report.dart';
+import 'cloudinary_service.dart';
 
 class ReportService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-  final FirebaseStorage _storage = FirebaseStorage.instance;
-  final FirebaseAuth _auth = FirebaseAuth.instance;
+  final CloudinaryService _cloudinaryService = CloudinaryService();
 
-  // Get collection reference
-  CollectionReference get _reportsCollection =>
-      _firestore.collection('reports');
+  Future<List<String>> _uploadPhotos(List<File> photos) async {
+    List<String> urls = [];
+    for (var photo in photos) {
+      final imageUrl = await _cloudinaryService.uploadImage(photo);
+      if (imageUrl != null) {
+        urls.add(imageUrl);
+      }
+    }
+    return urls;
+  }
 
-  // Submit a new report
   Future<String> submitReport({
     required String issueType,
     required String description,
-    double? latitude,
-    double? longitude,
-    required List<File> photos,
+    required String location,
+    required LatLng? coordinates,
+    required List<XFile?> photos,
   }) async {
     try {
-      // Check if user is logged in
-      final user = _auth.currentUser;
-      if (user == null) {
-        throw Exception('User not logged in');
+      List<File> imageFiles =
+          photos.whereType<XFile>().map((xFile) => File(xFile.path)).toList();
+
+      final imageUrls = await _uploadPhotos(imageFiles);
+      print('All photos uploaded to Cloudinary. URLs: $imageUrls');
+
+      final userId = FirebaseAuth.instance.currentUser?.uid;
+
+      if (userId == null) {
+        throw Exception('User not authenticated');
       }
 
-      // Upload photos to Firebase Storage
-      List<String> photoUrls = [];
-      if (photos.isNotEmpty) {
-        photoUrls = await _uploadPhotos(photos);
-      }
+      final DocumentReference docRef =
+          await _firestore.collection('reports').add({
+        'issueType': issueType,
+        'description': description,
+        'location': location,
+        'coordinates': coordinates != null
+            ? GeoPoint(coordinates.latitude, coordinates.longitude)
+            : null,
+        'photoUrls': imageUrls,
+        'timestamp': FieldValue.serverTimestamp(),
+        'status': 'pending',
+        'userId': userId,
+      });
 
-      // Create report object
-      final report = Report(
-        issueType: issueType,
-        description: description,
-        latitude: latitude,
-        longitude: longitude,
-        photoUrls: photoUrls,
-        userId: user.uid,
-      );
-
-      final docRef = await _reportsCollection.add(report.toMap());
-
+      print('Report details and photo URLs saved to Firestore successfully.');
       return docRef.id;
     } catch (e) {
       print('Error submitting report: $e');
       rethrow;
     }
-  }
-
-  // Upload photos to Firebase Storage
-  Future<List<String>> _uploadPhotos(List<File> photos) async {
-    List<String> urls = [];
-
-    for (var photo in photos) {
-      if (photo.path.isEmpty) continue;
-
-      try {
-        // Generate unique filename with timestamp to avoid collisions
-        final timestamp = DateTime.now().millisecondsSinceEpoch;
-        final uuid = Uuid();
-        final filename = 'report_${uuid.v4()}_$timestamp.jpg';
-
-        // Create storage reference with a simpler path
-        final ref = FirebaseStorage.instance.ref().child('reports/$filename');
-
-        // Upload file with metadata
-        final metadata = SettableMetadata(
-          contentType: 'image/jpeg',
-          customMetadata: {'uploaded_by': 'app_user'},
-        );
-
-        // Log the upload attempt
-        print('Attempting to upload file: reports/$filename');
-
-        // Upload with metadata and track progress
-        final uploadTask = ref.putFile(photo, metadata);
-
-        // Wait for upload to complete
-        await uploadTask.whenComplete(() => print('Upload complete'));
-
-        // Check if task was successful
-        if (uploadTask.snapshot.state == TaskState.success) {
-          // Get download URL
-          final url = await ref.getDownloadURL();
-          print('File uploaded successfully. URL: $url');
-          urls.add(url);
-        } else {
-          print('Upload failed with state: ${uploadTask.snapshot.state}');
-        }
-      } catch (e) {
-        print('Error uploading photo: $e');
-        // Continue with other photos even if one fails
-      }
-    }
-
-    return urls;
   }
 }

@@ -29,32 +29,36 @@ class ReportPreview extends StatefulWidget {
 class _ReportPreviewState extends State<ReportPreview> {
   bool _isSubmitting = false;
 
-  // In ReportPreviewState class
   Future<void> _submitReport() async {
     setState(() {
       _isSubmitting = true;
     });
 
     try {
-      // Create a list of non-null photos
-      final List<XFile> validPhotos =
-          widget.photos.where((photo) => photo != null).cast<XFile>().toList();
-
-      // Create a list of File objects from XFile paths
-      final List<File> photoFiles =
-          validPhotos.map((photo) => File(photo.path)).toList();
-
-      // Use the ReportService to submit the report
       final reportService = ReportService();
-      final reportId = await reportService.submitReport(
+
+      final List<XFile> photosToUpload =
+          widget.photos.whereType<XFile>().toList();
+      if (photosToUpload.isNotEmpty) {
+        try {} catch (e) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Photo upload failed: $e')),
+          );
+          setState(() {
+            _isSubmitting = false;
+          });
+          return;
+        }
+      }
+
+      final String reportId = await reportService.submitReport(
         issueType: widget.issueType,
         description: widget.description,
-        latitude: widget.coordinates?.latitude,
-        longitude: widget.coordinates?.longitude,
-        photos: photoFiles,
+        location: widget.location,
+        coordinates: widget.coordinates,
+        photos: widget.photos,
       );
 
-      // Navigate to confirmation screen
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(
@@ -66,7 +70,6 @@ class _ReportPreviewState extends State<ReportPreview> {
         ),
       );
     } catch (e) {
-      // Show error message
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Error submitting report: $e')),
       );
@@ -79,7 +82,6 @@ class _ReportPreviewState extends State<ReportPreview> {
 
   @override
   Widget build(BuildContext context) {
-    // Count valid photos
     final validPhotoCount =
         widget.photos.where((photo) => photo != null).length;
 
@@ -96,7 +98,6 @@ class _ReportPreviewState extends State<ReportPreview> {
       ),
       body: Column(
         children: [
-          // Main content
           Expanded(
             child: SingleChildScrollView(
               padding: const EdgeInsets.all(20.0),
@@ -119,25 +120,17 @@ class _ReportPreviewState extends State<ReportPreview> {
                     ),
                   ),
                   const SizedBox(height: 24),
-
-                  // Issue Type
                   _buildSectionTitle('Issue Type'),
                   _buildInfoCard(widget.issueType),
                   const SizedBox(height: 16),
-
-                  // Description
                   _buildSectionTitle('Description'),
                   _buildInfoCard(widget.description.isEmpty
                       ? 'No description provided'
                       : widget.description),
                   const SizedBox(height: 16),
-
-                  // Location
                   _buildSectionTitle('Location'),
                   _buildInfoCard(widget.location),
                   const SizedBox(height: 16),
-
-                  // Map preview
                   if (widget.coordinates != null) ...[
                     _buildSectionTitle('Map'),
                     Container(
@@ -175,8 +168,6 @@ class _ReportPreviewState extends State<ReportPreview> {
                     ),
                     const SizedBox(height: 16),
                   ],
-
-                  // Photos
                   _buildSectionTitle('Photos ($validPhotoCount)'),
                   if (validPhotoCount > 0)
                     SizedBox(
@@ -205,14 +196,11 @@ class _ReportPreviewState extends State<ReportPreview> {
                     )
                   else
                     _buildInfoCard('No photos attached'),
-
                   const SizedBox(height: 32),
                 ],
               ),
             ),
           ),
-
-          // Bottom action buttons
           Container(
             padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(

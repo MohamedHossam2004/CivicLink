@@ -1,3 +1,5 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+
 class Report {
   final String? id;
   final String issueType;
@@ -21,13 +23,12 @@ class Report {
     required this.userId,
   }) : createdAt = createdAt ?? DateTime.now();
 
-  // Convert to Map for Firestore
   Map<String, dynamic> toMap() {
     return {
       'issueType': issueType,
       'description': description,
       'coordinates': (latitude != null && longitude != null)
-          ? {'latitude': latitude, 'longitude': longitude}
+          ? GeoPoint(latitude!, longitude!) // Store as GeoPoint
           : null,
       'photoUrls': photoUrls,
       'status': status,
@@ -36,19 +37,31 @@ class Report {
     };
   }
 
-  // Create Report from Firestore document
   factory Report.fromMap(Map<String, dynamic> map, String id) {
-    final coordinates = map['coordinates'];
+    double? parsedLatitude;
+    double? parsedLongitude;
+
+    final dynamic coordinatesData = map['coordinates']; // Get the dynamic data
+
+    if (coordinatesData is GeoPoint) {
+      // If it's already a GeoPoint (which Firestore normally returns)
+      parsedLatitude = coordinatesData.latitude;
+      parsedLongitude = coordinatesData.longitude;
+    } else if (coordinatesData is Map<String, dynamic>) {
+      // If it's a map (e.g., from older data or manual insertion)
+      parsedLatitude = (coordinatesData['latitude'] as num?)?.toDouble();
+      parsedLongitude = (coordinatesData['longitude'] as num?)?.toDouble();
+    }
 
     return Report(
       id: id,
       issueType: map['issueType'] ?? '',
       description: map['description'] ?? '',
-      latitude: coordinates != null ? coordinates['latitude'] : null,
-      longitude: coordinates != null ? coordinates['longitude'] : null,
+      latitude: parsedLatitude,
+      longitude: parsedLongitude,
       photoUrls: List<String>.from(map['photoUrls'] ?? []),
       status: map['status'] ?? 'Pending',
-      createdAt: map['createdAt']?.toDate() ?? DateTime.now(),
+      createdAt: (map['createdAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
       userId: map['userId'] ?? '',
     );
   }
