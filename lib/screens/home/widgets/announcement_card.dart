@@ -24,6 +24,7 @@ class AnnouncementCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
+      color: Colors.white,
       child: InkWell(
         onTap: () {
           print('InkWell tapped'); // Debug print

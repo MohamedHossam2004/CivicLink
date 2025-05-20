@@ -21,6 +21,7 @@ class TaskListCard extends StatelessWidget {
 
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
+      color: Colors.white,
       child: InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(12),
@@ -89,7 +90,8 @@ class TaskListCard extends StatelessWidget {
                   const SizedBox(height: 12),
                   Row(
                     children: [
-                      Icon(Icons.calendar_today, size: 16, color: Colors.grey[600]),
+                      Icon(Icons.calendar_today,
+                          size: 16, color: Colors.grey[600]),
                       const SizedBox(width: 4),
                       Text(
                         dateFormat.format(task.startTime),
@@ -99,7 +101,8 @@ class TaskListCard extends StatelessWidget {
                         ),
                       ),
                       const SizedBox(width: 12),
-                      Icon(Icons.access_time, size: 16, color: Colors.grey[600]),
+                      Icon(Icons.access_time,
+                          size: 16, color: Colors.grey[600]),
                       const SizedBox(width: 4),
                       Text(
                         '${timeFormat.format(task.startTime)} - ${timeFormat.format(task.endTime)}',
@@ -164,4 +167,4 @@ class TaskListCard extends StatelessWidget {
       ),
     );
   }
-} 
+}

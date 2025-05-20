@@ -32,6 +32,7 @@ class TaskCard extends StatelessWidget {
 
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
+      color: Colors.white,
       child: InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(12),

@@ -218,21 +218,38 @@ class _VolunteerPageState extends State<VolunteerPage>
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFF8FAFC),
-      appBar: AppBar(
-        title: const Text('Volunteer Tasks'),
-        backgroundColor: Colors.white,
-        foregroundColor: Colors.black,
-        elevation: 1,
-      ),
       body: _error != null
           ? Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Text('Error: $_error'),
-                  ElevatedButton(
+                  Icon(
+                    Icons.error_outline,
+                    size: 48,
+                    color: Colors.red[400],
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    'Error: $_error',
+                    style: const TextStyle(
+                      fontSize: 16,
+                      color: Color(0xFF1E293B),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  ElevatedButton.icon(
                     onPressed: _fetchTasks,
-                    child: const Text('Retry'),
+                    icon: const Icon(Icons.refresh),
+                    label: const Text('Retry'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF8B5CF6),
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 24, vertical: 12),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
                   ),
                 ],
               ),
@@ -241,43 +258,160 @@ class _VolunteerPageState extends State<VolunteerPage>
               onRefresh: _refreshTasks,
               child: Column(
                 children: [
-                  // Search Bar
-                  Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: TextField(
-                      onChanged: (value) {
-                        setState(() {
-                          _searchQuery = value;
-                        });
-                      },
-                      decoration: InputDecoration(
-                        hintText: 'Search tasks...',
-                        prefixIcon: const Icon(Icons.search),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(30),
-                          borderSide: BorderSide.none,
-                        ),
+                  // Header Section
+                  SafeArea(
+                    child: Container(
+                      padding: const EdgeInsets.fromLTRB(16, 24, 16, 16),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.05),
+                            blurRadius: 2,
+                            offset: const Offset(0, 1),
+                          ),
+                        ],
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            'Find Your Next Opportunity',
+                            style: TextStyle(
+                              fontSize: 24,
+                              fontWeight: FontWeight.bold,
+                              color: Color(0xFF1E293B),
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            'Join our community and make a difference',
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: Colors.grey[600],
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                          // Search Bar
+                          Container(
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFF1F5F9),
+                              borderRadius: BorderRadius.circular(30),
+                            ),
+                            child: TextField(
+                              onChanged: (value) {
+                                setState(() {
+                                  _searchQuery = value;
+                                });
+                              },
+                              decoration: InputDecoration(
+                                hintText: 'Search tasks...',
+                                prefixIcon: const Icon(
+                                  Icons.search,
+                                  color: Color(0xFF64748B),
+                                ),
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(30),
+                                  borderSide: BorderSide.none,
+                                ),
+                                contentPadding: const EdgeInsets.symmetric(
+                                  horizontal: 16,
+                                  vertical: 12,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   ),
 
                   // Tabs
-                  TabBar(
-                    controller: _tabController,
-                    labelColor: Colors.deepPurple,
-                    unselectedLabelColor: Colors.grey,
-                    indicatorColor: Colors.deepPurple,
-                    tabs: const [
-                      Tab(text: 'Available'),
-                      Tab(text: 'My Tasks'),
-                      Tab(text: 'Completed'),
-                    ],
+                  Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFF1F5F9),
+                        borderRadius: BorderRadius.circular(32),
+                      ),
+                      child: TabBar(
+                        controller: _tabController,
+                        labelColor: const Color(0xFF8B5CF6),
+                        unselectedLabelColor: const Color(0xFF64748B),
+                        indicator: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(24),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.05),
+                              blurRadius: 2,
+                              offset: const Offset(0, 1),
+                            ),
+                          ],
+                        ),
+                        labelStyle: const TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
+                        ),
+                        tabs: const [
+                          Tab(
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(Icons.add_circle_outline, size: 18),
+                                SizedBox(width: 8),
+                                Text('Available'),
+                              ],
+                            ),
+                          ),
+                          Tab(
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(Icons.check_circle_outline, size: 18),
+                                SizedBox(width: 8),
+                                Text('My Tasks'),
+                              ],
+                            ),
+                          ),
+                          Tab(
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(Icons.done_all, size: 18),
+                                SizedBox(width: 8),
+                                Text('Completed'),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
                   ),
 
                   // Tab Content
                   Expanded(
                     child: _isLoading
-                        ? const Center(child: CircularProgressIndicator())
+                        ? Center(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                const CircularProgressIndicator(
+                                  valueColor: AlwaysStoppedAnimation<Color>(
+                                    Color(0xFF8B5CF6),
+                                  ),
+                                ),
+                                const SizedBox(height: 16),
+                                Text(
+                                  'Loading tasks...',
+                                  style: TextStyle(
+                                    color: Colors.grey[600],
+                                    fontSize: 14,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          )
                         : TabBarView(
                             controller: _tabController,
                             children: [
@@ -297,35 +431,69 @@ class _VolunteerPageState extends State<VolunteerPage>
   Widget _buildTaskList(List<Task> tasks, String title) {
     if (tasks.isEmpty) {
       return Container(
-        padding: const EdgeInsets.all(20),
-        margin: const EdgeInsets.symmetric(vertical: 16),
+        padding: const EdgeInsets.all(24),
+        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
         decoration: BoxDecoration(
-          color: Colors.grey.shade100,
+          color: Colors.white,
           borderRadius: BorderRadius.circular(16),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.05),
+              blurRadius: 2,
+              offset: const Offset(0, 1),
+            ),
+          ],
         ),
         child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
-              Icons.event_busy,
-              size: 48,
-              color: Colors.grey.shade400,
-            ),
-            const SizedBox(height: 16),
-            Text(
-              'No $title Tasks',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: Colors.grey.shade700,
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: const Color(0xFFF1F5F9),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                Icons.event_busy,
+                size: 48,
+                color: Colors.grey[400],
               ),
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: 24),
             Text(
-              'There are currently no $title tasks available. Check back later for new opportunities!',
+              'No $title Tasks',
+              style: const TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                color: Color(0xFF1E293B),
+              ),
+            ),
+            const SizedBox(height: 12),
+            Text(
+              'There are currently no $title tasks available.\nCheck back later for new opportunities!',
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontSize: 14,
-                color: Colors.grey.shade600,
+                color: Colors.grey[600],
+                height: 1.5,
+              ),
+            ),
+            const SizedBox(height: 24),
+            OutlinedButton.icon(
+              onPressed: () {
+                // Refresh tasks
+                _refreshTasks();
+              },
+              icon: const Icon(Icons.refresh),
+              label: const Text('Refresh'),
+              style: OutlinedButton.styleFrom(
+                foregroundColor: const Color(0xFF8B5CF6),
+                side: const BorderSide(color: Color(0xFF8B5CF6)),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
               ),
             ),
           ],
@@ -333,17 +501,38 @@ class _VolunteerPageState extends State<VolunteerPage>
       );
     }
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+    return ListView(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
       children: [
         Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          child: Text(
-            title,
-            style: const TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-            ),
+          padding: const EdgeInsets.symmetric(vertical: 16),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                title,
+                style: const TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: Color(0xFF1E293B),
+                ),
+              ),
+              Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF8B5CF6).withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Text(
+                  '${tasks.length} tasks',
+                  style: const TextStyle(
+                    color: Color(0xFF8B5CF6),
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ),
+            ],
           ),
         ),
         ...tasks.map((task) => TaskListCard(
@@ -360,6 +549,7 @@ class _VolunteerPageState extends State<VolunteerPage>
                 );
               },
             )),
+        const SizedBox(height: 16),
       ],
     );
   }

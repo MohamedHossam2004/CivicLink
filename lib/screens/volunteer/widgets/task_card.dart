@@ -116,6 +116,7 @@ class _TaskCardState extends State<TaskCard> {
 
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
+      color: Colors.white,
       child: InkWell(
         onTap: () {
           // Navigate to task detail
@@ -170,7 +171,8 @@ class _TaskCardState extends State<TaskCard> {
                   const SizedBox(height: 12),
                   Row(
                     children: [
-                      Icon(Icons.calendar_today, size: 16, color: Colors.grey[600]),
+                      Icon(Icons.calendar_today,
+                          size: 16, color: Colors.grey[600]),
                       const SizedBox(width: 4),
                       Text(
                         dateFormat.format(_currentTask.startTime),
@@ -180,7 +182,8 @@ class _TaskCardState extends State<TaskCard> {
                         ),
                       ),
                       const SizedBox(width: 12),
-                      Icon(Icons.access_time, size: 16, color: Colors.grey[600]),
+                      Icon(Icons.access_time,
+                          size: 16, color: Colors.grey[600]),
                       const SizedBox(width: 4),
                       Text(
                         '${timeFormat.format(_currentTask.startTime)} - ${timeFormat.format(_currentTask.endTime)}',
@@ -261,7 +264,9 @@ class _TaskCardState extends State<TaskCard> {
       onPressed: _toggleVolunteer,
       style: TextButton.styleFrom(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        backgroundColor: _isVolunteered ? Colors.grey.shade200 : departmentColor.withOpacity(0.1),
+        backgroundColor: _isVolunteered
+            ? Colors.grey.shade200
+            : departmentColor.withOpacity(0.1),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(20),
         ),
@@ -275,4 +280,4 @@ class _TaskCardState extends State<TaskCard> {
       ),
     );
   }
-} 
+}

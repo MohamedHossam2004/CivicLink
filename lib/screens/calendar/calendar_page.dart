@@ -317,7 +317,7 @@ class _CalendarPageState extends State<CalendarPage>
 
   Widget _buildHeader() {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.fromLTRB(16, 24, 16, 16),
       decoration: BoxDecoration(
         color: Colors.white,
         boxShadow: [
@@ -336,46 +336,10 @@ class _CalendarPageState extends State<CalendarPage>
               const Text(
                 'Community Calendar',
                 style: TextStyle(
-                  fontSize: 20,
+                  fontSize: 24,
                   fontWeight: FontWeight.bold,
+                  color: Color(0xFF1E293B),
                 ),
-              ),
-              Row(
-                children: [
-                  OutlinedButton.icon(
-                    onPressed: () {},
-                    icon: const Icon(Icons.filter_list, size: 16),
-                    label: const Text('Filter'),
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: const Color(0xFF64748B),
-                      side: const BorderSide(
-                          color: Color(0xFFCBD5E1)), // slate-300
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 12, vertical: 8),
-                      minimumSize: Size.zero,
-                      textStyle: const TextStyle(fontSize: 14),
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  ElevatedButton.icon(
-                    onPressed: () {},
-                    icon: const Icon(Icons.add, size: 16),
-                    label: const Text('Add'),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF8B5CF6), // violet-600
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 12, vertical: 8),
-                      minimumSize: Size.zero,
-                      textStyle: const TextStyle(fontSize: 14),
-                    ),
-                  ),
-                ],
               ),
             ],
           ),
@@ -385,12 +349,25 @@ class _CalendarPageState extends State<CalendarPage>
             children: [
               Row(
                 children: [
-                  IconButton(
-                    icon: const Icon(Icons.arrow_left, size: 16),
-                    onPressed: _previousMonth,
-                    padding: EdgeInsets.zero,
-                    constraints: const BoxConstraints(),
-                    splashRadius: 20,
+                  Container(
+                    width: 24,
+                    height: 24,
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(
+                        color: const Color(0xFF8B5CF6),
+                        width: 1,
+                      ),
+                    ),
+                    child: IconButton(
+                      icon: const Icon(Icons.chevron_left, size: 12),
+                      onPressed: _previousMonth,
+                      color: const Color(0xFF8B5CF6),
+                      padding: EdgeInsets.zero,
+                      constraints: const BoxConstraints(),
+                      splashRadius: 12,
+                    ),
                   ),
                   const SizedBox(width: 8),
                   Text(
@@ -398,34 +375,61 @@ class _CalendarPageState extends State<CalendarPage>
                     style: const TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w600,
+                      color: Color(0xFF1E293B),
                     ),
                   ),
                   const SizedBox(width: 8),
-                  IconButton(
-                    icon: const Icon(Icons.arrow_right, size: 16),
-                    onPressed: _nextMonth,
-                    padding: EdgeInsets.zero,
-                    constraints: const BoxConstraints(),
-                    splashRadius: 20,
-                  ),
-                ],
-              ),
-              Row(
-                children: [
-                  const Icon(
-                    Icons.public,
-                    size: 16,
-                    color: Color(0xFF64748B), // slate-500
-                  ),
-                  const SizedBox(width: 4),
-                  Text(
-                    'All City Events',
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: const Color(0xFF64748B), // slate-500
+                  Container(
+                    width: 24,
+                    height: 24,
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(
+                        color: const Color(0xFF8B5CF6),
+                        width: 1,
+                      ),
+                    ),
+                    child: IconButton(
+                      icon: const Icon(Icons.chevron_right, size: 12),
+                      onPressed: _nextMonth,
+                      color: const Color(0xFF8B5CF6),
+                      padding: EdgeInsets.zero,
+                      constraints: const BoxConstraints(),
+                      splashRadius: 12,
                     ),
                   ),
                 ],
+              ),
+              Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(
+                    colors: [Color(0xFF8B5CF6), Color(0xFF7C3AED)],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: Row(
+                  children: [
+                    const Icon(
+                      Icons.public,
+                      size: 14,
+                      color: Colors.white,
+                    ),
+                    const SizedBox(width: 4),
+                    Text(
+                      'All City Events',
+                      style: const TextStyle(
+                        fontSize: 12,
+                        color: Colors.white,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ],
           ),
@@ -453,74 +457,122 @@ class _CalendarPageState extends State<CalendarPage>
   Widget _buildFilterChip(String label, String value) {
     final isSelected = _selectedEventType == value;
     return Padding(
-      padding: const EdgeInsets.only(right: 8),
-      child: FilterChip(
-        label: Text(
-          label,
-          style: TextStyle(
-            color: isSelected
-                ? Colors.white
-                : const Color(0xFF64748B), // slate-500
-            fontSize: 12,
-            fontWeight: FontWeight.w500,
-          ),
-        ),
-        selected: isSelected,
-        onSelected: (selected) {
-          setState(() {
-            _selectedEventType = value;
-          });
-        },
-        backgroundColor: Colors.white,
-        selectedColor: const Color(0xFF8B5CF6), // violet-600
-        checkmarkColor: Colors.white,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(20),
-          side: BorderSide(
-            color: isSelected
-                ? const Color(0xFF8B5CF6)
-                : const Color(0xFFE2E8F0), // violet-600 : slate-200
+      padding: const EdgeInsets.only(right: 6),
+      child: Container(
+        decoration: BoxDecoration(
+          gradient: isSelected
+              ? const LinearGradient(
+                  colors: [Color(0xFF8B5CF6), Color(0xFF7C3AED)],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                )
+              : null,
+          color: isSelected ? null : Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+            color: isSelected ? Colors.transparent : const Color(0xFFE2E8F0),
             width: 1,
           ),
         ),
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        child: Material(
+          color: Colors.transparent,
+          child: InkWell(
+            onTap: () {
+              setState(() {
+                _selectedEventType = value;
+              });
+            },
+            borderRadius: BorderRadius.circular(16),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              child: Text(
+                label,
+                style: TextStyle(
+                  color: isSelected ? Colors.white : const Color(0xFF64748B),
+                  fontSize: 12,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ),
+          ),
+        ),
       ),
     );
   }
 
   Widget _buildTabBar() {
     return Padding(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(12),
       child: Container(
         height: 36,
         decoration: BoxDecoration(
-          color: const Color(0xFFF1F5F9), // slate-100
-          borderRadius: BorderRadius.circular(9999),
+          color: const Color(0xFFF1F5F9),
+          borderRadius: BorderRadius.circular(18),
         ),
         child: TabBar(
           controller: _tabController,
           indicator: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(9999),
+            gradient: const LinearGradient(
+              colors: [Color(0xFF8B5CF6), Color(0xFF7C3AED)],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+            borderRadius: BorderRadius.circular(18),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.05),
-                blurRadius: 2,
-                offset: const Offset(0, 1),
+                color: const Color(0xFF8B5CF6).withOpacity(0.2),
+                blurRadius: 4,
+                offset: const Offset(0, 2),
               ),
             ],
           ),
-          labelColor: const Color(0xFF8B5CF6), // violet-700
-          unselectedLabelColor: const Color(0xFF64748B), // slate-500
+          labelColor: Colors.white,
+          unselectedLabelColor: const Color(0xFF64748B),
           labelStyle: const TextStyle(
             fontSize: 12,
-            fontWeight: FontWeight.w500,
+            fontWeight: FontWeight.w600,
           ),
           tabs: const [
-            Tab(text: 'Month'),
-            Tab(text: 'Week'),
-            Tab(text: 'Day'),
-            Tab(text: 'Agenda'),
+            Tab(
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.calendar_month, size: 14),
+                  SizedBox(width: 4),
+                  Text('Month'),
+                ],
+              ),
+            ),
+            Tab(
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.view_week, size: 14),
+                  SizedBox(width: 4),
+                  Text('Week'),
+                ],
+              ),
+            ),
+            Tab(
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.calendar_today, size: 14),
+                  SizedBox(width: 4),
+                  Text('Day'),
+                ],
+              ),
+            ),
+            Tab(
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.list_alt, size: 14),
+                  SizedBox(width: 4),
+                  Text('Agenda'),
+                ],
+              ),
+            ),
           ],
         ),
       ),
@@ -675,35 +727,12 @@ class _CalendarPageState extends State<CalendarPage>
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Expanded(
-              child: Text(
-                "Events for ${DateFormat('MMMM d, yyyy').format(selectedDateTime)}",
-                style: const TextStyle(
-                  fontWeight: FontWeight.w600,
-                  fontSize: 16,
-                ),
-                overflow: TextOverflow.ellipsis,
-              ),
-            ),
-            TextButton(
-              onPressed: () {},
-              child: const Text(
-                "View All",
-                style: TextStyle(
-                  color: Color(0xFF8B5CF6), // violet-600
-                  fontSize: 14,
-                ),
-              ),
-              style: TextButton.styleFrom(
-                minimumSize: Size.zero,
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-              ),
-            ),
-          ],
+        Text(
+          "Events for ${DateFormat('MMMM d, yyyy').format(selectedDateTime)}",
+          style: const TextStyle(
+            fontWeight: FontWeight.w600,
+            fontSize: 16,
+          ),
         ),
         const SizedBox(height: 8),
         if (filteredEvents.isNotEmpty)
@@ -740,6 +769,7 @@ class _CalendarPageState extends State<CalendarPage>
           )
         else
           Container(
+            width: double.infinity,
             padding: const EdgeInsets.all(24),
             decoration: BoxDecoration(
               color: Colors.white,
@@ -754,10 +784,17 @@ class _CalendarPageState extends State<CalendarPage>
             ),
             child: Column(
               children: [
+                Icon(
+                  Icons.event_busy,
+                  size: 48,
+                  color: Colors.grey[400],
+                ),
+                const SizedBox(height: 16),
                 Text(
                   "No events scheduled for this day",
                   style: TextStyle(
-                    color: const Color(0xFF64748B), // slate-500
+                    color: Colors.grey[600],
+                    fontSize: 16,
                   ),
                 ),
               ],
@@ -1004,7 +1041,7 @@ class _CalendarPageState extends State<CalendarPage>
                   ),
                   Row(
                     children: [
-                      _buildWeekViewButton("Today", Icons.today),
+                      _buildWeekViewButton("This Week", Icons.view_week),
                     ],
                   ),
                 ],
@@ -1034,40 +1071,119 @@ class _CalendarPageState extends State<CalendarPage>
                   ),
                 )
               else
-                SizedBox(
-                  height: 500,
-                  child: ListView(
-                    shrinkWrap: true,
-                    children: List.generate(24, (hour) {
-                      final time = DateTime(now.year, now.month, now.day, hour);
-                      final eventsInHour = filteredEvents.where((event) {
-                        final eventTime = event['date'] as DateTime;
-                        return eventTime.hour == hour;
-                      }).toList();
+                Column(
+                  children: List.generate(7, (index) {
+                    final currentDate = startOfWeek.add(Duration(days: index));
+                    final dayEvents = filteredEvents.where((event) {
+                      final eventDate = event['date'] as DateTime;
+                      return eventDate.year == currentDate.year &&
+                          eventDate.month == currentDate.month &&
+                          eventDate.day == currentDate.day;
+                    }).toList();
 
-                      return _buildTimeSlot(
-                        DateFormat('h:mm a').format(time),
-                        eventsInHour.isEmpty
-                            ? null
-                            : Column(
-                                children: eventsInHour.map((event) {
-                                  final startTime = event['date'] as DateTime;
-                                  final endTime =
-                                      startTime.add(const Duration(hours: 2));
-                                  final timeString =
-                                      '${DateFormat('h:mm a').format(startTime)} - ${DateFormat('h:mm a').format(endTime)}';
-
-                                  return _buildTimeEvent(
-                                    event['title'],
-                                    timeString,
-                                    event['department'],
-                                    event['color'],
-                                  );
-                                }).toList(),
+                    return Container(
+                      padding: const EdgeInsets.only(bottom: 16),
+                      decoration: const BoxDecoration(
+                        border: Border(
+                          bottom: BorderSide(
+                            color: Color(0xFFE2E8F0),
+                            width: 1,
+                          ),
+                        ),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              Container(
+                                width: 40,
+                                height: 40,
+                                decoration: BoxDecoration(
+                                  color:
+                                      currentDate.day == DateTime.now().day &&
+                                              currentDate.month ==
+                                                  DateTime.now().month
+                                          ? const Color(0xFF8B5CF6)
+                                          : const Color(0xFFF1F5F9),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                alignment: Alignment.center,
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Text(
+                                      DateFormat('E').format(currentDate),
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        color: currentDate.day ==
+                                                    DateTime.now().day &&
+                                                currentDate.month ==
+                                                    DateTime.now().month
+                                            ? Colors.white
+                                            : const Color(0xFF64748B),
+                                      ),
+                                    ),
+                                    Text(
+                                      "${currentDate.day}",
+                                      style: TextStyle(
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.bold,
+                                        color: currentDate.day ==
+                                                    DateTime.now().day &&
+                                                currentDate.month ==
+                                                    DateTime.now().month
+                                            ? Colors.white
+                                            : const Color(0xFF1E293B),
+                                      ),
+                                    ),
+                                  ],
+                                ),
                               ),
-                      );
-                    }),
-                  ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: dayEvents.isEmpty
+                                    ? Text(
+                                        "No events",
+                                        style: TextStyle(
+                                          color: Colors.grey[400],
+                                          fontSize: 14,
+                                        ),
+                                      )
+                                    : Column(
+                                        children: dayEvents.map((event) {
+                                          final startTime =
+                                              event['date'] as DateTime;
+                                          final endTime = startTime
+                                              .add(const Duration(hours: 2));
+                                          final timeString =
+                                              '${DateFormat('h:mm a').format(startTime)} - ${DateFormat('h:mm a').format(endTime)}';
+
+                                          return Padding(
+                                            padding: const EdgeInsets.only(
+                                                bottom: 8),
+                                            child: _buildEventCard(
+                                              title: event['title'],
+                                              time: timeString,
+                                              location: event['location'] ??
+                                                  'No location',
+                                              category: event['type'] == 'task'
+                                                  ? 'Task'
+                                                  : 'Announcement',
+                                              department: event['department'] ??
+                                                  'No Department',
+                                              color: event['color'],
+                                            ),
+                                          );
+                                        }).toList(),
+                                      ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    );
+                  }),
                 ),
             ],
           ),
@@ -1398,22 +1514,6 @@ class _CalendarPageState extends State<CalendarPage>
                     style: TextStyle(
                       fontWeight: FontWeight.w600,
                       fontSize: 16,
-                    ),
-                  ),
-                  OutlinedButton.icon(
-                    onPressed: () {},
-                    icon: const Icon(Icons.filter_list, size: 16),
-                    label: const Text("Department"),
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: const Color(0xFF64748B),
-                      side: const BorderSide(color: Color(0xFFCBD5E1)),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 12, vertical: 8),
-                      minimumSize: Size.zero,
-                      textStyle: const TextStyle(fontSize: 14),
                     ),
                   ),
                 ],
@@ -1823,18 +1923,23 @@ class _CalendarPageState extends State<CalendarPage>
 
   Widget _buildWeekViewButton(String label, IconData icon) {
     return OutlinedButton.icon(
-      onPressed: () {},
-      icon: Icon(icon, size: 16),
+      onPressed: () {
+        setState(() {
+          _currentMonth = DateTime.now();
+          _selectedDate = DateTime.now().day;
+        });
+      },
+      icon: Icon(icon, size: 14),
       label: Text(label),
       style: OutlinedButton.styleFrom(
         foregroundColor: const Color(0xFF64748B),
-        side: const BorderSide(color: Color(0xFFCBD5E1)), // slate-300
+        side: const BorderSide(color: Color(0xFFCBD5E1)),
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(20),
+          borderRadius: BorderRadius.circular(16),
         ),
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
         minimumSize: Size.zero,
-        textStyle: const TextStyle(fontSize: 14),
+        textStyle: const TextStyle(fontSize: 12),
       ),
     );
   }
