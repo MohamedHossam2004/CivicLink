@@ -420,9 +420,9 @@ class _HomeScreenState extends State<HomeScreen> {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => VolunteerPage(
+                        builder: (context) => TaskDetailPage(
+                          task: task,
                           userId: FirebaseAuth.instance.currentUser?.uid ?? '',
-                          initialTaskId: task.id,
                         ),
                       ),
                     );
@@ -562,11 +562,11 @@ class _HomeScreenState extends State<HomeScreen> {
                             Navigator.push(
                               context,
                               MaterialPageRoute(
-                                builder: (context) => VolunteerPage(
+                                builder: (context) => TaskDetailPage(
+                                  task: task,
                                   userId:
                                       FirebaseAuth.instance.currentUser?.uid ??
                                           '',
-                                  initialTaskId: task.id,
                                 ),
                               ),
                             );
