@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import '../../config/theme.dart';
 import '../../utils/date_formatter.dart';
 import 'advertisement_detail_screen.dart';
+import 'create_advertisement_page.dart';
 
 class AdvertisementsScreen extends StatefulWidget {
   const AdvertisementsScreen({Key? key}) : super(key: key);
@@ -17,17 +19,35 @@ class _AdvertisementsScreenState extends State<AdvertisementsScreen> {
   bool _isLoading = true;
   String? _error;
   final PageController _pageController = PageController();
+  bool _isAdvertiser = false;
 
   @override
   void initState() {
     super.initState();
     _fetchAdvertisements();
+    _checkUserType();
   }
 
   @override
   void dispose() {
     _pageController.dispose();
     super.dispose();
+  }
+
+  Future<void> _checkUserType() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      final userDoc = await _firestore
+          .collection('users')
+          .doc(user.uid)
+          .get();
+      
+      if (mounted) {
+        setState(() {
+          _isAdvertiser = userDoc.data()?['type'] == 'advertiser';
+        });
+      }
+    }
   }
 
   Future<void> _fetchAdvertisements() async {
@@ -75,6 +95,26 @@ class _AdvertisementsScreenState extends State<AdvertisementsScreen> {
         ),
         backgroundColor: Colors.white,
         elevation: 0,
+        actions: [
+          if (_isAdvertiser)
+            Padding(
+              padding: const EdgeInsets.only(right: 8.0),
+              child: IconButton(
+                icon: const Icon(
+                  Icons.add_circle_outline,
+                  color: Color(0xFF1E293B),
+                ),
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const CreateAdvertisementPage(),
+                    ),
+                  );
+                },
+              ),
+            ),
+        ],
       ),
       body: StreamBuilder<QuerySnapshot>(
         stream: _firestore
