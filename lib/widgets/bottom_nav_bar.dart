@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:gov_app/config/theme.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class BottomNavBar extends StatelessWidget {
   final int currentIndex;
@@ -48,7 +49,7 @@ class BottomNavBar extends StatelessWidget {
 
   Widget _buildNavItem(int index, String label, IconData icon) {
     final isSelected = currentIndex == index;
-    
+
     return InkWell(
       onTap: () => onTap(index),
       child: Column(
@@ -58,12 +59,16 @@ class BottomNavBar extends StatelessWidget {
             width: 40,
             height: 40,
             decoration: BoxDecoration(
-              color: isSelected ? AppTheme.primaryLightColor : const Color(0xFFF1F5F9),
+              color: isSelected
+                  ? AppTheme.primaryLightColor
+                  : const Color(0xFFF1F5F9),
               shape: BoxShape.circle,
             ),
             child: Icon(
               icon,
-              color: isSelected ? AppTheme.primaryColor : AppTheme.textSecondaryColor,
+              color: isSelected
+                  ? AppTheme.primaryColor
+                  : AppTheme.textSecondaryColor,
               size: 20,
             ),
           ),
@@ -72,7 +77,9 @@ class BottomNavBar extends StatelessWidget {
             label,
             style: TextStyle(
               fontSize: 12,
-              color: isSelected ? AppTheme.primaryColor : AppTheme.textSecondaryColor,
+              color: isSelected
+                  ? AppTheme.primaryColor
+                  : AppTheme.textSecondaryColor,
             ),
           ),
         ],

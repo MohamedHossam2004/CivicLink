@@ -8,6 +8,7 @@ class AnnouncementCard extends StatelessWidget {
   final String date;
   final String category;
   final Color color;
+  final VoidCallback? onTap;
 
   const AnnouncementCard({
     Key? key,
@@ -16,6 +17,7 @@ class AnnouncementCard extends StatelessWidget {
     required this.date,
     required this.category,
     required this.color,
+    this.onTap,
   }) : super(key: key);
 
   @override
@@ -24,7 +26,13 @@ class AnnouncementCard extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 12),
       child: InkWell(
         onTap: () {
-          // Navigate to announcement detail
+          print('InkWell tapped'); // Debug print
+          if (onTap != null) {
+            print('Calling onTap callback'); // Debug print
+            onTap!();
+          } else {
+            print('onTap callback is null'); // Debug print
+          }
         },
         borderRadius: BorderRadius.circular(12),
         child: Stack(
