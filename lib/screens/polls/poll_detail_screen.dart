@@ -170,7 +170,7 @@ class _PollDetailScreenState extends State<PollDetailScreen> {
       final userType = userDoc.data()?['type'] as String?;
 
       // Only allow regular users to comment
-      if (userType != null && userType != 'Regular') {
+      if (userType != null && userType != 'User') {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
               content: Text('Admin and advertiser users cannot comment')),
