@@ -10,6 +10,7 @@ import '../volunteer/task_detail_page.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../../models/task.dart';
 import '../../utils/date_formatter.dart';
+import '../volunteer/volunteer_page.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({Key? key}) : super(key: key);
@@ -22,6 +23,7 @@ class _HomeScreenState extends State<HomeScreen> {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   List<Map<String, dynamic>> _announcements = [];
   List<Map<String, dynamic>> _tasks = [];
+  Map<String, dynamic>? _featuredTask;
   bool _isLoading = true;
   String? _error;
 
@@ -33,6 +35,59 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Future<void> _fetchData() async {
     try {
+      // Fetch featured task (task with most volunteers)
+      final featuredTaskSnapshot = await _firestore
+          .collection('tasks')
+          .orderBy('currVolunteers', descending: true)
+          .limit(10) // Get top 10 tasks by volunteer count
+          .get();
+
+      print(
+          'Fetched ${featuredTaskSnapshot.docs.length} tasks for featured section');
+
+      if (featuredTaskSnapshot.docs.isNotEmpty) {
+        final now = DateTime.now();
+        // Filter out tasks that have ended and get the first one
+        final activeTasks = featuredTaskSnapshot.docs.where((doc) {
+          final endTimeData = doc.data()['endTime'];
+          DateTime endTime;
+
+          if (endTimeData is Timestamp) {
+            endTime = endTimeData.toDate();
+          } else if (endTimeData is String) {
+            try {
+              endTime = DateTime.parse(endTimeData);
+            } catch (e) {
+              print('Error parsing end time: $e');
+              return false;
+            }
+          } else {
+            print('Invalid end time format: $endTimeData');
+            return false;
+          }
+
+          return endTime.isAfter(now);
+        }).toList();
+
+        print('Found ${activeTasks.length} active tasks');
+
+        if (activeTasks.isNotEmpty) {
+          final doc = activeTasks.first;
+          setState(() {
+            _featuredTask = {
+              ...doc.data(),
+              'id': doc.id,
+            };
+          });
+          print('Set featured task: ${_featuredTask!['name']}');
+        } else {
+          print('No active tasks found');
+          setState(() {
+            _featuredTask = null;
+          });
+        }
+      }
+
       final announcementsSnapshot = await _firestore
           .collection('announcements')
           .orderBy('createdOn', descending: true)
@@ -53,7 +108,8 @@ class _HomeScreenState extends State<HomeScreen> {
           .limit(10)
           .get();
 
-      // Get unique tasks by name to avoid repetition
+      // Get unique tasks by name to avoid repetition and filter out tasks with passed deadlines
+      final now = DateTime.now();
       final tasks = tasksSnapshot.docs
           .map((doc) {
             final data = doc.data();
@@ -62,7 +118,24 @@ class _HomeScreenState extends State<HomeScreen> {
               'id': doc.id,
             };
           })
-          .toList()
+          .where((task) {
+            final endTimeData = task['endTime'];
+            DateTime endTime;
+
+            if (endTimeData is Timestamp) {
+              endTime = endTimeData.toDate();
+            } else if (endTimeData is String) {
+              try {
+                endTime = DateTime.parse(endTimeData);
+              } catch (e) {
+                return false;
+              }
+            } else {
+              return false;
+            }
+
+            return endTime.isAfter(now);
+          })
           .fold<Map<String, Map<String, dynamic>>>({}, (map, task) {
             if (!map.containsKey(task['name'])) {
               map[task['name']] = task;
@@ -79,6 +152,7 @@ class _HomeScreenState extends State<HomeScreen> {
         _isLoading = false;
       });
     } catch (e) {
+      print('Error fetching data: $e');
       setState(() {
         _error = e.toString();
         _isLoading = false;
@@ -94,6 +168,10 @@ class _HomeScreenState extends State<HomeScreen> {
     if (_error != null) {
       return Center(child: Text('Error: $_error'));
     }
+
+    print(
+        'Building home screen with featured task: ${_featuredTask != null ? _featuredTask!['name'] : 'null'}');
+
     return Scaffold(
       body: SafeArea(
         child: Column(
@@ -309,178 +387,286 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Widget _buildFeaturedTask() {
     return Container(
-      padding: const EdgeInsets.all(20),
+      margin: const EdgeInsets.only(bottom: 24),
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: [
             AppTheme.primaryColor,
             AppTheme.secondaryColor,
           ],
-          begin: Alignment.centerLeft,
-          end: Alignment.centerRight,
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
         ),
         borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: AppTheme.primaryColor.withOpacity(0.3),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            padding: const EdgeInsets.symmetric(
-              horizontal: 8,
-              vertical: 4,
-            ),
-            decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.2),
-              borderRadius: BorderRadius.circular(50),
-            ),
-            child: const Text(
-              'Featured Task',
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 12,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-          ),
-          const SizedBox(height: 12),
-          const Text(
-            'Community Garden Project',
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            'Help create a new community garden in the central district',
-            style: TextStyle(
-              color: Colors.white.withOpacity(0.8),
-              fontSize: 14,
-            ),
-          ),
-          const SizedBox(height: 16),
-          const Row(
-            children: [
-              Icon(
-                Icons.calendar_today,
-                color: Colors.white70,
-                size: 16,
-              ),
-              SizedBox(width: 4),
-              Text(
-                'May 20, 2025',
-                style: TextStyle(
-                  color: Colors.white70,
-                  fontSize: 12,
-                ),
-              ),
-              SizedBox(width: 12),
-              Icon(
-                Icons.access_time,
-                color: Colors.white70,
-                size: 16,
-              ),
-              SizedBox(width: 4),
-              Text(
-                '9:00 AM - 2:00 PM',
-                style: TextStyle(
-                  color: Colors.white70,
-                  fontSize: 12,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Replace the overlapping avatars with a Stack
-                  SizedBox(
-                    height: 28,
-                    width: 100, // Adjust width as needed
-                    child: Stack(
-                      children: [
-                        for (int i = 0; i < 3; i++)
-                          Positioned(
-                            left: i *
-                                20.0, // Position each avatar with some overlap
-                            child: Container(
-                              decoration: BoxDecoration(
-                                shape: BoxShape.circle,
-                                border: Border.all(
-                                  color: AppTheme.primaryColor,
-                                  width: 2,
-                                ),
-                              ),
-                              child: const CircleAvatar(
-                                radius: 12,
-                                backgroundColor: Colors.white,
-                                child: Text(
-                                  'A',
-                                  style: TextStyle(
-                                    fontSize: 10,
-                                    fontWeight: FontWeight.bold,
-                                    color: AppTheme.primaryColor,
-                                  ),
-                                ),
-                              ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: _featuredTask != null
+              ? () async {
+                  final doc = await FirebaseFirestore.instance
+                      .collection('tasks')
+                      .doc(_featuredTask!['id'])
+                      .get();
+                  if (doc.exists) {
+                    final task = Task.fromFirestore(doc);
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => VolunteerPage(
+                          userId: FirebaseAuth.instance.currentUser?.uid ?? '',
+                          initialTaskId: task.id,
+                        ),
+                      ),
+                    );
+                  }
+                }
+              : null,
+          borderRadius: BorderRadius.circular(16),
+          child: Padding(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                if (_featuredTask != null) ...[
+                  Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 6,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.2),
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: Text(
+                          _featuredTask!['label'] ?? 'Featured Task',
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 12,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ),
+                      const Spacer(),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 6,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.2),
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: Text(
+                          '${_featuredTask!['currVolunteers'] ?? 0}/${_featuredTask!['maxVolunteers'] ?? 0} Volunteers',
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 12,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    _featuredTask!['name'] ?? 'No Title',
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    _featuredTask!['description'] ?? 'No description available',
+                    style: TextStyle(
+                      color: Colors.white.withOpacity(0.8),
+                      fontSize: 14,
+                    ),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: 16),
+                  Row(
+                    children: [
+                      const Icon(
+                        Icons.calendar_today,
+                        color: Colors.white70,
+                        size: 16,
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        _formatDate(_featuredTask!['startTime']),
+                        style: const TextStyle(
+                          color: Colors.white70,
+                          fontSize: 14,
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                      const Icon(
+                        Icons.access_time,
+                        color: Colors.white70,
+                        size: 16,
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        _formatTime(_featuredTask!['endTime']),
+                        style: const TextStyle(
+                          color: Colors.white70,
+                          fontSize: 14,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 20),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Row(
+                        children: [
+                          Icon(
+                            Icons.location_on,
+                            color: Colors.white70,
+                            size: 16,
+                          ),
+                          const SizedBox(width: 8),
+                          Text(
+                            _featuredTask!['location'] != null
+                                ? '${_featuredTask!['location']['latitude']}, ${_featuredTask!['location']['longitude']}'
+                                : 'No location set',
+                            style: const TextStyle(
+                              color: Colors.white70,
+                              fontSize: 14,
                             ),
                           ),
-                        Positioned(
-                          left: 60, // Position the +8 avatar
-                          child: Container(
-                            decoration: BoxDecoration(
-                              color: AppTheme.primaryLightColor,
-                              shape: BoxShape.circle,
-                              border: Border.all(
-                                color: AppTheme.primaryColor,
-                                width: 2,
-                              ),
-                            ),
-                            child: const CircleAvatar(
-                              radius: 12,
-                              backgroundColor: Colors.transparent,
-                              child: Text(
-                                '+8',
-                                style: TextStyle(
-                                  fontSize: 10,
-                                  fontWeight: FontWeight.bold,
-                                  color: AppTheme.primaryColor,
+                        ],
+                      ),
+                      ElevatedButton(
+                        onPressed: () async {
+                          final doc = await FirebaseFirestore.instance
+                              .collection('tasks')
+                              .doc(_featuredTask!['id'])
+                              .get();
+                          if (doc.exists) {
+                            final task = Task.fromFirestore(doc);
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => VolunteerPage(
+                                  userId:
+                                      FirebaseAuth.instance.currentUser?.uid ??
+                                          '',
+                                  initialTaskId: task.id,
                                 ),
                               ),
-                            ),
+                            );
+                          }
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.white,
+                          foregroundColor: AppTheme.primaryColor,
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 24,
+                            vertical: 12,
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(30),
+                          ),
+                        ),
+                        child: const Text(
+                          'Join Now',
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ] else ...[
+                  Center(
+                    child: Column(
+                      children: [
+                        Icon(
+                          Icons.event_busy,
+                          size: 48,
+                          color: Colors.white,
+                        ),
+                        const SizedBox(height: 16),
+                        Text(
+                          'No Featured Tasks',
+                          style: TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          'There are currently no active tasks that need volunteers. Check back later for new opportunities!',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: Colors.white.withOpacity(0.9),
                           ),
                         ),
                       ],
                     ),
                   ),
-                  const SizedBox(height: 4),
-                  Text(
-                    '11 of 20 volunteers',
-                    style: TextStyle(
-                      color: Colors.white.withOpacity(0.7),
-                      fontSize: 12,
-                    ),
-                  ),
                 ],
-              ),
-              ElevatedButton(
-                onPressed: () {},
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.white,
-                  foregroundColor: AppTheme.primaryColor,
-                ),
-                child: const Text('Join Now'),
-              ),
-            ],
+              ],
+            ),
           ),
-        ],
+        ),
       ),
     );
+  }
+
+  String _formatDate(dynamic timestamp) {
+    if (timestamp == null) return 'No date set';
+
+    DateTime date;
+    if (timestamp is Timestamp) {
+      date = timestamp.toDate();
+    } else if (timestamp is String) {
+      try {
+        date = DateTime.parse(timestamp);
+      } catch (e) {
+        return 'Invalid date';
+      }
+    } else {
+      return 'Invalid date';
+    }
+
+    return DateFormatter.format(date);
+  }
+
+  String _formatTime(dynamic timestamp) {
+    if (timestamp == null) return 'No time set';
+
+    DateTime date;
+    if (timestamp is Timestamp) {
+      date = timestamp.toDate();
+    } else if (timestamp is String) {
+      try {
+        date = DateTime.parse(timestamp);
+      } catch (e) {
+        return 'Invalid time';
+      }
+    } else {
+      return 'Invalid time';
+    }
+
+    return DateFormatter.formatWithTime(date);
   }
 
   Widget _buildUpcomingTasksSection() {
@@ -514,75 +700,111 @@ class _HomeScreenState extends State<HomeScreen> {
           ],
         ),
         const SizedBox(height: 16),
-        ..._tasks.map((task) {
-          // Format the date and time
-          final startTime = task['startTime'];
-          final endTime = task['endTime'];
+        if (_tasks.isEmpty)
+          Container(
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              color: Colors.grey.shade100,
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: Column(
+              children: [
+                Icon(
+                  Icons.event_busy,
+                  size: 48,
+                  color: Colors.grey.shade400,
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  'No Upcoming Tasks',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.grey.shade700,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  'There are currently no upcoming tasks. Check back later for new opportunities!',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: Colors.grey.shade600,
+                  ),
+                ),
+              ],
+            ),
+          )
+        else
+          ..._tasks.map((task) {
+            // Format the date and time
+            final startTime = task['startTime'];
+            final endTime = task['endTime'];
 
-          String formattedDate = 'No date set';
-          String formattedTime = 'No time set';
+            String formattedDate = 'No date set';
+            String formattedTime = 'No time set';
 
-          if (startTime != null) {
-            if (startTime is Timestamp) {
-              formattedDate = DateFormatter.format(startTime);
-            } else if (startTime is String) {
-              try {
-                final date = DateTime.parse(startTime);
-                formattedDate = DateFormatter.format(date);
-              } catch (e) {
-                // Handle parsing error silently
-              }
-            }
-          }
-
-          if (endTime != null) {
-            if (endTime is Timestamp) {
-              formattedTime = DateFormatter.formatWithTime(endTime);
-            } else if (endTime is String) {
-              try {
-                final date = DateTime.parse(endTime);
-                formattedTime = DateFormatter.formatWithTime(date);
-              } catch (e) {
-                // Handle parsing error silently
-              }
-            }
-          }
-
-          return TaskCard(
-            title: task['name'] ?? '',
-            location: task['location'] != null
-                ? '${task['location']['latitude']}, ${task['location']['longitude']}'
-                : '',
-            date: formattedDate,
-            time: formattedTime,
-            category: task['label'] ?? '',
-            participants: task['currVolunteers'] ?? 0,
-            maxParticipants: task['maxVolunteers'] ?? 0,
-            color: _getCategoryColor(task['label']),
-            onTap: () async {
-              final taskId = task['id'];
-
-              if (taskId != null) {
-                final taskDoc = await FirebaseFirestore.instance
-                    .collection('tasks')
-                    .doc(taskId)
-                    .get();
-
-                if (taskDoc.exists) {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => TaskDetailPage(
-                        task: Task.fromFirestore(taskDoc),
-                        userId: FirebaseAuth.instance.currentUser?.uid ?? '',
-                      ),
-                    ),
-                  );
+            if (startTime != null) {
+              if (startTime is Timestamp) {
+                formattedDate = DateFormatter.format(startTime);
+              } else if (startTime is String) {
+                try {
+                  final date = DateTime.parse(startTime);
+                  formattedDate = DateFormatter.format(date);
+                } catch (e) {
+                  // Handle parsing error silently
                 }
               }
-            },
-          );
-        }),
+            }
+
+            if (endTime != null) {
+              if (endTime is Timestamp) {
+                formattedTime = DateFormatter.formatWithTime(endTime);
+              } else if (endTime is String) {
+                try {
+                  final date = DateTime.parse(endTime);
+                  formattedTime = DateFormatter.formatWithTime(date);
+                } catch (e) {
+                  // Handle parsing error silently
+                }
+              }
+            }
+
+            return TaskCard(
+              title: task['name'] ?? '',
+              location: task['location'] != null
+                  ? '${task['location']['latitude']}, ${task['location']['longitude']}'
+                  : '',
+              date: formattedDate,
+              time: formattedTime,
+              category: task['label'] ?? '',
+              participants: task['currVolunteers'] ?? 0,
+              maxParticipants: task['maxVolunteers'] ?? 0,
+              color: _getCategoryColor(task['label']),
+              onTap: () async {
+                final taskId = task['id'];
+
+                if (taskId != null) {
+                  final taskDoc = await FirebaseFirestore.instance
+                      .collection('tasks')
+                      .doc(taskId)
+                      .get();
+
+                  if (taskDoc.exists) {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => TaskDetailPage(
+                          task: Task.fromFirestore(taskDoc),
+                          userId: FirebaseAuth.instance.currentUser?.uid ?? '',
+                        ),
+                      ),
+                    );
+                  }
+                }
+              },
+            );
+          }),
       ],
     );
   }

@@ -4,6 +4,7 @@ import '../../services/task_service.dart';
 import './widgets/task_list_card.dart';
 import './task_detail_page.dart';
 import '../../widgets/bottom_nav_bar.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class FilterBar extends StatelessWidget {
   final List<String> filters;
@@ -55,9 +56,14 @@ class FilterBar extends StatelessWidget {
 }
 
 class VolunteerPage extends StatefulWidget {
+  final String? initialTaskId;
   final String userId;
 
-  const VolunteerPage({Key? key, required this.userId}) : super(key: key);
+  const VolunteerPage({
+    Key? key,
+    this.initialTaskId,
+    required this.userId,
+  }) : super(key: key);
 
   @override
   _VolunteerPageState createState() => _VolunteerPageState();
@@ -65,9 +71,13 @@ class VolunteerPage extends StatefulWidget {
 
 class _VolunteerPageState extends State<VolunteerPage>
     with SingleTickerProviderStateMixin {
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   late TabController _tabController;
-  TaskDepartment? _selectedDepartment;
+  final ScrollController _scrollController = ScrollController();
   List<Task> _allTasks = [];
+  List<Task> _myTasks = [];
+  List<Task> _completedTasks = [];
+  List<Task> _cancelledTasks = [];
   String _searchQuery = '';
   bool _isLoading = true;
   String? _error;
@@ -83,6 +93,7 @@ class _VolunteerPageState extends State<VolunteerPage>
   @override
   void dispose() {
     _tabController.dispose();
+    _scrollController.dispose();
     super.dispose();
   }
 
@@ -93,30 +104,57 @@ class _VolunteerPageState extends State<VolunteerPage>
         _error = null;
       });
 
-      final tasks = await _taskService.getTasks();
+      final snapshot = await _firestore
+          .collection('tasks')
+          .orderBy('createdOn', descending: true)
+          .get();
+
+      final now = DateTime.now();
+      final tasks =
+          snapshot.docs.map((doc) => Task.fromFirestore(doc)).where((task) {
+        // Filter out tasks that have ended
+        return task.endTime.isAfter(now);
+      }).toList();
+
+      // Filter tasks by status
+      _allTasks =
+          tasks.where((task) => task.status == TaskStatus.Open).toList();
+      _myTasks = tasks
+          .where((task) => task.volunteeredUsers.contains(widget.userId))
+          .toList();
+      _completedTasks =
+          tasks.where((task) => task.status == TaskStatus.Completed).toList();
+      _cancelledTasks =
+          tasks.where((task) => task.status == TaskStatus.Cancelled).toList();
 
       setState(() {
-        _allTasks = tasks;
         _isLoading = false;
       });
+
+      // If initialTaskId is provided, scroll to that task
+      if (widget.initialTaskId != null) {
+        final taskIndex =
+            _allTasks.indexWhere((task) => task.id == widget.initialTaskId);
+        if (taskIndex != -1) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            _scrollController.animateTo(
+              taskIndex * 200.0, // Approximate height of each task card
+              duration: const Duration(milliseconds: 500),
+              curve: Curves.easeInOut,
+            );
+          });
+        }
+      }
     } catch (e) {
       setState(() {
         _error = e.toString();
         _isLoading = false;
       });
-      print('Error fetching tasks: $e');
     }
   }
 
   List<Task> _getFilteredTasks(List<Task> tasks) {
     var filteredTasks = tasks;
-
-    // Apply department filter
-    if (_selectedDepartment != null) {
-      filteredTasks = filteredTasks
-          .where((task) => task.department == _selectedDepartment)
-          .toList();
-    }
 
     // Apply search filter
     if (_searchQuery.isNotEmpty) {
@@ -206,16 +244,9 @@ class _VolunteerPageState extends State<VolunteerPage>
                           borderRadius: BorderRadius.circular(30),
                           borderSide: BorderSide.none,
                         ),
-                        filled: true,
-                        fillColor: Colors.white,
-                        contentPadding: const EdgeInsets.symmetric(
-                            horizontal: 20, vertical: 12),
                       ),
                     ),
                   ),
-
-                  // Department Filter
-                  _buildDepartmentFilter(),
 
                   // Tabs
                   TabBar(
@@ -237,9 +268,10 @@ class _VolunteerPageState extends State<VolunteerPage>
                         : TabBarView(
                             controller: _tabController,
                             children: [
-                              _buildTasksList(_getAvailableTasks()),
-                              _buildTasksList(_getMyVolunteeredTasks()),
-                              _buildTasksList(_getCompletedTasks()),
+                              _buildTaskList(_getAvailableTasks(), 'Available'),
+                              _buildTaskList(
+                                  _getMyVolunteeredTasks(), 'My Tasks'),
+                              _buildTaskList(_getCompletedTasks(), 'Completed'),
                             ],
                           ),
                   ),
@@ -249,87 +281,73 @@ class _VolunteerPageState extends State<VolunteerPage>
     );
   }
 
-  Widget _buildTasksList(List<Task> tasks) {
+  Widget _buildTaskList(List<Task> tasks, String title) {
     if (tasks.isEmpty) {
-      return const Center(
-        child: Text('No tasks found'),
+      return Container(
+        padding: const EdgeInsets.all(20),
+        margin: const EdgeInsets.symmetric(vertical: 16),
+        decoration: BoxDecoration(
+          color: Colors.grey.shade100,
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: Column(
+          children: [
+            Icon(
+              Icons.event_busy,
+              size: 48,
+              color: Colors.grey.shade400,
+            ),
+            const SizedBox(height: 16),
+            Text(
+              'No $title Tasks',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: Colors.grey.shade700,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'There are currently no $title tasks available. Check back later for new opportunities!',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 14,
+                color: Colors.grey.shade600,
+              ),
+            ),
+          ],
+        ),
       );
     }
 
-    return ListView.builder(
-      padding: const EdgeInsets.all(16),
-      itemCount: tasks.length,
-      itemBuilder: (context, index) {
-        return Padding(
-          padding: const EdgeInsets.only(bottom: 16),
-          child: TaskListCard(
-            task: tasks[index],
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => TaskDetailPage(
-                    task: tasks[index],
-                    userId: widget.userId,
-                  ),
-                ),
-              ).then((_) =>
-                  _fetchTasks()); // Refresh tasks after returning from detail page
-            },
-          ),
-        );
-      },
-    );
-  }
-
-  Widget _buildDepartmentFilter() {
-    return SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      padding: const EdgeInsets.symmetric(horizontal: 16),
-      child: Row(
-        children: [
-          FilterChip(
-            label: const Text('All Tasks'),
-            selected: _selectedDepartment == null,
-            onSelected: (bool selected) {
-              setState(() {
-                _selectedDepartment = null;
-              });
-            },
-            backgroundColor: Colors.white,
-            selectedColor: Colors.deepPurple[100],
-            checkmarkColor: Colors.deepPurple,
-            labelStyle: TextStyle(
-              color: _selectedDepartment == null
-                  ? Colors.deepPurple
-                  : Colors.black,
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          child: Text(
+            title,
+            style: const TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
             ),
           ),
-          const SizedBox(width: 8),
-          ...TaskDepartment.values.map((department) {
-            return Padding(
-              padding: const EdgeInsets.only(right: 8),
-              child: FilterChip(
-                label: Text(department.toString().split('.').last),
-                selected: _selectedDepartment == department,
-                onSelected: (bool selected) {
-                  setState(() {
-                    _selectedDepartment = selected ? department : null;
-                  });
-                },
-                backgroundColor: Colors.white,
-                selectedColor: Colors.deepPurple[100],
-                checkmarkColor: Colors.deepPurple,
-                labelStyle: TextStyle(
-                  color: _selectedDepartment == department
-                      ? Colors.deepPurple
-                      : Colors.black,
-                ),
-              ),
-            );
-          }).toList(),
-        ],
-      ),
+        ),
+        ...tasks.map((task) => TaskListCard(
+              task: task,
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => TaskDetailPage(
+                      task: task,
+                      userId: widget.userId,
+                    ),
+                  ),
+                );
+              },
+            )),
+      ],
     );
   }
 }

@@ -10,11 +10,7 @@ enum TaskDepartment {
   CommunityServices
 }
 
-enum TaskStatus {
-  Cancelled,
-  Open,
-  Completed
-}
+enum TaskStatus { Cancelled, Open, Completed }
 
 class Task {
   final String id;
@@ -55,14 +51,14 @@ class Task {
 
   factory Task.fromFirestore(DocumentSnapshot doc) {
     final data = doc.data() as Map<String, dynamic>;
-    
+
     DateTime parseDate(dynamic date) {
       if (date == null) return DateTime.now();
-      
+
       if (date is Timestamp) {
         return date.toDate();
       }
-      
+
       if (date is String) {
         try {
           // Try parsing ISO format
@@ -79,20 +75,20 @@ class Task {
           }
         }
       }
-      
+
       return DateTime.now();
     }
 
     // Helper function to convert location values to double
     Map<String, double> parseLocation(Map<String, dynamic>? locationData) {
       if (locationData == null) return {'latitude': 0.0, 'longitude': 0.0};
-      
+
       return {
-        'latitude': (locationData['latitude'] is int) 
-            ? (locationData['latitude'] as int).toDouble() 
+        'latitude': (locationData['latitude'] is int)
+            ? (locationData['latitude'] as int).toDouble()
             : (locationData['latitude'] as double? ?? 0.0),
-        'longitude': (locationData['longitude'] is int) 
-            ? (locationData['longitude'] as int).toDouble() 
+        'longitude': (locationData['longitude'] is int)
+            ? (locationData['longitude'] as int).toDouble()
             : (locationData['longitude'] as double? ?? 0.0),
       };
     }

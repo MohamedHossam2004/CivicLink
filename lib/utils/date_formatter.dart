@@ -3,52 +3,47 @@ import 'package:intl/intl.dart';
 
 class DateFormatter {
   static String format(dynamic date) {
-    try {
-      if (date is Timestamp) {
-        date = date.toDate();
+    if (date is Timestamp) {
+      return DateFormat('dd/MM/yyyy').format(date.toDate());
+    } else if (date is DateTime) {
+      return DateFormat('dd/MM/yyyy').format(date);
+    } else if (date is String) {
+      try {
+        return DateFormat('dd/MM/yyyy').format(DateTime.parse(date));
+      } catch (e) {
+        return 'Invalid date';
       }
-      if (date is DateTime) {
-        return '${date.day}/${date.month}/${date.year}';
-      }
-      if (date is String) {
-        // Try to parse the string as a date
-        try {
-          final parsedDate = DateTime.parse(date);
-          return '${parsedDate.day}/${parsedDate.month}/${parsedDate.year}';
-        } catch (e) {
-          print('Warning: Could not parse date string: $date');
-        }
-      }
-      print('Warning: Invalid date type: ${date.runtimeType}');
-      return 'Invalid Date';
-    } catch (e) {
-      print('Error formatting date: $e');
-      return 'Invalid Date';
     }
+    return 'No date set';
   }
 
   static String formatWithTime(dynamic date) {
-    try {
-      if (date is Timestamp) {
-        date = date.toDate();
+    if (date is Timestamp) {
+      return DateFormat('dd/MM/yyyy HH:mm').format(date.toDate());
+    } else if (date is DateTime) {
+      return DateFormat('dd/MM/yyyy HH:mm').format(date);
+    } else if (date is String) {
+      try {
+        return DateFormat('dd/MM/yyyy HH:mm').format(DateTime.parse(date));
+      } catch (e) {
+        return 'Invalid date';
       }
-      if (date is DateTime) {
-        return '${format(date)} ${date.hour}:${date.minute.toString().padLeft(2, '0')}';
-      }
-      if (date is String) {
-        // Try to parse the string as a date
-        try {
-          final parsedDate = DateTime.parse(date);
-          return '${format(parsedDate)} ${parsedDate.hour}:${parsedDate.minute.toString().padLeft(2, '0')}';
-        } catch (e) {
-          print('Warning: Could not parse date string: $date');
-        }
-      }
-      print('Warning: Invalid date type: ${date.runtimeType}');
-      return 'Invalid Date';
-    } catch (e) {
-      print('Error formatting date with time: $e');
-      return 'Invalid Date';
     }
+    return 'No date set';
   }
-} 
+
+  static String formatTime(dynamic date) {
+    if (date is Timestamp) {
+      return DateFormat('HH:mm').format(date.toDate());
+    } else if (date is DateTime) {
+      return DateFormat('HH:mm').format(date);
+    } else if (date is String) {
+      try {
+        return DateFormat('HH:mm').format(DateTime.parse(date));
+      } catch (e) {
+        return 'Invalid time';
+      }
+    }
+    return 'No time set';
+  }
+}

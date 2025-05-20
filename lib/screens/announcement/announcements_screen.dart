@@ -12,7 +12,8 @@ class AnnouncementsScreen extends StatefulWidget {
   State<AnnouncementsScreen> createState() => _AnnouncementsScreenState();
 }
 
-class _AnnouncementsScreenState extends State<AnnouncementsScreen> with SingleTickerProviderStateMixin {
+class _AnnouncementsScreenState extends State<AnnouncementsScreen>
+    with SingleTickerProviderStateMixin {
   final AnnouncementService _service = AnnouncementService();
   late TabController _tabController;
   String _currentFilter = 'All';
@@ -81,7 +82,8 @@ class _AnnouncementsScreenState extends State<AnnouncementsScreen> with SingleTi
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(48),
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+            padding:
+                const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
             child: TextField(
               controller: _searchController,
               decoration: InputDecoration(
@@ -112,14 +114,16 @@ class _AnnouncementsScreenState extends State<AnnouncementsScreen> with SingleTi
                         _announcementsStream = _service.getAllAnnouncements();
                         break;
                       case 'Important':
-                        _announcementsStream = _service.getImportantAnnouncements();
+                        _announcementsStream =
+                            _service.getImportantAnnouncements();
                         break;
                       default:
                         if (_currentFilter == 'Saved') {
                           // TODO: Implement saved announcements
                           _announcementsStream = Stream.value([]);
                         } else {
-                          _announcementsStream = _service.filterByDepartment(_currentFilter);
+                          _announcementsStream =
+                              _service.filterByDepartment(_currentFilter);
                         }
                     }
                   } else {
@@ -171,9 +175,19 @@ class _AnnouncementsScreenState extends State<AnnouncementsScreen> with SingleTi
 
                 return ListView.builder(
                   padding: const EdgeInsets.all(8),
-                  itemCount: announcements.length,
+                  itemCount:
+                      announcements.length + 1, // +1 for featured announcement
                   itemBuilder: (context, index) {
-                    final announcement = announcements[index];
+                    if (index == 0) {
+                      // Show featured announcement at the top
+                      final featuredAnnouncement = announcements.firstWhere(
+                        (a) => a.isImportant,
+                        orElse: () => announcements.first,
+                      );
+                      return _buildFeaturedAnnouncement(featuredAnnouncement);
+                    }
+                    // Show regular announcements
+                    final announcement = announcements[index - 1];
                     return _buildAnnouncementCard(announcement);
                   },
                 );
@@ -212,8 +226,14 @@ class _AnnouncementsScreenState extends State<AnnouncementsScreen> with SingleTi
   }
 
   Widget _buildDepartmentChips() {
-    final departments = ['Environmental Services', 'Water and Sewage', 'Transportation', 'Parks and Recreation', 'Public Health'];
-    
+    final departments = [
+      'Environmental Services',
+      'Water and Sewage',
+      'Transportation',
+      'Parks and Recreation',
+      'Public Health'
+    ];
+
     return Container(
       height: 40,
       padding: const EdgeInsets.symmetric(horizontal: 8),
@@ -241,22 +261,26 @@ class _AnnouncementsScreenState extends State<AnnouncementsScreen> with SingleTi
               ),
             ),
           ),
-          ...departments.map((department) => Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 4),
-            child: FilterChip(
-              label: Text(department),
-              selected: _currentFilter == department,
-              onSelected: (selected) {
-                if (selected) _onDepartmentSelected(department);
-              },
-              backgroundColor: Colors.white,
-              selectedColor: Colors.blue.withOpacity(0.2),
-              checkmarkColor: Colors.blue,
-              labelStyle: TextStyle(
-                color: _currentFilter == department ? Colors.blue : Colors.black,
-              ),
-            ),
-          )).toList(),
+          ...departments
+              .map((department) => Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 4),
+                    child: FilterChip(
+                      label: Text(department),
+                      selected: _currentFilter == department,
+                      onSelected: (selected) {
+                        if (selected) _onDepartmentSelected(department);
+                      },
+                      backgroundColor: Colors.white,
+                      selectedColor: Colors.blue.withOpacity(0.2),
+                      checkmarkColor: Colors.blue,
+                      labelStyle: TextStyle(
+                        color: _currentFilter == department
+                            ? Colors.blue
+                            : Colors.black,
+                      ),
+                    ),
+                  ))
+              .toList(),
         ],
       ),
     );
@@ -264,7 +288,7 @@ class _AnnouncementsScreenState extends State<AnnouncementsScreen> with SingleTi
 
   Widget _buildAnnouncementCard(Announcement announcement) {
     final Color categoryColor = _getCategoryColor(announcement.label);
-    
+
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
       elevation: 0,
@@ -397,6 +421,124 @@ class _AnnouncementsScreenState extends State<AnnouncementsScreen> with SingleTi
     );
   }
 
+  Widget _buildFeaturedAnnouncement(Announcement announcement) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16),
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [
+            Colors.blue.shade700,
+            Colors.blue.shade500,
+          ],
+          begin: Alignment.centerLeft,
+          end: Alignment.centerRight,
+        ),
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            padding: const EdgeInsets.symmetric(
+              horizontal: 8,
+              vertical: 4,
+            ),
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.2),
+              borderRadius: BorderRadius.circular(50),
+            ),
+            child: const Text(
+              'Featured Announcement',
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 12,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ),
+          const SizedBox(height: 12),
+          Text(
+            announcement.name,
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            announcement.description,
+            style: TextStyle(
+              color: Colors.white.withOpacity(0.8),
+              fontSize: 14,
+            ),
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+          ),
+          const SizedBox(height: 16),
+          Row(
+            children: [
+              const Icon(
+                Icons.calendar_today,
+                color: Colors.white70,
+                size: 16,
+              ),
+              const SizedBox(width: 4),
+              Text(
+                'Posted on ${DateFormatter.format(announcement.createdOn)}',
+                style: const TextStyle(
+                  color: Colors.white70,
+                  fontSize: 12,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 8,
+                  vertical: 4,
+                ),
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.2),
+                  borderRadius: BorderRadius.circular(50),
+                ),
+                child: Text(
+                  announcement.label,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 12,
+                  ),
+                ),
+              ),
+              ElevatedButton(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => AnnouncementDetailScreen(
+                        announcementId: announcement.id,
+                      ),
+                    ),
+                  );
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.white,
+                  foregroundColor: Colors.blue,
+                ),
+                child: const Text('Read More'),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
   Color _getCategoryColor(String category) {
     // Generate a random color based on the category string
     // This ensures the same category always gets the same color
@@ -412,7 +554,7 @@ class _AnnouncementsScreenState extends State<AnnouncementsScreen> with SingleTi
       Colors.cyan,
       Colors.deepPurple,
     ];
-    
+
     // Use the category string to generate a consistent index
     final index = category.toLowerCase().hashCode.abs() % colors.length;
     return colors[index];
