@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 class CreateTaskPage extends StatefulWidget {
   final String userId;
@@ -18,10 +19,11 @@ class _CreateTaskPageState extends State<CreateTaskPage> {
   final _requirementsController = TextEditingController();
   final _phoneController = TextEditingController();
   final _maxVolunteersController = TextEditingController();
-  final _latitudeController = TextEditingController();
-  final _longitudeController = TextEditingController();
   final _nameController = TextEditingController();
   final _emailController = TextEditingController();
+
+  LatLng? _selectedLatLng;
+  GoogleMapController? _mapController;
 
   DateTime? _startTime;
   DateTime? _endTime;
@@ -33,7 +35,8 @@ class _CreateTaskPageState extends State<CreateTaskPage> {
   Future<void> _submitTask() async {
     if (!_formKey.currentState!.validate() ||
         _startTime == null ||
-        _endTime == null) return;
+        _endTime == null ||
+        _selectedLatLng == null) return;
 
     setState(() => _isSubmitting = true);
 
@@ -45,8 +48,8 @@ class _CreateTaskPageState extends State<CreateTaskPage> {
         'phone': _phoneController.text,
         'maxVolunteers': int.parse(_maxVolunteersController.text),
         'location': {
-          'latitude': double.parse(_latitudeController.text),
-          'longitude': double.parse(_longitudeController.text),
+          'latitude': _selectedLatLng!.latitude,
+          'longitude': _selectedLatLng!.longitude,
         },
         'name': _nameController.text,
         'email': _emailController.text,
@@ -164,21 +167,45 @@ class _CreateTaskPageState extends State<CreateTaskPage> {
                   validator: _required,
                   type: TextInputType.emailAddress),
               _buildTextField(
-                  controller: _latitudeController,
-                  label: 'Latitude',
-                  validator: _required,
-                  type: TextInputType.number),
-              _buildTextField(
-                  controller: _longitudeController,
-                  label: 'Longitude',
-                  validator: _required,
-                  type: TextInputType.number),
-              _buildTextField(
                   controller: _maxVolunteersController,
                   label: 'Max Volunteers',
                   validator: _required,
                   type: TextInputType.number),
+              const SizedBox(height: 16),
+              SizedBox(
+                height: 200,
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(12),
+                  child: GoogleMap(
+                    initialCameraPosition: const CameraPosition(
+                      target: LatLng(30.0444, 31.2357), // Cairo default
+                      zoom: 12,
+                    ),
+                    onMapCreated: (controller) => _mapController = controller,
+                    onTap: (LatLng pos) {
+                      setState(() {
+                        _selectedLatLng = pos;
+                      });
+                    },
+                    markers: _selectedLatLng == null
+                        ? {}
+                        : {
+                            Marker(
+                              markerId: const MarkerId('selected'),
+                              position: _selectedLatLng!,
+                            )
+                          },
+                  ),
+                ),
+              ),
               const SizedBox(height: 8),
+              Text(
+                _selectedLatLng == null
+                    ? 'Tap on the map to select location'
+                    : 'Selected Location: (${_selectedLatLng!.latitude.toStringAsFixed(5)}, ${_selectedLatLng!.longitude.toStringAsFixed(5)})',
+                style: const TextStyle(fontSize: 14, color: Colors.black54),
+              ),
+              const SizedBox(height: 16),
               DropdownButtonFormField(
                 value: _label,
                 items: const [

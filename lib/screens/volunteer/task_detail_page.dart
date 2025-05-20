@@ -343,71 +343,71 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
                           ),
                         ),
                         const SizedBox(height: 8),
-                        StreamBuilder<QuerySnapshot>(
-                          stream: FirebaseFirestore.instance
-                              .collection('users')
-                              .where('uid',
-                                  whereIn: updatedTask.volunteeredUsers)
-                              .snapshots(),
-                          builder: (context, snapshot) {
-                            if (snapshot.hasError) {
-                              return Text('Error: ${snapshot.error}');
-                            }
-
-                            if (snapshot.connectionState ==
-                                ConnectionState.waiting) {
-                              return const Center(
-                                child: Padding(
-                                  padding: EdgeInsets.all(16.0),
-                                  child: Column(
-                                    children: [
-                                      CircularProgressIndicator(),
-                                      SizedBox(height: 8),
-                                      Text('Loading volunteers...'),
-                                    ],
-                                  ),
+                        if (updatedTask.volunteeredUsers.isEmpty)
+                          const Center(
+                            child: Padding(
+                              padding: EdgeInsets.all(16.0),
+                              child: Text(
+                                'No volunteers yet',
+                                style: TextStyle(
+                                  color: Colors.grey,
+                                  fontStyle: FontStyle.italic,
                                 ),
-                              );
-                            }
+                              ),
+                            ),
+                          )
+                        else
+                          StreamBuilder<QuerySnapshot>(
+                            stream: FirebaseFirestore.instance
+                                .collection('users')
+                                .where('uid',
+                                    whereIn: updatedTask.volunteeredUsers)
+                                .snapshots(),
+                            builder: (context, snapshot) {
+                              if (snapshot.hasError) {
+                                return Text('Error: ${snapshot.error}');
+                              }
 
-                            final volunteers = snapshot.data?.docs ?? [];
-
-                            if (volunteers.isEmpty) {
-                              return const Center(
-                                child: Padding(
-                                  padding: EdgeInsets.all(16.0),
-                                  child: Text(
-                                    'No volunteers yet',
-                                    style: TextStyle(
-                                      color: Colors.grey,
-                                      fontStyle: FontStyle.italic,
+                              if (snapshot.connectionState ==
+                                  ConnectionState.waiting) {
+                                return const Center(
+                                  child: Padding(
+                                    padding: EdgeInsets.all(16.0),
+                                    child: Column(
+                                      children: [
+                                        CircularProgressIndicator(),
+                                        SizedBox(height: 8),
+                                        Text('Loading volunteers...'),
+                                      ],
                                     ),
                                   ),
-                                ),
-                              );
-                            }
-
-                            return ListView.builder(
-                              shrinkWrap: true,
-                              physics: const NeverScrollableScrollPhysics(),
-                              itemCount: volunteers.length,
-                              itemBuilder: (context, index) {
-                                final volunteer = volunteers[index].data()
-                                    as Map<String, dynamic>;
-                                return ListTile(
-                                  leading: CircleAvatar(
-                                    child:
-                                        Text(volunteer['firstName']?[0] ?? '?'),
-                                  ),
-                                  title: Text(
-                                      '${volunteer['firstName']} ${volunteer['lastName']}'),
-                                  subtitle: Text(volunteer['email'] ?? ''),
                                 );
-                              },
-                            );
-                          },
-                        ),
-                      ],
+                              }
+
+                              final volunteers = snapshot.data?.docs ?? [];
+
+                              return ListView.builder(
+                                shrinkWrap: true,
+                                physics: const NeverScrollableScrollPhysics(),
+                                itemCount: volunteers.length,
+                                itemBuilder: (context, index) {
+                                  final volunteer = volunteers[index].data()
+                                      as Map<String, dynamic>;
+                                  return ListTile(
+                                    leading: CircleAvatar(
+                                      child: Text(
+                                          volunteer['firstName']?[0] ?? '?'),
+                                    ),
+                                    title: Text(
+                                      '${volunteer['firstName']} ${volunteer['lastName']}',
+                                    ),
+                                    subtitle: Text(volunteer['email'] ?? ''),
+                                  );
+                                },
+                              );
+                            },
+                          ),
+                      ]
                     ],
                   ),
                 ),
