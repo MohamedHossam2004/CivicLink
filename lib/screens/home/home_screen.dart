@@ -12,6 +12,7 @@ import '../../models/task.dart';
 import '../../utils/date_formatter.dart';
 import '../volunteer/volunteer_page.dart';
 import '../advertisements/advertisements_screen.dart';
+import '../polls/polls_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({Key? key}) : super(key: key);
@@ -23,13 +24,13 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final FirebaseAuth _auth = FirebaseAuth.instance;
-  
+
   List<Map<String, dynamic>> _announcements = [];
   List<Map<String, dynamic>> _tasks = [];
   Map<String, dynamic>? _featuredTask;
   bool _isLoading = true;
   String? _error;
-  
+
   // User data fields
   String _fullName = '';
   String _userInitials = '';
@@ -40,7 +41,7 @@ class _HomeScreenState extends State<HomeScreen> {
     _fetchUserData();
     _fetchData();
   }
-  
+
   // Fetch current user's data
   Future<void> _fetchUserData() async {
     try {
@@ -51,7 +52,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
       // Fetch user data from Firestore
       final userDoc = await _firestore.collection('users').doc(uid).get();
-      
+
       if (userDoc.exists) {
         final userData = userDoc.data();
         if (userData != null) {
@@ -59,12 +60,12 @@ class _HomeScreenState extends State<HomeScreen> {
           final firstName = userData['firstName'] ?? '';
           final lastName = userData['lastName'] ?? '';
           final fullName = userData['fullName'] ?? '$firstName $lastName';
-          
+
           // Create initials from the first letters of first and last name
           String initials = '';
           if (firstName.isNotEmpty) initials += firstName[0];
           if (lastName.isNotEmpty) initials += lastName[0];
-          
+
           setState(() {
             _fullName = fullName;
             _userInitials = initials.toUpperCase();
@@ -366,7 +367,12 @@ class _HomeScreenState extends State<HomeScreen> {
               color: AppTheme.communityColor,
               bgColor: AppTheme.communityColor.withOpacity(0.1),
               onTap: () {
-                // Navigate to announcements screen
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const AnnouncementsScreen(),
+                  ),
+                );
               },
             ),
             const SizedBox(width: 32),
@@ -380,6 +386,21 @@ class _HomeScreenState extends State<HomeScreen> {
                   context,
                   MaterialPageRoute(
                     builder: (context) => const AdvertisementsScreen(),
+                  ),
+                );
+              },
+            ),
+            const SizedBox(width: 32),
+            _buildServiceItem(
+              icon: Icons.poll_outlined,
+              label: 'Polls',
+              color: Colors.orange,
+              bgColor: Colors.orange.shade100,
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const PollsScreen(),
                   ),
                 );
               },
