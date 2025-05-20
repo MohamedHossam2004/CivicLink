@@ -4,6 +4,8 @@ import 'package:firebase_storage/firebase_storage.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'dart:io';
 import 'package:image_picker/image_picker.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:location/location.dart';
 
 class EditAdvertisementScreen extends StatefulWidget {
   final String advertisementId;
@@ -26,9 +28,15 @@ class _EditAdvertisementScreenState extends State<EditAdvertisementScreen> {
   final _documentUrlController = TextEditingController();
   final _latitudeController = TextEditingController();
   final _longitudeController = TextEditingController();
+  final _phoneController = TextEditingController();
   List<File> _newImageFiles = [];
   List<String> _existingImageUrls = [];
   bool _isLoading = false;
+  
+  // Map related variables
+  LatLng? _selectedLocation;
+  Set<Marker> _markers = {};
+  GoogleMapController? _mapController;
 
   @override
   void initState() {
@@ -40,8 +48,46 @@ class _EditAdvertisementScreenState extends State<EditAdvertisementScreen> {
         widget.advertisement['location']?['latitude']?.toString() ?? '';
     _longitudeController.text =
         widget.advertisement['location']?['longitude']?.toString() ?? '';
+    _phoneController.text = widget.advertisement['phoneNumber'] ?? '';
     _existingImageUrls =
         List<String>.from(widget.advertisement['imageUrls'] ?? []);
+        
+    // Initialize map location
+    if (widget.advertisement['location'] != null) {
+      final lat = widget.advertisement['location']['latitude'];
+      final lng = widget.advertisement['location']['longitude'];
+      
+      if (lat != null && lng != null) {
+        _selectedLocation = LatLng(lat, lng);
+        _markers = {
+          Marker(
+            markerId: const MarkerId('selected_location'),
+            position: _selectedLocation!,
+            infoWindow: const InfoWindow(title: 'Advertisement Location'),
+          ),
+        };
+      }
+    }
+  }
+
+  // Handle map tap to update location
+  void _handleMapTap(LatLng tappedPoint) {
+    setState(() {
+      _selectedLocation = tappedPoint;
+
+      // Update marker
+      _markers = {
+        Marker(
+          markerId: const MarkerId('selected_location'),
+          position: tappedPoint,
+          infoWindow: const InfoWindow(title: 'Advertisement Location'),
+        ),
+      };
+
+      // Update location controllers
+      _latitudeController.text = tappedPoint.latitude.toString();
+      _longitudeController.text = tappedPoint.longitude.toString();
+    });
   }
 
   Future<void> _pickImages() async {
@@ -102,6 +148,7 @@ class _EditAdvertisementScreenState extends State<EditAdvertisementScreen> {
         'documentUrl': _documentUrlController.text.isNotEmpty
             ? _documentUrlController.text
             : null,
+        'phoneNumber': _phoneController.text,
         'status': 'pending', // Reset status to pending for admin review
       });
 
@@ -132,6 +179,8 @@ class _EditAdvertisementScreenState extends State<EditAdvertisementScreen> {
     _documentUrlController.dispose();
     _latitudeController.dispose();
     _longitudeController.dispose();
+    _phoneController.dispose();
+    _mapController?.dispose();
     super.dispose();
   }
 
@@ -296,6 +345,73 @@ class _EditAdvertisementScreenState extends State<EditAdvertisementScreen> {
                   }
                   return null;
                 },
+              ),
+              const SizedBox(height: 16),
+
+              // Phone number field
+              TextFormField(
+                controller: _phoneController,
+                decoration: const InputDecoration(
+                  labelText: 'Phone Number',
+                  border: OutlineInputBorder(),
+                  prefixIcon: Icon(Icons.phone),
+                ),
+                keyboardType: TextInputType.phone,
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Please enter a phone number';
+                  }
+                  return null;
+                },
+              ),
+              const SizedBox(height: 16),
+
+              // Map section
+              const Text(
+                'Location',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 8),
+              const Text(
+                'Tap on the map to update location',
+                style: TextStyle(
+                  fontSize: 14,
+                  color: Colors.grey,
+                ),
+              ),
+              const SizedBox(height: 16),
+              Container(
+                height: 300,
+                width: double.infinity,
+                decoration: BoxDecoration(
+                  border: Border.all(color: Colors.grey.shade300),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(8),
+                  child: _selectedLocation != null
+                    ? GoogleMap(
+                        initialCameraPosition: CameraPosition(
+                          target: _selectedLocation!,
+                          zoom: 15,
+                        ),
+                        markers: _markers,
+                        myLocationEnabled: true,
+                        myLocationButtonEnabled: true,
+                        mapToolbarEnabled: false,
+                        zoomControlsEnabled: true,
+                        onMapCreated: (controller) {
+                          _mapController = controller;
+                        },
+                        onTap: _handleMapTap,
+                      )
+                    : const Center(
+                        child: CircularProgressIndicator(),
+                      ),
+                ),
               ),
               const SizedBox(height: 16),
 
