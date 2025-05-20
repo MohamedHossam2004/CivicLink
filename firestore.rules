@@ -10,23 +10,31 @@ service cloud.firestore {
     
     // Helper function to check if user is an advertiser
     function isAdvertiser() {
-      let userData = get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
-      return isAuthenticated() && userData.type == 'advertiser';
+      return isAuthenticated() && 
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.type == 'advertiser';
     }
 
     function isOwner(userId) {
       return isAuthenticated() && request.auth.uid == userId;
     }
 
+    function isAdmin() {
+      let userType = get(/databases/$(database)/documents/users/$(request.auth.uid)).data.type;
+      return isAuthenticated() && (userType == 'admin' || userType == 'Admin');
+    }
+
     match /users/{userId} {
       allow read: if isAuthenticated();
-      allow write: if isOwner(userId);
+      allow create: if isAuthenticated() && request.auth.uid == userId;
+      allow update: if isAuthenticated() && request.auth.uid == userId;
+      allow delete: if isAdmin();
     }
 
     match /announcements/{doc} {
       allow read: if true;
-      allow create, update, delete: if request.auth != null &&
-        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.type == 'Admin';
+      allow create: if isAdmin();
+      allow update: if isAdmin();
+      allow delete: if isAdmin();
     }
 
     match /savedAnnouncements/{doc} {
@@ -40,15 +48,15 @@ service cloud.firestore {
     match /announcementComments/{doc} {
       allow read: if true;
       allow create: if request.auth != null;
+      allow update, delete: if isAdmin();
     }
 
     match /tasks/{doc} {
       allow read: if true;
-      allow create, delete: if request.auth != null &&
-        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.type == 'Admin';
+      allow create, update, delete: if isAdmin();
       allow update: if request.auth != null && (
         // Allow admin to update any field
-        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.type == 'Admin' ||
+        isAdmin() ||
         // Allow volunteers to only update volunteeredUsers and currVolunteers
         (
           request.resource.data.diff(resource.data).affectedKeys()
@@ -66,29 +74,21 @@ service cloud.firestore {
     match /reports/{doc} {
       allow read: if request.auth != null;
       allow create: if request.auth != null && request.resource.data.userId == request.auth.uid;
+      allow update: if isAdmin();
+      allow delete: if isAdmin();
     }
 
-    match /advertisements/{doc} {
+    match /advertisements/{advertisementId} {
       allow read: if true;
       allow create: if isAuthenticated() && 
-        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.type == 'advertiser';
-      allow update: if isAuthenticated() && (
-        // Allow admin to update status
-        (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.type == 'Admin' &&
-         request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status'])) ||
-        // Allow advertiser to update their own ads
-        (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.type == 'advertiser' &&
-         resource.data.userId == request.auth.uid)
-      );
-      allow delete: if isAuthenticated() && 
-        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.type == 'advertiser' &&
-        resource.data.userId == request.auth.uid;
-    }
-
-    // Helper function to check if user is admin
-    function isAdmin() {
-      return isAuthenticated() && 
-        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.type == 'Admin';
+        request.resource.data.userId == request.auth.uid &&
+        request.resource.data.status == 'pending';
+      allow update: if (isAdmin() || 
+        (isAdvertiser() && resource.data.userId == request.auth.uid)) &&
+        request.resource.data.diff(resource.data).affectedKeys()
+          .hasOnly(['name', 'imageUrls', 'location', 'documentUrl', 'status']);
+      allow delete: if isAdmin() || 
+        (isAdvertiser() && resource.data.userId == request.auth.uid);
     }
 
     // Helper function to check if user is regular user (not admin or advertiser)
@@ -127,7 +127,7 @@ service cloud.firestore {
       allow read: if request.auth != null;
       allow create: if isAuthenticated() && 
         // Check if user is not admin and not advertiser
-        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.type != 'Admin' &&
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.type != 'admin' &&
         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.type != 'advertiser' &&
         // Ensure the vote is for the current user
         request.resource.data.userId == request.auth.uid &&
@@ -144,6 +144,19 @@ service cloud.firestore {
 
     match /chats/{chatId}/messages/{messageId} {
       allow read, write: if request.auth != null;
+    }
+
+    // Complaints collection
+    match /complaints/{complaintId} {
+      allow read: if isAuthenticated() && 
+        (isAdmin() || resource.data.userId == request.auth.uid);
+      allow create: if isAuthenticated() && 
+        request.resource.data.userId == request.auth.uid &&
+        request.resource.data.status == 'pending';
+      allow update: if isAdmin() && 
+        request.resource.data.diff(resource.data).affectedKeys()
+          .hasOnly(['status', 'adminResponse']);
+      allow delete: if isAdmin();
     }
 
     // Other collections

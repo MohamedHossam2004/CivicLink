@@ -4,6 +4,7 @@ import '../../models/report.dart';
 import '../../services/admin_service.dart';
 import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
+import '../../config/theme.dart';
 
 class ReportDetailScreen extends StatefulWidget {
   final String reportId;
@@ -26,9 +27,11 @@ class _ReportDetailScreenState extends State<ReportDetailScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text(
-            'Report #${widget.reportId!.substring(0, widget.reportId!.length > 8 ? 8 : widget.reportId!.length)}'),
-        backgroundColor: Colors.teal,
-        foregroundColor: Colors.white,
+          'Report #${widget.reportId.substring(0, widget.reportId.length > 8 ? 8 : widget.reportId.length)}',
+        ),
+        backgroundColor: Colors.white,
+        foregroundColor: Colors.black,
+        elevation: 1,
       ),
       body: StreamBuilder<DocumentSnapshot>(
         stream: FirebaseFirestore.instance
@@ -45,7 +48,27 @@ class _ReportDetailScreenState extends State<ReportDetailScreen> {
           }
 
           if (!snapshot.hasData || !snapshot.data!.exists) {
-            return const Center(child: Text('Report not found'));
+            return Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    Icons.error_outline,
+                    size: 64,
+                    color: Colors.grey[400],
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    'Report not found',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.grey[600],
+                    ),
+                  ),
+                ],
+              ),
+            );
           }
 
           final data = snapshot.data!.data() as Map<String, dynamic>;
@@ -92,7 +115,12 @@ class _ReportDetailScreenState extends State<ReportDetailScreen> {
     }
 
     return Card(
-      elevation: 2,
+      elevation: 0,
+      color: Colors.white,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+        side: BorderSide(color: Colors.grey.shade200),
+      ),
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -108,29 +136,38 @@ class _ReportDetailScreenState extends State<ReportDetailScreen> {
             const SizedBox(height: 12),
             Row(
               children: [
-                Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                  decoration: BoxDecoration(
-                    color: statusColor.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: statusColor),
-                  ),
-                  child: Text(
-                    report.status,
-                    style: TextStyle(
-                      color: statusColor,
-                      fontWeight: FontWeight.bold,
+                Expanded(
+                  child: Container(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: statusColor.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(color: statusColor.withOpacity(0.3)),
+                    ),
+                    child: Text(
+                      report.status,
+                      style: TextStyle(
+                        color: statusColor,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                   ),
                 ),
                 const SizedBox(width: 12),
-                Text(
-                  'Updated: ${_formatDate(report.createdAt)}',
-                  style: TextStyle(
-                    color: Colors.grey[600],
-                    fontSize: 14,
-                  ),
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.access_time, size: 16, color: Colors.grey[600]),
+                    const SizedBox(width: 4),
+                    Text(
+                      'Updated: ${_formatDate(report.createdAt)}',
+                      style: TextStyle(
+                        color: Colors.grey[600],
+                        fontSize: 14,
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),
@@ -142,7 +179,12 @@ class _ReportDetailScreenState extends State<ReportDetailScreen> {
 
   Widget _buildReportDetails(Report report) {
     return Card(
-      elevation: 2,
+      elevation: 0,
+      color: Colors.white,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+        side: BorderSide(color: Colors.grey.shade200),
+      ),
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -155,21 +197,28 @@ class _ReportDetailScreenState extends State<ReportDetailScreen> {
                 fontWeight: FontWeight.bold,
               ),
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 16),
             _buildDetailRow('Report ID', '#${report.id}'),
+            const Divider(height: 24),
             _buildDetailRow('Issue Type', report.issueType),
+            const Divider(height: 24),
             _buildDetailRow('Submitted', _formatDate(report.createdAt)),
-            const SizedBox(height: 12),
+            const SizedBox(height: 16),
             const Text(
               'Description',
               style: TextStyle(
                 fontWeight: FontWeight.w500,
+                fontSize: 15,
               ),
             ),
-            const SizedBox(height: 4),
+            const SizedBox(height: 8),
             Text(
               report.description,
-              style: const TextStyle(fontSize: 15),
+              style: TextStyle(
+                fontSize: 15,
+                color: Colors.grey[800],
+                height: 1.5,
+              ),
             ),
           ],
         ),
@@ -179,7 +228,12 @@ class _ReportDetailScreenState extends State<ReportDetailScreen> {
 
   Widget _buildLocationSection(Report report) {
     return Card(
-      elevation: 2,
+      elevation: 0,
+      color: Colors.white,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+        side: BorderSide(color: Colors.grey.shade200),
+      ),
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -192,31 +246,49 @@ class _ReportDetailScreenState extends State<ReportDetailScreen> {
                 fontWeight: FontWeight.bold,
               ),
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 16),
             if (report.latitude != null && report.longitude != null)
               GestureDetector(
                 onTap: () => _openMap(report.latitude!, report.longitude!),
                 child: Container(
                   height: 150,
                   decoration: BoxDecoration(
-                    color: Colors.grey[200],
-                    borderRadius: BorderRadius.circular(8),
-                    image: const DecorationImage(
-                      image: AssetImage('assets/map_placeholder.png'),
-                      fit: BoxFit.cover,
-                    ),
+                    color: Colors.grey[100],
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: Colors.grey.shade200),
                   ),
-                  child: Center(
-                    child: ElevatedButton.icon(
-                      onPressed: () =>
-                          _openMap(report.latitude!, report.longitude!),
-                      icon: const Icon(Icons.map),
-                      label: const Text('Open in Maps'),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.white,
-                        foregroundColor: Colors.teal,
+                  child: Stack(
+                    children: [
+                      const Center(
+                        child: Icon(
+                          Icons.map,
+                          size: 48,
+                          color: Colors.grey,
+                        ),
                       ),
-                    ),
+                      Positioned(
+                        bottom: 16,
+                        left: 0,
+                        right: 0,
+                        child: Center(
+                          child: ElevatedButton.icon(
+                            onPressed: () =>
+                                _openMap(report.latitude!, report.longitude!),
+                            icon: const Icon(Icons.map),
+                            label: const Text('Open in Maps'),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: AppTheme.primaryColor,
+                              foregroundColor: Colors.white,
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 24, vertical: 12),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(30),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               )
@@ -224,11 +296,28 @@ class _ReportDetailScreenState extends State<ReportDetailScreen> {
               Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: Colors.grey[200],
-                  borderRadius: BorderRadius.circular(8),
+                  color: Colors.grey[100],
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: Colors.grey.shade200),
                 ),
-                child: const Center(
-                  child: Text('No location data available'),
+                child: Center(
+                  child: Column(
+                    children: [
+                      Icon(
+                        Icons.location_off,
+                        size: 32,
+                        color: Colors.grey[400],
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        'No location data available',
+                        style: TextStyle(
+                          color: Colors.grey[600],
+                          fontSize: 14,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
           ],
@@ -239,7 +328,12 @@ class _ReportDetailScreenState extends State<ReportDetailScreen> {
 
   Widget _buildPhotosSection(Report report) {
     return Card(
-      elevation: 2,
+      elevation: 0,
+      color: Colors.white,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+        side: BorderSide(color: Colors.grey.shade200),
+      ),
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -259,20 +353,38 @@ class _ReportDetailScreenState extends State<ReportDetailScreen> {
                   '${report.photoUrls.length} photos',
                   style: TextStyle(
                     color: Colors.grey[600],
+                    fontSize: 14,
                   ),
                 ),
               ],
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 16),
             if (report.photoUrls.isEmpty)
               Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: Colors.grey[200],
-                  borderRadius: BorderRadius.circular(8),
+                  color: Colors.grey[100],
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: Colors.grey.shade200),
                 ),
-                child: const Center(
-                  child: Text('No photos attached'),
+                child: Center(
+                  child: Column(
+                    children: [
+                      Icon(
+                        Icons.photo_outlined,
+                        size: 32,
+                        color: Colors.grey[400],
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        'No photos attached',
+                        style: TextStyle(
+                          color: Colors.grey[600],
+                          fontSize: 14,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               )
             else
@@ -288,7 +400,7 @@ class _ReportDetailScreenState extends State<ReportDetailScreen> {
                         onTap: () => _showFullScreenImage(
                             context, report.photoUrls[index]),
                         child: ClipRRect(
-                          borderRadius: BorderRadius.circular(8),
+                          borderRadius: BorderRadius.circular(12),
                           child: Image.network(
                             report.photoUrls[index],
                             width: 120,
@@ -299,7 +411,7 @@ class _ReportDetailScreenState extends State<ReportDetailScreen> {
                               return Container(
                                 width: 120,
                                 height: 120,
-                                color: Colors.grey[200],
+                                color: Colors.grey[100],
                                 child: const Center(
                                   child: CircularProgressIndicator(),
                                 ),
@@ -309,7 +421,7 @@ class _ReportDetailScreenState extends State<ReportDetailScreen> {
                               return Container(
                                 width: 120,
                                 height: 120,
-                                color: Colors.grey[200],
+                                color: Colors.grey[100],
                                 child: const Icon(
                                   Icons.error,
                                   color: Colors.red,
@@ -331,7 +443,12 @@ class _ReportDetailScreenState extends State<ReportDetailScreen> {
 
   Widget _buildUserSection(Report report) {
     return Card(
-      elevation: 2,
+      elevation: 0,
+      color: Colors.white,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+        side: BorderSide(color: Colors.grey.shade200),
+      ),
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -344,7 +461,7 @@ class _ReportDetailScreenState extends State<ReportDetailScreen> {
                 fontWeight: FontWeight.bold,
               ),
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 16),
             FutureBuilder<DocumentSnapshot>(
               future: FirebaseFirestore.instance
                   .collection('users')
@@ -368,6 +485,7 @@ class _ReportDetailScreenState extends State<ReportDetailScreen> {
                 return Column(
                   children: [
                     _buildDetailRow('Name', userName),
+                    const Divider(height: 24),
                     _buildDetailRow('Email', userEmail),
                   ],
                 );
@@ -381,27 +499,25 @@ class _ReportDetailScreenState extends State<ReportDetailScreen> {
 
   Widget _buildAdminActions(Report report) {
     return Card(
-      elevation: 2,
+      elevation: 0,
+      color: Colors.white,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+        side: BorderSide(color: Colors.grey.shade200),
+      ),
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const Text(
-              'Admin Actions',
+              'Actions',
               style: TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.bold,
               ),
             ),
             const SizedBox(height: 16),
-            const Text(
-              'Update Status',
-              style: TextStyle(
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-            const SizedBox(height: 8),
             Row(
               children: [
                 Expanded(
@@ -413,6 +529,10 @@ class _ReportDetailScreenState extends State<ReportDetailScreen> {
                       backgroundColor: Colors.orange,
                       foregroundColor: Colors.white,
                       disabledBackgroundColor: Colors.grey[300],
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
                     ),
                     child: _isUpdating
                         ? const SizedBox(
@@ -423,7 +543,7 @@ class _ReportDetailScreenState extends State<ReportDetailScreen> {
                               strokeWidth: 2,
                             ),
                           )
-                        : const Text('Pending'),
+                        : const Text('Mark as Pending'),
                   ),
                 ),
                 const SizedBox(width: 8),
@@ -436,6 +556,10 @@ class _ReportDetailScreenState extends State<ReportDetailScreen> {
                       backgroundColor: Colors.blue,
                       foregroundColor: Colors.white,
                       disabledBackgroundColor: Colors.grey[300],
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
                     ),
                     child: _isUpdating
                         ? const SizedBox(
@@ -449,7 +573,11 @@ class _ReportDetailScreenState extends State<ReportDetailScreen> {
                         : const Text('Under Review'),
                   ),
                 ),
-                const SizedBox(width: 8),
+              ],
+            ),
+            const SizedBox(height: 8),
+            Row(
+              children: [
                 Expanded(
                   child: ElevatedButton(
                     onPressed: report.status == 'Closed'
@@ -459,6 +587,10 @@ class _ReportDetailScreenState extends State<ReportDetailScreen> {
                       backgroundColor: Colors.green,
                       foregroundColor: Colors.white,
                       disabledBackgroundColor: Colors.grey[300],
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
                     ),
                     child: _isUpdating
                         ? const SizedBox(
@@ -469,47 +601,52 @@ class _ReportDetailScreenState extends State<ReportDetailScreen> {
                               strokeWidth: 2,
                             ),
                           )
-                        : const Text('Closed'),
+                        : const Text('Mark as Closed'),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: OutlinedButton.icon(
+                    onPressed: () {
+                      showDialog(
+                        context: context,
+                        builder: (context) => AlertDialog(
+                          title: const Text('Delete Report'),
+                          content: const Text(
+                            'Are you sure you want to delete this report? This action cannot be undone.',
+                          ),
+                          actions: [
+                            TextButton(
+                              onPressed: () => Navigator.pop(context),
+                              child: const Text('Cancel'),
+                            ),
+                            TextButton(
+                              onPressed: () {
+                                Navigator.pop(context);
+                                _deleteReport(report);
+                              },
+                              style: TextButton.styleFrom(
+                                foregroundColor: Colors.red,
+                              ),
+                              child: const Text('Delete'),
+                            ),
+                          ],
+                        ),
+                      );
+                    },
+                    icon: const Icon(Icons.delete, color: Colors.red),
+                    label: const Text('Delete'),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: Colors.red,
+                      side: const BorderSide(color: Colors.red),
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
                   ),
                 ),
               ],
-            ),
-            const SizedBox(height: 16),
-            OutlinedButton.icon(
-              onPressed: () {
-                // Show delete confirmation dialog
-                showDialog(
-                  context: context,
-                  builder: (context) => AlertDialog(
-                    title: const Text('Delete Report'),
-                    content: const Text(
-                      'Are you sure you want to delete this report? This action cannot be undone.',
-                    ),
-                    actions: [
-                      TextButton(
-                        onPressed: () => Navigator.pop(context),
-                        child: const Text('Cancel'),
-                      ),
-                      TextButton(
-                        onPressed: () {
-                          Navigator.pop(context);
-                          _deleteReport(report);
-                        },
-                        style: TextButton.styleFrom(
-                          foregroundColor: Colors.red,
-                        ),
-                        child: const Text('Delete'),
-                      ),
-                    ],
-                  ),
-                );
-              },
-              icon: const Icon(Icons.delete, color: Colors.red),
-              label: const Text('Delete Report'),
-              style: OutlinedButton.styleFrom(
-                foregroundColor: Colors.red,
-                side: const BorderSide(color: Colors.red),
-              ),
             ),
           ],
         ),
@@ -518,55 +655,60 @@ class _ReportDetailScreenState extends State<ReportDetailScreen> {
   }
 
   Widget _buildDetailRow(String label, String value) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 8),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          SizedBox(
-            width: 100,
-            child: Text(
-              label,
-              style: TextStyle(
-                color: Colors.grey[700],
-                fontWeight: FontWeight.w500,
-              ),
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        SizedBox(
+          width: 100,
+          child: Text(
+            label,
+            style: TextStyle(
+              color: Colors.grey[600],
+              fontSize: 14,
             ),
           ),
-          Expanded(
-            child: Text(
-              value,
-              style: const TextStyle(
-                fontWeight: FontWeight.w400,
-              ),
+        ),
+        Expanded(
+          child: Text(
+            value,
+            style: const TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w500,
             ),
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 
-  Future<void> _updateReportStatus(Report report, String newStatus) async {
-    if (_isUpdating) return;
+  String _formatDate(DateTime date) {
+    return DateFormat('MMM d, y • h:mm a').format(date);
+  }
 
-    setState(() {
-      _isUpdating = true;
-    });
+  Future<void> _updateReportStatus(Report report, String newStatus) async {
+    if (report.id == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Invalid report ID'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+
+    setState(() => _isUpdating = true);
 
     try {
       await _adminService.updateReportStatus(report.id!, newStatus);
-
-      // Show success message
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Status updated to $newStatus'),
+            content: Text('Report status updated to $newStatus'),
             backgroundColor: Colors.green,
           ),
         );
       }
     } catch (e) {
-      // Show error message
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -577,18 +719,26 @@ class _ReportDetailScreenState extends State<ReportDetailScreen> {
       }
     } finally {
       if (mounted) {
-        setState(() {
-          _isUpdating = false;
-        });
+        setState(() => _isUpdating = false);
       }
     }
   }
 
   Future<void> _deleteReport(Report report) async {
+    if (report.id == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Invalid report ID'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+
+    setState(() => _isUpdating = true);
+
     try {
       await _adminService.deleteReport(report.id!);
-
-      // Navigate back after deletion
       if (mounted) {
         Navigator.pop(context);
         ScaffoldMessenger.of(context).showSnackBar(
@@ -599,7 +749,6 @@ class _ReportDetailScreenState extends State<ReportDetailScreen> {
         );
       }
     } catch (e) {
-      // Show error message
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -608,46 +757,34 @@ class _ReportDetailScreenState extends State<ReportDetailScreen> {
           ),
         );
       }
+    } finally {
+      if (mounted) {
+        setState(() => _isUpdating = false);
+      }
     }
   }
 
   void _showFullScreenImage(BuildContext context, String imageUrl) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => Scaffold(
-          appBar: AppBar(
-            backgroundColor: Colors.black,
-            iconTheme: const IconThemeData(color: Colors.white),
-          ),
-          backgroundColor: Colors.black,
-          body: Center(
-            child: InteractiveViewer(
-              panEnabled: true,
-              boundaryMargin: const EdgeInsets.all(20),
-              minScale: 0.5,
-              maxScale: 4,
+    showDialog(
+      context: context,
+      builder: (context) => Dialog(
+        child: Stack(
+          children: [
+            InteractiveViewer(
               child: Image.network(
                 imageUrl,
                 fit: BoxFit.contain,
-                loadingBuilder: (context, child, loadingProgress) {
-                  if (loadingProgress == null) return child;
-                  return const Center(
-                    child: CircularProgressIndicator(color: Colors.white),
-                  );
-                },
-                errorBuilder: (context, error, stackTrace) {
-                  return const Center(
-                    child: Icon(
-                      Icons.error,
-                      color: Colors.red,
-                      size: 50,
-                    ),
-                  );
-                },
               ),
             ),
-          ),
+            Positioned(
+              top: 8,
+              right: 8,
+              child: IconButton(
+                icon: const Icon(Icons.close, color: Colors.white),
+                onPressed: () => Navigator.pop(context),
+              ),
+            ),
+          ],
         ),
       ),
     );
@@ -662,15 +799,11 @@ class _ReportDetailScreenState extends State<ReportDetailScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('Could not open the map'),
+            content: Text('Could not open maps'),
             backgroundColor: Colors.red,
           ),
         );
       }
     }
-  }
-
-  String _formatDate(DateTime date) {
-    return DateFormat('MMM d, yyyy • h:mm a').format(date);
   }
 }

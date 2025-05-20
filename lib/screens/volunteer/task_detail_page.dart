@@ -21,12 +21,51 @@ class TaskDetailPage extends StatefulWidget {
 class _TaskDetailPageState extends State<TaskDetailPage> {
   final TaskService _taskService = TaskService();
   bool _isLoading = false;
+  bool _isLoadingUserType = true;
   bool hasJoined = false;
+  bool _isAdmin = false;
+  bool _isAdvertiser = false;
 
   @override
   void initState() {
     super.initState();
     hasJoined = widget.task.volunteeredUsers.contains(widget.userId);
+    _checkUserType();
+  }
+
+  Future<void> _checkUserType() async {
+    setState(() {
+      _isLoadingUserType = true;
+    });
+
+    try {
+      final userDoc = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(widget.userId)
+          .get();
+
+      if (mounted) {
+        setState(() {
+          _isAdmin = userDoc.data()?['type'] == 'admin' ||
+              userDoc.data()?['type'] == 'Admin';
+          _isAdvertiser = userDoc.data()?['type'] == 'advertiser' ||
+              userDoc.data()?['type'] == 'Advertiser';
+          _isLoadingUserType = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _isLoadingUserType = false;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error loading user type: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
   }
 
   Future<void> _handleVolunteer() async {
@@ -40,7 +79,7 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
       } else {
         await _taskService.volunteerForTask(widget.task.id);
       }
-      
+
       if (mounted) {
         setState(() {
           hasJoined = !hasJoined;
@@ -49,7 +88,9 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-              hasJoined ? 'Successfully withdrawn from the task!' : 'Successfully volunteered for the task',
+              hasJoined
+                  ? 'Successfully withdrawn from the task!'
+                  : 'Successfully volunteered for the task',
             ),
             backgroundColor: Colors.green,
           ),
@@ -73,7 +114,10 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
   @override
   Widget build(BuildContext context) {
     return StreamBuilder<DocumentSnapshot>(
-      stream: FirebaseFirestore.instance.collection('tasks').doc(widget.task.id).snapshots(),
+      stream: FirebaseFirestore.instance
+          .collection('tasks')
+          .doc(widget.task.id)
+          .snapshots(),
       builder: (context, snapshot) {
         if (snapshot.hasError) {
           return Scaffold(
@@ -98,7 +142,8 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
         }
 
         final updatedTask = Task.fromFirestore(snapshot.data!);
-        final departmentColor = Task.getColorForDepartment(updatedTask.department);
+        final departmentColor =
+            Task.getColorForDepartment(updatedTask.department);
         final progress = updatedTask.currVolunteers / updatedTask.maxVolunteers;
         final dateFormat = DateFormat('MMM d, y');
         final timeFormat = DateFormat('h:mm a');
@@ -149,18 +194,22 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
                       const SizedBox(height: 16),
                       Row(
                         children: [
-                          Icon(Icons.calendar_today, color: Colors.white70, size: 16),
+                          Icon(Icons.calendar_today,
+                              color: Colors.white70, size: 16),
                           const SizedBox(width: 8),
                           Text(
                             dateFormat.format(updatedTask.startTime),
-                            style: const TextStyle(color: Colors.white, fontSize: 14),
+                            style: const TextStyle(
+                                color: Colors.white, fontSize: 14),
                           ),
                           const SizedBox(width: 16),
-                          Icon(Icons.access_time, color: Colors.white70, size: 16),
+                          Icon(Icons.access_time,
+                              color: Colors.white70, size: 16),
                           const SizedBox(width: 8),
                           Text(
                             '${timeFormat.format(updatedTask.startTime)} - ${timeFormat.format(updatedTask.endTime)}',
-                            style: const TextStyle(color: Colors.white, fontSize: 14),
+                            style: const TextStyle(
+                                color: Colors.white, fontSize: 14),
                           ),
                         ],
                       ),
@@ -175,7 +224,8 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
                     children: [
                       // Department
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 12, vertical: 6),
                         decoration: BoxDecoration(
                           color: departmentColor.withOpacity(0.1),
                           borderRadius: BorderRadius.circular(20),
@@ -272,7 +322,8 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
                       LinearProgressIndicator(
                         value: progress,
                         backgroundColor: Colors.grey[200],
-                        valueColor: AlwaysStoppedAnimation<Color>(departmentColor),
+                        valueColor:
+                            AlwaysStoppedAnimation<Color>(departmentColor),
                       ),
                       const SizedBox(height: 4),
                       Text(
@@ -282,65 +333,176 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
                           fontSize: 14,
                         ),
                       ),
+                      if (_isAdmin) ...[
+                        const SizedBox(height: 16),
+                        const Text(
+                          'Volunteers List',
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        StreamBuilder<QuerySnapshot>(
+                          stream: FirebaseFirestore.instance
+                              .collection('users')
+                              .where('uid',
+                                  whereIn: updatedTask.volunteeredUsers)
+                              .snapshots(),
+                          builder: (context, snapshot) {
+                            if (snapshot.hasError) {
+                              return Text('Error: ${snapshot.error}');
+                            }
+
+                            if (snapshot.connectionState ==
+                                ConnectionState.waiting) {
+                              return const Center(
+                                child: Padding(
+                                  padding: EdgeInsets.all(16.0),
+                                  child: Column(
+                                    children: [
+                                      CircularProgressIndicator(),
+                                      SizedBox(height: 8),
+                                      Text('Loading volunteers...'),
+                                    ],
+                                  ),
+                                ),
+                              );
+                            }
+
+                            final volunteers = snapshot.data?.docs ?? [];
+
+                            if (volunteers.isEmpty) {
+                              return const Center(
+                                child: Padding(
+                                  padding: EdgeInsets.all(16.0),
+                                  child: Text(
+                                    'No volunteers yet',
+                                    style: TextStyle(
+                                      color: Colors.grey,
+                                      fontStyle: FontStyle.italic,
+                                    ),
+                                  ),
+                                ),
+                              );
+                            }
+
+                            return ListView.builder(
+                              shrinkWrap: true,
+                              physics: const NeverScrollableScrollPhysics(),
+                              itemCount: volunteers.length,
+                              itemBuilder: (context, index) {
+                                final volunteer = volunteers[index].data()
+                                    as Map<String, dynamic>;
+                                return ListTile(
+                                  leading: CircleAvatar(
+                                    child:
+                                        Text(volunteer['firstName']?[0] ?? '?'),
+                                  ),
+                                  title: Text(
+                                      '${volunteer['firstName']} ${volunteer['lastName']}'),
+                                  subtitle: Text(volunteer['email'] ?? ''),
+                                );
+                              },
+                            );
+                          },
+                        ),
+                      ],
                     ],
                   ),
                 ),
               ],
             ),
           ),
-          bottomNavigationBar: Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.1),
-                  blurRadius: 4,
-                  offset: const Offset(0, -2),
-                ),
-              ],
-            ),
-            child: ElevatedButton(
-              onPressed: (updatedTask.status == TaskStatus.Completed || _isLoading)
-                  ? null
-                  : _handleVolunteer,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: updatedTask.status == TaskStatus.Completed ? Colors.grey : hasJoined ? Colors.red : departmentColor,
-                padding: const EdgeInsets.symmetric(vertical: 16),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),
-              ),
-              child: _isLoading
-                  ? const SizedBox(
-                      height: 20,
-                      width: 20,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+          bottomNavigationBar: _isLoadingUserType
+              ? Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.1),
+                        blurRadius: 4,
+                        offset: const Offset(0, -2),
                       ),
-                    )
-                  : updatedTask.status == TaskStatus.Completed
-                      ? Text(
-                          'Task Completed',
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
+                    ],
+                  ),
+                  child: const Center(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        CircularProgressIndicator(),
+                        SizedBox(height: 8),
+                        Text('Loading...'),
+                      ],
+                    ),
+                  ),
+                )
+              : !_isAdmin && !_isAdvertiser
+                  ? Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.1),
+                            blurRadius: 4,
+                            offset: const Offset(0, -2),
                           ),
-                        )
-                      : Text(
-                          hasJoined ? 'Withdraw from Task' : 'Volunteer for Task',
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
+                        ],
+                      ),
+                      child: ElevatedButton(
+                        onPressed:
+                            (updatedTask.status == TaskStatus.Completed ||
+                                    _isLoading)
+                                ? null
+                                : _handleVolunteer,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor:
+                              updatedTask.status == TaskStatus.Completed
+                                  ? Colors.grey
+                                  : hasJoined
+                                      ? Colors.red
+                                      : departmentColor,
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
                           ),
                         ),
-            ),
-          ),
+                        child: _isLoading
+                            ? const SizedBox(
+                                height: 20,
+                                width: 20,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  valueColor: AlwaysStoppedAnimation<Color>(
+                                      Colors.white),
+                                ),
+                              )
+                            : updatedTask.status == TaskStatus.Completed
+                                ? Text(
+                                    'Task Completed',
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  )
+                                : Text(
+                                    hasJoined
+                                        ? 'Withdraw from Task'
+                                        : 'Volunteer for Task',
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                      ),
+                    )
+                  : null,
         );
       },
     );
   }
-} 
+}

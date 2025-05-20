@@ -10,9 +10,12 @@ class AnnouncementService {
   AnnouncementService._internal();
 
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-  final CollectionReference _announcementsCollection = FirebaseFirestore.instance.collection('announcements');
-  final CollectionReference _commentsCollection = FirebaseFirestore.instance.collection('announcementComments');
-  final CollectionReference _savedAnnouncementsCollection = FirebaseFirestore.instance.collection('savedAnnouncements');
+  final CollectionReference _announcementsCollection =
+      FirebaseFirestore.instance.collection('announcements');
+  final CollectionReference _commentsCollection =
+      FirebaseFirestore.instance.collection('announcementComments');
+  final CollectionReference _savedAnnouncementsCollection =
+      FirebaseFirestore.instance.collection('savedAnnouncements');
   final AuthService _authService = AuthService();
 
   // Get all announcements
@@ -40,29 +43,30 @@ class AnnouncementService {
         .where('announcementId', isEqualTo: announcementId)
         .snapshots()
         .asyncMap((snapshot) async {
-          final comments = snapshot.docs
-              .map((doc) => Comment.fromFirestore(doc))
-              .toList();
-          comments.sort((a, b) => b.createdAt.compareTo(a.createdAt));
-          
-          final updatedComments = await Future.wait(
-            comments.map((comment) async {
-              final userDetails = await _authService.getUserNamefromID(comment.userId);
-              return comment.copyWith(
-                firstName: userDetails['firstName'],
-                lastName: userDetails['lastName'],
-              );
-            }),
+      final comments =
+          snapshot.docs.map((doc) => Comment.fromFirestore(doc)).toList();
+      comments.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+
+      final updatedComments = await Future.wait(
+        comments.map((comment) async {
+          final userDetails =
+              await _authService.getUserNamefromID(comment.userId);
+          return comment.copyWith(
+            firstName: userDetails['firstName'],
+            lastName: userDetails['lastName'],
           );
-          return updatedComments;
-        });
+        }),
+      );
+      return updatedComments;
+    });
   }
 
   // Add a comment to an announcement
-  Future<void> addComment(String announcementId, String userId, String content, {bool isAnonymous = false}) async {
+  Future<void> addComment(String announcementId, String userId, String content,
+      {bool isAnonymous = false}) async {
     // Get user details
     final userDetails = await _authService.getUserNamefromID(userId);
-    
+
     await _commentsCollection.add({
       'announcementId': announcementId,
       'userId': userId,
@@ -118,7 +122,9 @@ class AnnouncementService {
             .map((doc) => Announcement.fromFirestore(doc))
             .where((announcement) =>
                 announcement.name.toLowerCase().contains(lowercaseQuery) ||
-                announcement.description.toLowerCase().contains(lowercaseQuery) ||
+                announcement.description
+                    .toLowerCase()
+                    .contains(lowercaseQuery) ||
                 announcement.department.toLowerCase().contains(lowercaseQuery))
             .toList());
   }
@@ -130,7 +136,7 @@ class AnnouncementService {
       print("Cannot save announcement: User is not logged in");
       return;
     }
-    
+
     // Force token refresh to ensure we have fresh credentials
     try {
       await user.getIdToken(true);
@@ -141,8 +147,9 @@ class AnnouncementService {
     }
 
     try {
-      print("Attempting to save announcement $announcementId for user ${user.uid}");
-      
+      print(
+          "Attempting to save announcement $announcementId for user ${user.uid}");
+
       // Check if already saved
       final existingSave = await _savedAnnouncementsCollection
           .where('userId', isEqualTo: user.uid)
@@ -161,11 +168,10 @@ class AnnouncementService {
         'savedAt': FieldValue.serverTimestamp(),
       };
       print("Save data: $saveData");
-      
+
       // Create new save
       final docRef = await _savedAnnouncementsCollection.add(saveData);
       print("Save successful, document ID: ${docRef.id}");
-      
     } catch (e) {
       print('Error saving announcement: $e');
       rethrow;
@@ -179,7 +185,7 @@ class AnnouncementService {
       print("Cannot unsave announcement: User is not logged in");
       return;
     }
-    
+
     // Force token refresh to ensure we have fresh credentials
     try {
       await user.getIdToken(true);
@@ -190,20 +196,21 @@ class AnnouncementService {
     }
 
     try {
-      print("Attempting to unsave announcement $announcementId for user ${user.uid}");
-      
+      print(
+          "Attempting to unsave announcement $announcementId for user ${user.uid}");
+
       final querySnapshot = await _savedAnnouncementsCollection
           .where('userId', isEqualTo: user.uid)
           .where('announcementId', isEqualTo: announcementId)
           .get();
 
       print("Found ${querySnapshot.docs.length} saved entries to delete");
-      
+
       for (var doc in querySnapshot.docs) {
         print("Deleting document ID: ${doc.id}");
         await doc.reference.delete();
       }
-      
+
       print("Unsave operation completed successfully");
     } catch (e) {
       print('Error unsaving announcement: $e');
@@ -220,28 +227,29 @@ class AnnouncementService {
         .where('userId', isEqualTo: user.uid)
         .snapshots()
         .asyncMap((snapshot) async {
-          if (snapshot.docs.isEmpty) {
-            return [];
+      if (snapshot.docs.isEmpty) {
+        return [];
+      }
+
+      final savedAnnouncements = await Future.wait(
+        snapshot.docs.map((doc) async {
+          final announcementId = doc['announcementId'] as String;
+          try {
+            final announcementDoc =
+                await _announcementsCollection.doc(announcementId).get();
+            if (announcementDoc.exists) {
+              return Announcement.fromFirestore(announcementDoc);
+            }
+          } catch (e) {
+            print('Error fetching announcement $announcementId: $e');
           }
-          
-          final savedAnnouncements = await Future.wait(
-            snapshot.docs.map((doc) async {
-              final announcementId = doc['announcementId'] as String;
-              try {
-                final announcementDoc = await _announcementsCollection.doc(announcementId).get();
-                if (announcementDoc.exists) {
-                  return Announcement.fromFirestore(announcementDoc);
-                }
-              } catch (e) {
-                print('Error fetching announcement $announcementId: $e');
-              }
-              return null;
-            }),
-          );
-          
-          // Filter out null values and return the list of announcements
-          return savedAnnouncements.whereType<Announcement>().toList();
-        });
+          return null;
+        }),
+      );
+
+      // Filter out null values and return the list of announcements
+      return savedAnnouncements.whereType<Announcement>().toList();
+    });
   }
 
   // Check if an announcement is saved
@@ -249,16 +257,67 @@ class AnnouncementService {
     final user = _authService.currentUser;
     if (user == null) return Stream.value(false);
 
-    print('Checking if announcement $announcementId is saved for user ${user.uid}');
+    print(
+        'Checking if announcement $announcementId is saved for user ${user.uid}');
 
     return _savedAnnouncementsCollection
         .where('userId', isEqualTo: user.uid)
         .where('announcementId', isEqualTo: announcementId)
         .snapshots()
         .map((snapshot) {
-          final isSaved = snapshot.docs.isNotEmpty;
-          print('Announcement $announcementId saved status: $isSaved');
-          return isSaved;
-        });
+      final isSaved = snapshot.docs.isNotEmpty;
+      print('Announcement $announcementId saved status: $isSaved');
+      return isSaved;
+    });
+  }
+
+  // Update announcement
+  Future<void> updateAnnouncement(
+    String id, {
+    required String name,
+    required String description,
+    required String phone,
+    required String email,
+    required String department,
+    required String label,
+    required bool isImportant,
+    required DateTime? startTime,
+    required DateTime? endTime,
+  }) async {
+    await _announcementsCollection.doc(id).update({
+      'name': name,
+      'description': description,
+      'phone': phone,
+      'email': email,
+      'department': department,
+      'label': label,
+      'isImportant': isImportant,
+      'startTime': startTime != null ? Timestamp.fromDate(startTime) : null,
+      'endTime': endTime != null ? Timestamp.fromDate(endTime) : null,
+      'updatedAt': FieldValue.serverTimestamp(),
+    });
+  }
+
+  // Delete announcement
+  Future<void> deleteAnnouncement(String id) async {
+    // Delete the announcement
+    await _announcementsCollection.doc(id).delete();
+
+    // Delete associated comments
+    final comments =
+        await _commentsCollection.where('announcementId', isEqualTo: id).get();
+
+    for (var doc in comments.docs) {
+      await doc.reference.delete();
+    }
+
+    // Delete saved announcements
+    final savedAnnouncements = await _savedAnnouncementsCollection
+        .where('announcementId', isEqualTo: id)
+        .get();
+
+    for (var doc in savedAnnouncements.docs) {
+      await doc.reference.delete();
+    }
   }
 }

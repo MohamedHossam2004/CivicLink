@@ -6,6 +6,7 @@ import '../../config/theme.dart';
 import '../../utils/date_formatter.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'edit_advertisement_screen.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 
 class AdvertisementDetailScreen extends StatefulWidget {
   final String advertisementId;
@@ -93,6 +94,75 @@ class _AdvertisementDetailScreenState extends State<AdvertisementDetailScreen> {
     }
   }
 
+  Future<void> _deleteAdvertisement() async {
+    try {
+      // Show confirmation dialog
+      final bool? confirm = await showDialog<bool>(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: const Text('Delete Advertisement'),
+            content: const Text(
+                'Are you sure you want to delete this advertisement? This action cannot be undone.'),
+            actions: <Widget>[
+              TextButton(
+                child: const Text('Cancel'),
+                onPressed: () => Navigator.of(context).pop(false),
+              ),
+              TextButton(
+                child:
+                    const Text('Delete', style: TextStyle(color: Colors.red)),
+                onPressed: () => Navigator.of(context).pop(true),
+              ),
+            ],
+          );
+        },
+      );
+
+      if (confirm != true) return;
+
+      setState(() {
+        _isLoading = true;
+      });
+
+      // Delete images from storage
+      final imageUrls = List<String>.from(_advertisement!['imageUrls'] ?? []);
+      for (String url in imageUrls) {
+        try {
+          final ref = FirebaseStorage.instance.refFromURL(url);
+          await ref.delete();
+        } catch (e) {
+          print('Error deleting image: $e');
+        }
+      }
+
+      // Delete document from Firestore
+      await _firestore
+          .collection('advertisements')
+          .doc(widget.advertisementId)
+          .delete();
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Advertisement deleted successfully')),
+        );
+        Navigator.pop(context); // Return to previous screen
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error deleting advertisement: $e')),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     if (_isLoading) {
@@ -143,7 +213,7 @@ class _AdvertisementDetailScreenState extends State<AdvertisementDetailScreen> {
         backgroundColor: Colors.white,
         elevation: 0,
         actions: [
-          if (_isAdvertiser && _isOwner)
+          if (_isAdvertiser && _isOwner) ...[
             IconButton(
               icon: const Icon(Icons.edit, color: Color(0xFF1E293B)),
               onPressed: () {
@@ -157,6 +227,16 @@ class _AdvertisementDetailScreenState extends State<AdvertisementDetailScreen> {
                   ),
                 );
               },
+            ),
+            IconButton(
+              icon: const Icon(Icons.delete, color: Colors.red),
+              onPressed: _deleteAdvertisement,
+            ),
+          ],
+          if (widget.isAdmin)
+            IconButton(
+              icon: const Icon(Icons.delete, color: Colors.red),
+              onPressed: _deleteAdvertisement,
             ),
         ],
       ),
