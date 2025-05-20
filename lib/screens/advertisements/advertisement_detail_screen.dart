@@ -4,6 +4,8 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import '../../config/theme.dart';
 import '../../utils/date_formatter.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'edit_advertisement_screen.dart';
 
 class AdvertisementDetailScreen extends StatefulWidget {
   final String advertisementId;
@@ -28,11 +30,14 @@ class _AdvertisementDetailScreenState extends State<AdvertisementDetailScreen> {
   bool _isLoading = true;
   Map<String, dynamic>? _advertisement;
   GoogleMapController? _mapController;
+  bool _isAdvertiser = false;
+  bool _isOwner = false;
 
   @override
   void initState() {
     super.initState();
     _fetchAdvertisement();
+    _checkUserType();
   }
 
   @override
@@ -64,6 +69,21 @@ class _AdvertisementDetailScreenState extends State<AdvertisementDetailScreen> {
       setState(() {
         _isLoading = false;
       });
+    }
+  }
+
+  Future<void> _checkUserType() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      final userDoc = await _firestore.collection('users').doc(user.uid).get();
+
+      if (mounted) {
+        setState(() {
+          _isAdvertiser = userDoc.data()?['type'] == 'advertiser';
+          _isOwner =
+              _advertisement != null && _advertisement!['userId'] == user.uid;
+        });
+      }
     }
   }
 
@@ -122,6 +142,23 @@ class _AdvertisementDetailScreenState extends State<AdvertisementDetailScreen> {
         ),
         backgroundColor: Colors.white,
         elevation: 0,
+        actions: [
+          if (_isAdvertiser && _isOwner)
+            IconButton(
+              icon: const Icon(Icons.edit, color: Color(0xFF1E293B)),
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => EditAdvertisementScreen(
+                      advertisementId: widget.advertisementId,
+                      advertisement: _advertisement!,
+                    ),
+                  ),
+                );
+              },
+            ),
+        ],
       ),
       body: SingleChildScrollView(
         child: Column(
@@ -311,11 +348,13 @@ class _AdvertisementDetailScreenState extends State<AdvertisementDetailScreen> {
                         children: [
                           Expanded(
                             child: ElevatedButton(
-                              onPressed: () => widget.onStatusUpdate(widget.advertisementId, 'approved'),
+                              onPressed: () => widget.onStatusUpdate(
+                                  widget.advertisementId, 'approved'),
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: Colors.green,
                                 foregroundColor: Colors.white,
-                                padding: const EdgeInsets.symmetric(vertical: 16),
+                                padding:
+                                    const EdgeInsets.symmetric(vertical: 16),
                               ),
                               child: const Text('Approve Advertisement'),
                             ),
@@ -323,11 +362,13 @@ class _AdvertisementDetailScreenState extends State<AdvertisementDetailScreen> {
                           const SizedBox(width: 16),
                           Expanded(
                             child: ElevatedButton(
-                              onPressed: () => widget.onStatusUpdate(widget.advertisementId, 'declined'),
+                              onPressed: () => widget.onStatusUpdate(
+                                  widget.advertisementId, 'declined'),
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: Colors.red,
                                 foregroundColor: Colors.white,
-                                padding: const EdgeInsets.symmetric(vertical: 16),
+                                padding:
+                                    const EdgeInsets.symmetric(vertical: 16),
                               ),
                               child: const Text('Decline Advertisement'),
                             ),
