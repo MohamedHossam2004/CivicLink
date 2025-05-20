@@ -395,6 +395,57 @@ class _AdvertisementDetailScreenState extends State<AdvertisementDetailScreen> {
 
                   const SizedBox(height: 24),
 
+                  // Phone Number
+                  if (_advertisement!['phoneNumber'] != null) ...[
+                    const Text(
+                      'Contact',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFF1E293B),
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    GestureDetector(
+                      onTap: () {
+                        final phoneNumber = _advertisement!['phoneNumber'];
+                        if (phoneNumber != null && phoneNumber.isNotEmpty) {
+                          launchUrl(Uri.parse('tel:$phoneNumber'));
+                        }
+                      },
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(color: Colors.grey[300]!),
+                        ),
+                        child: Row(
+                          children: [
+                            Icon(Icons.phone, color: AppTheme.primaryColor),
+                            const SizedBox(width: 12),
+                            Text(
+                              _advertisement!['phoneNumber'],
+                              style: const TextStyle(
+                                fontSize: 16,
+                                color: Color(0xFF1E293B),
+                              ),
+                            ),
+                            const Spacer(),
+                            Text(
+                              'Call',
+                              style: TextStyle(
+                                color: AppTheme.primaryColor,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+
+                  const SizedBox(height: 24),
+
                   // Business Information
                   if (documentUrl != null) ...[
                     const Text(

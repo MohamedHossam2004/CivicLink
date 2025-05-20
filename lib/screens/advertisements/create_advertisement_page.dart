@@ -4,6 +4,8 @@ import 'package:firebase_storage/firebase_storage.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'dart:io';
 import 'package:image_picker/image_picker.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:location/location.dart';
 
 class CreateAdvertisementPage extends StatefulWidget {
   const CreateAdvertisementPage({Key? key}) : super(key: key);
@@ -18,8 +20,107 @@ class _CreateAdvertisementPageState extends State<CreateAdvertisementPage> {
   final _documentUrlController = TextEditingController();
   final _latitudeController = TextEditingController();
   final _longitudeController = TextEditingController();
+  final _phoneController = TextEditingController();
   List<File> _imageFiles = [];
   bool _isLoading = false;
+  
+  // Map related variables
+  bool _isMapVisible = false;
+  LatLng? _selectedLocation;
+  Set<Marker> _markers = {};
+  GoogleMapController? _mapController;
+
+  @override
+  void initState() {
+    super.initState();
+    _getCurrentLocation();
+  }
+
+  Future<void> _getCurrentLocation() async {
+    try {
+      Location location = Location();
+
+      // Check if location services are enabled
+      bool serviceEnabled = await location.serviceEnabled();
+      if (!serviceEnabled) {
+        serviceEnabled = await location.requestService();
+        if (!serviceEnabled) {
+          return;
+        }
+      }
+
+      // Check if permission is granted
+      PermissionStatus permissionGranted = await location.hasPermission();
+      if (permissionGranted == PermissionStatus.denied) {
+        permissionGranted = await location.requestPermission();
+        if (permissionGranted != PermissionStatus.granted) {
+          return;
+        }
+      }
+
+      // Get the current location
+      final locationData = await location.getLocation();
+
+      setState(() {
+        _selectedLocation = LatLng(
+          locationData.latitude ?? 0.0,
+          locationData.longitude ?? 0.0,
+        );
+        _isMapVisible = true;
+
+        // Add marker for the selected location
+        _markers = {
+          Marker(
+            markerId: const MarkerId('selected_location'),
+            position: _selectedLocation!,
+            infoWindow: const InfoWindow(title: 'Advertisement Location'),
+          ),
+        };
+
+        // Update the location controllers
+        _latitudeController.text = _selectedLocation!.latitude.toString();
+        _longitudeController.text = _selectedLocation!.longitude.toString();
+      });
+
+      // Move camera to the current location if map controller is available
+      _mapController?.animateCamera(
+        CameraUpdate.newCameraPosition(
+          CameraPosition(
+            target: _selectedLocation!,
+            zoom: 15,
+          ),
+        ),
+      );
+    } catch (e) {
+      print('Error getting location: $e');
+      // Show error message
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error getting location: $e')),
+        );
+      }
+    }
+  }
+
+  // Handle map tap to update location
+  void _handleMapTap(LatLng tappedPoint) {
+    setState(() {
+      _selectedLocation = tappedPoint;
+
+      // Update marker
+      _markers = {
+        Marker(
+          markerId: const MarkerId('selected_location'),
+          position: tappedPoint,
+          infoWindow: const InfoWindow(title: 'Advertisement Location'),
+        ),
+      };
+
+      // Update location controllers
+      _latitudeController.text = tappedPoint.latitude.toString();
+      _longitudeController.text = tappedPoint.longitude.toString();
+    });
+  }
 
   Future<void> _pickImages() async {
     final ImagePicker picker = ImagePicker();
@@ -82,6 +183,7 @@ class _CreateAdvertisementPageState extends State<CreateAdvertisementPage> {
         'documentUrl': _documentUrlController.text.isNotEmpty 
             ? _documentUrlController.text 
             : null,
+        'phoneNumber': _phoneController.text,
         'status': 'pending',
       });
 
@@ -112,6 +214,8 @@ class _CreateAdvertisementPageState extends State<CreateAdvertisementPage> {
     _documentUrlController.dispose();
     _latitudeController.dispose();
     _longitudeController.dispose();
+    _phoneController.dispose();
+    _mapController?.dispose();
     super.dispose();
   }
 
@@ -189,6 +293,73 @@ class _CreateAdvertisementPageState extends State<CreateAdvertisementPage> {
               ),
               const SizedBox(height: 16),
 
+              // Phone number field
+              TextFormField(
+                controller: _phoneController,
+                decoration: const InputDecoration(
+                  labelText: 'Phone Number',
+                  border: OutlineInputBorder(),
+                  prefixIcon: Icon(Icons.phone),
+                ),
+                keyboardType: TextInputType.phone,
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Please enter a phone number';
+                  }
+                  return null;
+                },
+              ),
+              const SizedBox(height: 16),
+
+              // Map section
+              const Text(
+                'Location',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 8),
+              const Text(
+                'Tap on the map to select location or provide coordinates',
+                style: TextStyle(
+                  fontSize: 14,
+                  color: Colors.grey,
+                ),
+              ),
+              const SizedBox(height: 16),
+              Container(
+                height: 300,
+                width: double.infinity,
+                decoration: BoxDecoration(
+                  border: Border.all(color: Colors.grey.shade300),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(8),
+                  child: _selectedLocation != null
+                    ? GoogleMap(
+                        initialCameraPosition: CameraPosition(
+                          target: _selectedLocation!,
+                          zoom: 15,
+                        ),
+                        markers: _markers,
+                        myLocationEnabled: true,
+                        myLocationButtonEnabled: true,
+                        mapToolbarEnabled: false,
+                        zoomControlsEnabled: true,
+                        onMapCreated: (controller) {
+                          _mapController = controller;
+                        },
+                        onTap: _handleMapTap,
+                      )
+                    : const Center(
+                        child: CircularProgressIndicator(),
+                      ),
+                ),
+              ),
+              const SizedBox(height: 16),
+
               // Location Fields
               Row(
                 children: [
@@ -209,6 +380,31 @@ class _CreateAdvertisementPageState extends State<CreateAdvertisementPage> {
                         }
                         return null;
                       },
+                      onChanged: (value) {
+                        if (value.isNotEmpty && _longitudeController.text.isNotEmpty) {
+                          try {
+                            final lat = double.parse(value);
+                            final lng = double.parse(_longitudeController.text);
+                            
+                            setState(() {
+                              _selectedLocation = LatLng(lat, lng);
+                              _markers = {
+                                Marker(
+                                  markerId: const MarkerId('selected_location'),
+                                  position: _selectedLocation!,
+                                  infoWindow: const InfoWindow(title: 'Advertisement Location'),
+                                ),
+                              };
+                            });
+                            
+                            _mapController?.animateCamera(
+                              CameraUpdate.newLatLng(_selectedLocation!),
+                            );
+                          } catch (e) {
+                            // Invalid number format
+                          }
+                        }
+                      },
                     ),
                   ),
                   const SizedBox(width: 16),
@@ -228,6 +424,31 @@ class _CreateAdvertisementPageState extends State<CreateAdvertisementPage> {
                           return 'Please enter a valid number';
                         }
                         return null;
+                      },
+                      onChanged: (value) {
+                        if (value.isNotEmpty && _latitudeController.text.isNotEmpty) {
+                          try {
+                            final lat = double.parse(_latitudeController.text);
+                            final lng = double.parse(value);
+                            
+                            setState(() {
+                              _selectedLocation = LatLng(lat, lng);
+                              _markers = {
+                                Marker(
+                                  markerId: const MarkerId('selected_location'),
+                                  position: _selectedLocation!,
+                                  infoWindow: const InfoWindow(title: 'Advertisement Location'),
+                                ),
+                              };
+                            });
+                            
+                            _mapController?.animateCamera(
+                              CameraUpdate.newLatLng(_selectedLocation!),
+                            );
+                          } catch (e) {
+                            // Invalid number format
+                          }
+                        }
                       },
                     ),
                   ),
