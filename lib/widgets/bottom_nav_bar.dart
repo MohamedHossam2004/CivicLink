@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:gov_app/config/theme.dart';
-
+import 'package:firebase_auth/firebase_auth.dart';
 class BottomNavBar extends StatelessWidget {
   final int currentIndex;
   final Function(int) onTap;
@@ -36,7 +36,9 @@ class BottomNavBar extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.spaceAround,
           children: [
             _buildNavItem(0, 'Home', Icons.home),
-            _buildNavItem(1, 'Tasks', Icons.task),
+            _buildNavItem(1, 'Tasks', Icons.task, onTap: () {
+              Navigator.pushNamed(context, '/volunteer', arguments: {'userId': FirebaseAuth.instance.currentUser?.uid});
+            }),
             _buildNavItem(2, 'Chat', Icons.chat_bubble_outline),
             _buildNavItem(3, 'Calendar', Icons.calendar_today),
             _buildNavItem(4, 'Profile', Icons.person_outline),
@@ -46,11 +48,11 @@ class BottomNavBar extends StatelessWidget {
     );
   }
 
-  Widget _buildNavItem(int index, String label, IconData icon) {
+  Widget _buildNavItem(int index, String label, IconData icon, {Function()? onTap}) {
     final isSelected = currentIndex == index;
     
     return InkWell(
-      onTap: () => onTap(index),
+      onTap: onTap,
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [

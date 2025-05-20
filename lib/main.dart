@@ -57,7 +57,10 @@ class MyApp extends StatelessWidget {
       routes: {
         '/home': (context) => const MainScreen(),
         '/event-details': (context) => const EventDetailPage(),
-        '/volunteer': (context) => const VolunteerPage(),
+        '/volunteer': (context) {
+          final args = ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>;
+          return VolunteerPage(userId: args['userId']);
+        },
         '/login': (context) => const LoginPage(),
         '/register': (context) => const RegistrationPage(),
       },
