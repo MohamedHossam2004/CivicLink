@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import '../../config/theme.dart';
 import '../../utils/date_formatter.dart';
 import 'advertisement_detail_screen.dart';
+import 'create_advertisement_page.dart';
 
 class AdvertisementsScreen extends StatefulWidget {
   const AdvertisementsScreen({Key? key}) : super(key: key);
@@ -17,17 +19,37 @@ class _AdvertisementsScreenState extends State<AdvertisementsScreen> {
   bool _isLoading = true;
   String? _error;
   final PageController _pageController = PageController();
+  bool _isAdvertiser = false;
+  bool _isAdmin = false;
 
   @override
   void initState() {
     super.initState();
     _fetchAdvertisements();
+    _checkUserType();
   }
 
   @override
   void dispose() {
     _pageController.dispose();
     super.dispose();
+  }
+
+  Future<void> _checkUserType() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      final userDoc = await _firestore
+          .collection('users')
+          .doc(user.uid)
+          .get();
+      
+      if (mounted) {
+        setState(() {
+          _isAdvertiser = userDoc.data()?['type'] == 'advertiser';
+          _isAdmin = userDoc.data()?['type'] == 'Admin';
+        });
+      }
+    }
   }
 
   Future<void> _fetchAdvertisements() async {
@@ -61,6 +83,23 @@ class _AdvertisementsScreenState extends State<AdvertisementsScreen> {
     }
   }
 
+  Future<void> _updateAdvertisementStatus(String advertisementId, String status) async {
+    try {
+      await _firestore
+          .collection('advertisements')
+          .doc(advertisementId)
+          .update({'status': status});
+      
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Advertisement $status successfully')),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error updating status: $e')),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -75,10 +114,31 @@ class _AdvertisementsScreenState extends State<AdvertisementsScreen> {
         ),
         backgroundColor: Colors.white,
         elevation: 0,
+        actions: [
+          if (_isAdvertiser)
+            Padding(
+              padding: const EdgeInsets.only(right: 8.0),
+              child: IconButton(
+                icon: const Icon(
+                  Icons.add_circle_outline,
+                  color: Color(0xFF1E293B),
+                ),
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const CreateAdvertisementPage(),
+                    ),
+                  );
+                },
+              ),
+            ),
+        ],
       ),
       body: StreamBuilder<QuerySnapshot>(
         stream: _firestore
             .collection('advertisements')
+            .where('status', isEqualTo: _isAdmin ? null : 'approved')
             .orderBy('createdOn', descending: true)
             .snapshots(),
         builder: (context, snapshot) {
@@ -109,7 +169,7 @@ class _AdvertisementsScreenState extends State<AdvertisementsScreen> {
                   ),
                   const SizedBox(height: 16),
                   Text(
-                    'No Advertisements',
+                    _isAdmin ? 'No Advertisements' : 'No Approved Advertisements',
                     style: TextStyle(
                       fontSize: 20,
                       fontWeight: FontWeight.bold,
@@ -118,7 +178,9 @@ class _AdvertisementsScreenState extends State<AdvertisementsScreen> {
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    'There are currently no advertisements available.',
+                    _isAdmin 
+                        ? 'There are currently no advertisements in the system.'
+                        : 'There are currently no approved advertisements available.',
                     style: TextStyle(
                       fontSize: 14,
                       color: Colors.grey[600],
@@ -138,6 +200,7 @@ class _AdvertisementsScreenState extends State<AdvertisementsScreen> {
               final documentUrl = ad['documentUrl'] as String?;
               final location = ad['location'] as Map<String, dynamic>?;
               final createdOn = (ad['createdOn'] as Timestamp).toDate();
+              final status = ad['status'] as String? ?? 'pending';
 
               return Container(
                 margin: const EdgeInsets.only(bottom: 16),
@@ -161,6 +224,8 @@ class _AdvertisementsScreenState extends State<AdvertisementsScreen> {
                         MaterialPageRoute(
                           builder: (context) => AdvertisementDetailScreen(
                             advertisementId: advertisements[index].id,
+                            isAdmin: _isAdmin,
+                            onStatusUpdate: _updateAdvertisementStatus,
                           ),
                         ),
                       );
@@ -245,14 +310,48 @@ class _AdvertisementsScreenState extends State<AdvertisementsScreen> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              // Title
-                              Text(
-                                ad['name'] ?? 'Untitled Advertisement',
-                                style: const TextStyle(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.bold,
-                                  color: Color(0xFF1E293B),
-                                ),
+                              // Title and Status
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Expanded(
+                                    child: Text(
+                                      ad['name'] ?? 'Untitled Advertisement',
+                                      style: const TextStyle(
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.bold,
+                                        color: Color(0xFF1E293B),
+                                      ),
+                                    ),
+                                  ),
+                                  if (_isAdmin)
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 8,
+                                        vertical: 4,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: status == 'approved'
+                                            ? Colors.green.withOpacity(0.1)
+                                            : status == 'declined'
+                                                ? Colors.red.withOpacity(0.1)
+                                                : Colors.orange.withOpacity(0.1),
+                                        borderRadius: BorderRadius.circular(12),
+                                      ),
+                                      child: Text(
+                                        status.toUpperCase(),
+                                        style: TextStyle(
+                                          color: status == 'approved'
+                                              ? Colors.green
+                                              : status == 'declined'
+                                                  ? Colors.red
+                                                  : Colors.orange,
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    ),
+                                ],
                               ),
                               const SizedBox(height: 12),
 
@@ -309,8 +408,7 @@ class _AdvertisementsScreenState extends State<AdvertisementsScreen> {
                                   child: ElevatedButton.icon(
                                     onPressed: () => _launchUrl(documentUrl),
                                     icon: const Icon(Icons.description),
-                                    label:
-                                        const Text('View Business Information'),
+                                    label: const Text('View Business Information'),
                                     style: ElevatedButton.styleFrom(
                                       backgroundColor: AppTheme.primaryColor,
                                       foregroundColor: Colors.white,

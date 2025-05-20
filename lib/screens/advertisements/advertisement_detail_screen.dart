@@ -7,10 +7,14 @@ import '../../utils/date_formatter.dart';
 
 class AdvertisementDetailScreen extends StatefulWidget {
   final String advertisementId;
+  final bool isAdmin;
+  final Function(String, String) onStatusUpdate;
 
   const AdvertisementDetailScreen({
     Key? key,
     required this.advertisementId,
+    this.isAdmin = false,
+    required this.onStatusUpdate,
   }) : super(key: key);
 
   @override
@@ -298,6 +302,39 @@ class _AdvertisementDetailScreenState extends State<AdvertisementDetailScreen> {
                       ),
                     ),
                   ],
+
+                  // Admin Approval Buttons
+                  if (widget.isAdmin)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 24),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: ElevatedButton(
+                              onPressed: () => widget.onStatusUpdate(widget.advertisementId, 'approved'),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.green,
+                                foregroundColor: Colors.white,
+                                padding: const EdgeInsets.symmetric(vertical: 16),
+                              ),
+                              child: const Text('Approve Advertisement'),
+                            ),
+                          ),
+                          const SizedBox(width: 16),
+                          Expanded(
+                            child: ElevatedButton(
+                              onPressed: () => widget.onStatusUpdate(widget.advertisementId, 'declined'),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.red,
+                                foregroundColor: Colors.white,
+                                padding: const EdgeInsets.symmetric(vertical: 16),
+                              ),
+                              child: const Text('Decline Advertisement'),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
                 ],
               ),
             ),

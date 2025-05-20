@@ -3,6 +3,17 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
+    // Helper function to check if user is authenticated
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    // Helper function to check if user is an advertiser
+    function isAdvertiser() {
+      let userData = get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
+      return isAuthenticated() && userData.type == 'advertiser';
+    }
+
     match /users/{uid} {
       allow create: if request.auth != null;
       allow read, update: if request.auth != null && request.auth.uid == uid;
@@ -55,8 +66,19 @@ service cloud.firestore {
 
     match /advertisements/{doc} {
       allow read: if true;
-      allow create, update, delete: if request.auth != null &&
-        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.type == 'Advertiser';
+      allow create: if isAuthenticated() && 
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.type == 'advertiser';
+      allow update: if isAuthenticated() && (
+        // Allow admin to update status
+        (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.type == 'Admin' &&
+         request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status'])) ||
+        // Allow advertiser to update their own ads
+        (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.type == 'advertiser' &&
+         resource.data.userId == request.auth.uid)
+      );
+      allow delete: if isAuthenticated() && 
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.type == 'advertiser' &&
+        resource.data.userId == request.auth.uid;
     }
 
     match /polls/{pollId} {
