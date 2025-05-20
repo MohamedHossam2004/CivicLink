@@ -22,16 +22,58 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+  
   List<Map<String, dynamic>> _announcements = [];
   List<Map<String, dynamic>> _tasks = [];
   Map<String, dynamic>? _featuredTask;
   bool _isLoading = true;
   String? _error;
+  
+  // User data fields
+  String _fullName = '';
+  String _userInitials = '';
 
   @override
   void initState() {
     super.initState();
+    _fetchUserData();
     _fetchData();
+  }
+  
+  // Fetch current user's data
+  Future<void> _fetchUserData() async {
+    try {
+      final user = _auth.currentUser;
+      if (user == null) return;
+
+      final uid = user.uid;
+
+      // Fetch user data from Firestore
+      final userDoc = await _firestore.collection('users').doc(uid).get();
+      
+      if (userDoc.exists) {
+        final userData = userDoc.data();
+        if (userData != null) {
+          // Get the user's full name
+          final firstName = userData['firstName'] ?? '';
+          final lastName = userData['lastName'] ?? '';
+          final fullName = userData['fullName'] ?? '$firstName $lastName';
+          
+          // Create initials from the first letters of first and last name
+          String initials = '';
+          if (firstName.isNotEmpty) initials += firstName[0];
+          if (lastName.isNotEmpty) initials += lastName[0];
+          
+          setState(() {
+            _fullName = fullName;
+            _userInitials = initials.toUpperCase();
+          });
+        }
+      }
+    } catch (e) {
+      print('Error fetching user data: $e');
+    }
   }
 
   Future<void> _fetchData() async {
@@ -225,11 +267,11 @@ class _HomeScreenState extends State<HomeScreen> {
                     width: 2,
                   ),
                 ),
-                child: const CircleAvatar(
+                child: CircleAvatar(
                   backgroundColor: Colors.white,
                   child: Text(
-                    'JD',
-                    style: TextStyle(
+                    _userInitials.isEmpty ? 'U' : _userInitials,
+                    style: const TextStyle(
                       color: AppTheme.primaryColor,
                       fontWeight: FontWeight.bold,
                     ),
@@ -239,8 +281,8 @@ class _HomeScreenState extends State<HomeScreen> {
               const SizedBox(width: 12),
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
-                children: const [
-                  Text(
+                children: [
+                  const Text(
                     'Welcome back',
                     style: TextStyle(
                       fontSize: 14,
@@ -248,8 +290,8 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                   ),
                   Text(
-                    'John Doe',
-                    style: TextStyle(
+                    _fullName.isEmpty ? 'User' : _fullName,
+                    style: const TextStyle(
                       fontSize: 12,
                       color: AppTheme.textSecondaryColor,
                     ),
