@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:gov_app/config/theme.dart';
+import 'package:gov_app/screens/emergency/emergency_page.dart';
 import 'package:gov_app/screens/home/widgets/announcement_card.dart';
 import 'package:gov_app/screens/home/widgets/task_card.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -345,91 +346,102 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ),
         const SizedBox(height: 16),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            _buildServiceItem(
-              icon: Icons.location_on_outlined,
-              label: 'Report',
-              color: Colors.red,
-              bgColor: Colors.red.shade100,
-              onTap: () async {
-                // Check if user is admin
-                final user = _auth.currentUser;
-                if (user != null) {
-                  final userDoc =
-                      await _firestore.collection('users').doc(user.uid).get();
-                  if (userDoc.exists && userDoc.data()?['type'] == 'Admin') {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const AdminDashboard(),
-                      ),
-                    );
+        SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          child: Row(
+            children: [
+              _buildServiceItem(
+                icon: Icons.location_on_outlined,
+                label: 'Report',
+                color: Colors.red,
+                bgColor: Colors.red.shade100,
+                onTap: () async {
+                  final user = _auth.currentUser;
+                  if (user != null) {
+                    final userDoc = await _firestore
+                        .collection('users')
+                        .doc(user.uid)
+                        .get();
+                    if (userDoc.exists && userDoc.data()?['type'] == 'Admin') {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) => const AdminDashboard()),
+                      );
+                    } else {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) => const ReportIssueStep1()),
+                      );
+                    }
                   } else {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => const ReportIssueStep1(),
-                      ),
+                          builder: (context) => const ReportIssueStep1()),
                     );
                   }
-                } else {
+                },
+              ),
+              const SizedBox(width: 16),
+              _buildServiceItem(
+                icon: Icons.notifications_none,
+                label: 'Updates',
+                color: AppTheme.communityColor,
+                bgColor: AppTheme.communityColor.withOpacity(0.1),
+                onTap: () {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => const ReportIssueStep1(),
-                    ),
+                        builder: (context) => const AnnouncementsScreen()),
                   );
-                }
-              },
-            ),
-            const SizedBox(width: 32),
-            _buildServiceItem(
-              icon: Icons.notifications_none,
-              label: 'Updates',
-              color: AppTheme.communityColor,
-              bgColor: AppTheme.communityColor.withOpacity(0.1),
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const AnnouncementsScreen(),
-                  ),
-                );
-              },
-            ),
-            const SizedBox(width: 32),
-            _buildServiceItem(
-              icon: Icons.campaign_outlined,
-              label: 'Advertisements',
-              color: AppTheme.primaryColor,
-              bgColor: AppTheme.primaryLightColor,
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const AdvertisementsScreen(),
-                  ),
-                );
-              },
-            ),
-            const SizedBox(width: 32),
-            _buildServiceItem(
-              icon: Icons.poll_outlined,
-              label: 'Polls',
-              color: Colors.orange,
-              bgColor: Colors.orange.shade100,
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const PollsScreen(),
-                  ),
-                );
-              },
-            ),
-          ],
+                },
+              ),
+              const SizedBox(width: 16),
+              _buildServiceItem(
+                icon: Icons.campaign_outlined,
+                label: 'Advertisements',
+                color: AppTheme.primaryColor,
+                bgColor: AppTheme.primaryLightColor,
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) => const AdvertisementsScreen()),
+                  );
+                },
+              ),
+              const SizedBox(width: 16),
+              _buildServiceItem(
+                icon: Icons.poll_outlined,
+                label: 'Polls',
+                color: Colors.orange,
+                bgColor: Colors.orange.shade100,
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) => const PollsScreen()),
+                  );
+                },
+              ),
+              const SizedBox(width: 16),
+              _buildServiceItem(
+                icon: Icons.warning_amber_outlined,
+                label: 'Emergency\nNumbers',
+                color: Colors.red,
+                bgColor: Colors.red.shade100,
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) => const EmergencyNumbersPage()),
+                  );
+                },
+              ),
+            ],
+          ),
         ),
       ],
     );
@@ -462,9 +474,10 @@ class _HomeScreenState extends State<HomeScreen> {
           const SizedBox(height: 8),
           Text(
             label,
-            style: const TextStyle(
-              fontSize: 12,
-            ),
+            textAlign: TextAlign.center,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+            style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
           ),
         ],
       ),
