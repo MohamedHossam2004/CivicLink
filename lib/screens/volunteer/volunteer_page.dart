@@ -110,11 +110,23 @@ class _VolunteerPageState extends State<VolunteerPage>
           .get();
 
       final now = DateTime.now();
-      final tasks =
-          snapshot.docs.map((doc) => Task.fromFirestore(doc)).where((task) {
-        // Filter out tasks that have ended
-        return task.endTime.isAfter(now);
-      }).toList();
+      final tasks = snapshot.docs
+          .map((doc) {
+            try {
+              final task = Task.fromFirestore(doc);
+              // Only include tasks that haven't ended
+              if (task.endTime.isAfter(now)) {
+                return task;
+              }
+              return null;
+            } catch (e) {
+              print('Error parsing task ${doc.id}: $e');
+              return null;
+            }
+          })
+          .where((task) => task != null)
+          .cast<Task>()
+          .toList();
 
       // Filter tasks by status
       _allTasks =
@@ -146,6 +158,7 @@ class _VolunteerPageState extends State<VolunteerPage>
         }
       }
     } catch (e) {
+      print('Error fetching tasks: $e');
       setState(() {
         _error = e.toString();
         _isLoading = false;

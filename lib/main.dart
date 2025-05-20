@@ -62,7 +62,8 @@ class MyApp extends StatelessWidget {
         '/login': (context) => const LoginPage(),
         '/register': (context) => const RegistrationPage(),
         '/chat': (context) => ChatScreen(),
-        '/calendar': (context) => const CalendarPage(),
+        '/calendar': (context) =>
+            CalendarPage(userId: FirebaseAuth.instance.currentUser?.uid ?? ''),
         '/profile': (context) => const ProfilePage(),
       },
     );
@@ -131,7 +132,7 @@ class _MainScreenState extends State<MainScreen> {
     const HomeScreen(),
     VolunteerPage(userId: FirebaseAuth.instance.currentUser?.uid ?? ''),
     ChatScreen(),
-    const CalendarPage(),
+    CalendarPage(userId: FirebaseAuth.instance.currentUser?.uid ?? ''),
     const ProfilePage(),
   ];
 
