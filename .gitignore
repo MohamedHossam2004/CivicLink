@@ -198,6 +198,8 @@ linux/**
 
 windows/**
 
+macos/**
+
 
 # API Keys and Secrets
 **/google-services.json
@@ -207,3 +209,4 @@ windows/**
 **/secrets.properties
 **/api_keys.properties
 seed.js
+.env

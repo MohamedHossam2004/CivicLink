@@ -50,8 +50,7 @@ class _AnnouncementsScreenState extends State<AnnouncementsScreen>
             break;
           case 2:
             _currentFilter = 'Saved';
-            // TODO: Implement saved announcements
-            _announcementsStream = Stream.value([]);
+            _announcementsStream = _service.getSavedAnnouncements();
             break;
         }
       });
@@ -62,6 +61,30 @@ class _AnnouncementsScreenState extends State<AnnouncementsScreen>
     setState(() {
       _currentFilter = department;
       _announcementsStream = _service.filterByDepartment(department);
+    });
+  }
+
+  void _onSearchChanged(String value) {
+    setState(() {
+      if (value.isEmpty) {
+        // Reset to current filter if search is empty
+        switch (_currentFilter) {
+          case 'All':
+            _announcementsStream = _service.getAllAnnouncements();
+            break;
+          case 'Important':
+            _announcementsStream = _service.getImportantAnnouncements();
+            break;
+          case 'Saved':
+            _announcementsStream = _service.getSavedAnnouncements();
+            break;
+          default:
+            _announcementsStream = _service.filterByDepartment(_currentFilter);
+        }
+      } else {
+        // Apply search filter
+        _announcementsStream = _service.searchAnnouncements(value);
+      }
     });
   }
 
@@ -158,35 +181,7 @@ class _AnnouncementsScreenState extends State<AnnouncementsScreen>
                   ),
                   child: TextField(
                     controller: _searchController,
-                    onChanged: (value) {
-                      setState(() {
-                        if (value.isEmpty) {
-                          // Reset to current filter if search is empty
-                          switch (_currentFilter) {
-                            case 'All':
-                              _announcementsStream =
-                                  _service.getAllAnnouncements();
-                              break;
-                            case 'Important':
-                              _announcementsStream =
-                                  _service.getImportantAnnouncements();
-                              break;
-                            default:
-                              if (_currentFilter == 'Saved') {
-                                // TODO: Implement saved announcements
-                                _announcementsStream = Stream.value([]);
-                              } else {
-                                _announcementsStream =
-                                    _service.filterByDepartment(_currentFilter);
-                              }
-                          }
-                        } else {
-                          // Apply search filter
-                          _announcementsStream =
-                              _service.searchAnnouncements(value);
-                        }
-                      });
-                    },
+                    onChanged: _onSearchChanged,
                     decoration: InputDecoration(
                       hintText: 'Search announcements...',
                       prefixIcon: const Icon(

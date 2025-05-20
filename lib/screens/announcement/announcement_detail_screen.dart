@@ -3,6 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../models/announcement.dart';
 import '../../services/announcement_service.dart';
 import '../../services/auth_service.dart';
+import '../../services/content_moderation_service.dart';
 import '../../utils/date_formatter.dart';
 
 class AnnouncementDetailScreen extends StatefulWidget {
@@ -22,6 +23,8 @@ class _AnnouncementDetailScreenState extends State<AnnouncementDetailScreen> {
   final AuthService _authService = AuthService();
   final TextEditingController _commentController = TextEditingController();
   bool _isLiked = false;
+  bool _isHelpful = false;
+  bool _isAnonymous = false;
 
   @override
   void dispose() {
@@ -45,6 +48,7 @@ class _AnnouncementDetailScreenState extends State<AnnouncementDetailScreen> {
       widget.announcementId,
       user.uid,
       commentText,
+      isAnonymous: _isAnonymous,
     );
     _commentController.clear();
     FocusScope.of(context).unfocus();
@@ -52,6 +56,66 @@ class _AnnouncementDetailScreenState extends State<AnnouncementDetailScreen> {
 
   void _likeComment(String commentId) {
     _service.likeComment(commentId);
+  }
+
+  void _toggleHelpful() {
+    setState(() {
+      _isHelpful = !_isHelpful;
+    });
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(_isHelpful ? 'Marked as helpful' : 'Removed from helpful')),
+    );
+  }
+
+  void _toggleThanks() {
+    setState(() {
+      _isLiked = !_isLiked;
+    });
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(_isLiked ? 'Thanks added' : 'Thanks removed')),
+    );
+  }
+
+  void _toggleSave() async {
+    final user = _authService.currentUser;
+    if (user == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please log in to save announcements')),
+      );
+      return;
+    }
+
+    try {
+      // Get current saved status
+      final isSaved = await _service.isAnnouncementSaved(widget.announcementId).first;
+      
+      if (isSaved) {
+        // Unsave the announcement
+        await _service.unsaveAnnouncement(widget.announcementId);
+        
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Announcement removed from saved')),
+        );
+      } else {
+        // Save the announcement
+        await _service.saveAnnouncement(widget.announcementId);
+        
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Announcement saved')),
+        );
+      }
+    } catch (e) {
+      print('Error toggling save status: $e');
+      
+      // Show a more informative error message
+      final errorMessage = e.toString().contains('permission-denied') 
+          ? 'Permission denied. You may not have access to save announcements.'
+          : 'Error saving announcement. Please try again later.';
+      
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(errorMessage)),
+      );
+    }
   }
 
   @override
@@ -66,12 +130,16 @@ class _AnnouncementDetailScreenState extends State<AnnouncementDetailScreen> {
           },
         ),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.bookmark_border),
-            onPressed: () {
-              // TODO: Implement bookmark functionality
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Announcement saved')),
+          StreamBuilder<bool>(
+            stream: _service.isAnnouncementSaved(widget.announcementId),
+            builder: (context, snapshot) {
+              final isSaved = snapshot.data ?? false;
+              return IconButton(
+                icon: Icon(
+                  isSaved ? Icons.bookmark : Icons.bookmark_border,
+                  color: isSaved ? Colors.purple : null,
+                ),
+                onPressed: _toggleSave,
               );
             },
           ),
@@ -123,7 +191,7 @@ class _AnnouncementDetailScreenState extends State<AnnouncementDetailScreen> {
                   ),
                 ),
               ),
-              _buildCommentInput(),
+              CommentInputWidget(announcementId: widget.announcementId),
             ],
           );
         },
@@ -301,24 +369,14 @@ class _AnnouncementDetailScreenState extends State<AnnouncementDetailScreen> {
         _buildActionButton(
           icon: Icons.thumb_up_outlined,
           label: 'Helpful',
-          onTap: () {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Marked as helpful')),
-            );
-          },
+          isActive: _isHelpful,
+          onTap: _toggleHelpful,
         ),
         _buildActionButton(
           icon: Icons.favorite_outline,
           label: 'Thanks',
           isActive: _isLiked,
-          onTap: () {
-            setState(() {
-              _isLiked = !_isLiked;
-            });
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text(_isLiked ? 'Thanks added' : 'Thanks removed')),
-            );
-          },
+          onTap: _toggleThanks,
         ),
       ],
     );
@@ -422,7 +480,7 @@ class _AnnouncementDetailScreenState extends State<AnnouncementDetailScreen> {
               radius: 16,
               backgroundColor: Colors.grey.shade200,
               child: Text(
-                comment.displayName.substring(0, 1),
+                comment.isAnonymous ? 'A' : comment.displayName.substring(0, 1),
                 style: TextStyle(
                   color: Colors.grey.shade700,
                   fontWeight: FontWeight.bold,
@@ -529,8 +587,100 @@ class _AnnouncementDetailScreenState extends State<AnnouncementDetailScreen> {
       ],
     );
   }
+}
 
-  Widget _buildCommentInput() {
+class CommentInputWidget extends StatefulWidget {
+  final String announcementId;
+
+  const CommentInputWidget({
+    super.key,
+    required this.announcementId,
+  });
+
+  @override
+  State<CommentInputWidget> createState() => _CommentInputWidgetState();
+}
+
+class _CommentInputWidgetState extends State<CommentInputWidget> {
+  final TextEditingController _commentController = TextEditingController();
+  final FocusNode _focusNode = FocusNode();
+  final AnnouncementService _service = AnnouncementService();
+  final AuthService _authService = AuthService();
+  final ContentModerationService _moderationService = ContentModerationService();
+  bool _isAnonymous = false;
+  bool _isSubmitting = false;
+
+  @override
+  void initState() {
+    super.initState();
+    // No need to initialize the moderation service here
+    // It's now initialized in main.dart
+  }
+
+  @override
+  void dispose() {
+    _commentController.dispose();
+    _focusNode.dispose();
+    super.dispose();
+  }
+
+  Future<void> _addComment() async {
+    final commentText = _commentController.text.trim();
+    if (commentText.isEmpty) return;
+
+    final user = _authService.currentUser;
+    if (user == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please log in to add a comment')),
+      );
+      return;
+    }
+
+    // Show loading indicator
+    setState(() {
+      _isSubmitting = true;
+    });
+
+    try {
+      // Check if comment is hateful - using custom model or built-in moderation
+      final isHateful = await _moderationService.isCommentHatefulUsingCustomModel(commentText);
+
+      if (isHateful) {
+        // Comment is hateful, show alert and don't submit
+        await _moderationService.showHatefulContentAlert(context);
+      } else {
+        // Comment is not hateful, proceed with submission
+        await _service.addComment(
+          widget.announcementId,
+          user.uid,
+          commentText,
+          isAnonymous: _isAnonymous,
+        );
+        
+        _commentController.clear();
+        _focusNode.unfocus();
+        
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Comment posted successfully')),
+        );
+      }
+    } catch (e) {
+      // Show error if something went wrong
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error posting comment: $e')),
+      );
+    } finally {
+      // Hide loading indicator
+      if (mounted) {
+        setState(() {
+          _isSubmitting = false;
+        });
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -543,45 +693,73 @@ class _AnnouncementDetailScreenState extends State<AnnouncementDetailScreen> {
           ),
         ],
       ),
-      child: Row(
+      child: Column(
         children: [
-          Expanded(
-            child: TextField(
-              controller: _commentController,
-              decoration: InputDecoration(
-                hintText: 'Add Your Comment',
-                filled: true,
-                fillColor: Colors.grey.shade100,
-                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(24),
-                  borderSide: BorderSide.none,
-                ),
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(24),
-                  borderSide: BorderSide.none,
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(24),
-                  borderSide: BorderSide.none,
-                ),
+          Row(
+            children: [
+              Checkbox(
+                value: _isAnonymous,
+                onChanged: (value) {
+                  setState(() {
+                    _isAnonymous = value ?? false;
+                  });
+                },
               ),
-              maxLines: null,
-              textCapitalization: TextCapitalization.sentences,
-            ),
+              const Text('Post as Anonymous'),
+            ],
           ),
-          const SizedBox(width: 12),
-          ElevatedButton(
-            onPressed: _addComment,
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.purple,
-              foregroundColor: Colors.white,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(24),
+          Row(
+            children: [
+              Expanded(
+                child: TextField(
+                  controller: _commentController,
+                  focusNode: _focusNode,
+                  decoration: InputDecoration(
+                    hintText: 'Add Your Comment',
+                    filled: true,
+                    fillColor: Colors.grey.shade100,
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(24),
+                      borderSide: BorderSide.none,
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(24),
+                      borderSide: BorderSide.none,
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(24),
+                      borderSide: BorderSide.none,
+                    ),
+                  ),
+                  maxLines: null,
+                  textCapitalization: TextCapitalization.sentences,
+                  enabled: !_isSubmitting,
+                ),
               ),
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            ),
-            child: const Text('Post Comment'),
+              const SizedBox(width: 12),
+              ElevatedButton(
+                onPressed: _isSubmitting ? null : _addComment,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.purple,
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(24),
+                  ),
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                ),
+                child: _isSubmitting
+                    ? const SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(
+                          color: Colors.white,
+                          strokeWidth: 2,
+                        ),
+                      )
+                    : const Text('Post Comment'),
+              ),
+            ],
           ),
         ],
       ),

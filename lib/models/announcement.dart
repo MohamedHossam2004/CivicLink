@@ -191,6 +191,7 @@ class Comment {
   final int likesCount;
   final String? firstName;
   final String? lastName;
+  final bool isAnonymous;
 
   Comment({
     required this.id,
@@ -201,6 +202,7 @@ class Comment {
     this.likesCount = 0,
     this.firstName,
     this.lastName,
+    this.isAnonymous = false,
   });
 
   // Convert Firestore document to Comment
@@ -215,6 +217,7 @@ class Comment {
       likesCount: data['likesCount'] ?? 0,
       firstName: data['firstName'],
       lastName: data['lastName'],
+      isAnonymous: data['isAnonymous'] ?? false,
     );
   }
 
@@ -228,10 +231,14 @@ class Comment {
       'likesCount': likesCount,
       if (firstName != null) 'firstName': firstName,
       if (lastName != null) 'lastName': lastName,
+      'isAnonymous': isAnonymous,
     };
   }
 
   String get displayName {
+    if (isAnonymous) {
+      return 'Anonymous';
+    }
     if (firstName != null && lastName != null) {
       return '$firstName $lastName';
     }
@@ -247,6 +254,7 @@ class Comment {
     int? likesCount,
     String? firstName,
     String? lastName,
+    bool? isAnonymous,
   }) {
     return Comment(
       id: id ?? this.id,
@@ -257,6 +265,7 @@ class Comment {
       likesCount: likesCount ?? this.likesCount,
       firstName: firstName ?? this.firstName,
       lastName: lastName ?? this.lastName,
+      isAnonymous: isAnonymous ?? this.isAnonymous,
     );
   }
 }

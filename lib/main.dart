@@ -15,9 +15,19 @@ import 'package:gov_app/screens/Auth/registrationPage.dart';
 import 'screens/ReportIssue/report_issue_step1.dart';
 import 'package:gov_app/screens/profile/profile_page.dart';
 import 'package:gov_app/services/auth_service.dart';
+import 'package:gov_app/services/content_moderation_service.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Load environment variables
+  try {
+    await dotenv.load(fileName: '.env');
+    print('Environment variables loaded successfully');
+  } catch (e) {
+    print('Failed to load environment variables: $e');
+  }
 
   // Initialize Firebase
   await Firebase.initializeApp();
@@ -33,8 +43,22 @@ void main() async {
     print('Main: Error configuring Firebase Auth settings: $e');
   }
 
+  // Initialize content moderation service
+  _initializeContentModeration();
+
   await initializeDateFormatting();
   runApp(const MyApp());
+}
+
+// Initialize content moderation service
+void _initializeContentModeration() {
+  final contentModerationService = ContentModerationService();
+  
+  // Initialize with environment variables or defaults
+  contentModerationService.initialize(
+    // In production, set testMode to false
+    testModeOverride: false,
+  );
 }
 
 class MyApp extends StatelessWidget {

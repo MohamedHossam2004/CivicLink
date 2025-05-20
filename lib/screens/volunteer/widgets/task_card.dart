@@ -48,7 +48,7 @@ class _TaskCardState extends State<TaskCard> {
   }
 
   Future<void> _checkVolunteerStatus() async {
-    final status = await _taskService.isUserVolunteered(_currentTask.id);
+    final status = true;
     if (mounted) {
       setState(() {
         _isVolunteered = status;
@@ -250,6 +250,8 @@ class _TaskCardState extends State<TaskCard> {
   }
 
   Widget _buildVolunteerButton() {
+    final departmentColor = Task.getColorForDepartment(_currentTask.department);
+
     if (_isLoading) {
       return const SizedBox(
         width: 20,
