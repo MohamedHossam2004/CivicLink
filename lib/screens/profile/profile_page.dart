@@ -320,8 +320,9 @@ class _OverviewTab extends StatelessWidget {
             child: Column(
               children: tasks.map((t) {
                 // Firestore Timestamp → DateTime
-                final ts = (t['createdAt'] ?? t['createdOn']) as Timestamp?;
-                final createdDate = ts?.toDate();
+                final ts = (t['createdAt'] ?? t['createdOn']);
+                final createdDate =
+                    (ts is Timestamp ? ts.toDate() : DateTime.now());
 
                 final DateFormat dateFmt =
                     DateFormat.yMMMd(); // e.g. May 18, 2025
@@ -329,7 +330,7 @@ class _OverviewTab extends StatelessWidget {
                 return Column(
                   children: [
                     _UpcomingTaskItem(
-                      title: t['title'] as String,
+                      title: t['title']?.toString() ?? 'Untitled Task',
                       date: dateFmt.format(createdDate!),
                       time: timeFmt.format(createdDate!),
                       joined: true, // or use your logic
