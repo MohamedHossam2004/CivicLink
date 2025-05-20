@@ -3,6 +3,9 @@ import '../../models/announcement.dart';
 import '../../services/announcement_service.dart';
 import 'announcement_detail_screen.dart';
 import '../../utils/date_formatter.dart';
+import 'create_announcement_page.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class AnnouncementsScreen extends StatefulWidget {
   const AnnouncementsScreen({super.key});
@@ -18,6 +21,7 @@ class _AnnouncementsScreenState extends State<AnnouncementsScreen>
   String _currentFilter = 'All';
   final TextEditingController _searchController = TextEditingController();
   Stream<List<Announcement>>? _announcementsStream;
+  bool _isAdmin = false;
 
   @override
   void initState() {
@@ -25,6 +29,22 @@ class _AnnouncementsScreenState extends State<AnnouncementsScreen>
     _tabController = TabController(length: 3, vsync: this);
     _tabController.addListener(_handleTabChange);
     _announcementsStream = _service.getAllAnnouncements();
+    _checkUserRole();
+  }
+
+  Future<void> _checkUserRole() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      final doc = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(user.uid)
+          .get();
+      if (mounted) {
+        setState(() {
+          _isAdmin = doc.data()?['type'] == 'Admin';
+        });
+      }
+    }
   }
 
   @override
@@ -441,6 +461,41 @@ class _AnnouncementsScreenState extends State<AnnouncementsScreen>
           ),
         ],
       ),
+      floatingActionButton: _isAdmin 
+        ? FloatingActionButton.extended(
+            onPressed: () async {
+              final created = await Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => CreateAnnouncementPage(
+                    userId: FirebaseAuth.instance.currentUser?.uid ?? '',
+                  ),
+                ),
+              );
+              if (created == true) {
+                // Refresh announcements
+                setState(() {
+                  switch (_currentFilter) {
+                    case 'All':
+                      _announcementsStream = _service.getAllAnnouncements();
+                      break;
+                    case 'Important':
+                      _announcementsStream = _service.getImportantAnnouncements();
+                      break;
+                    case 'Saved':
+                      _announcementsStream = _service.getSavedAnnouncements();
+                      break;
+                    default:
+                      _announcementsStream = _service.filterByDepartment(_currentFilter);
+                  }
+                });
+              }
+            },
+            label: const Text('Create Announcement'),
+            icon: const Icon(Icons.add),
+            backgroundColor: const Color(0xFF8B5CF6),
+          )
+        : null,
     );
   }
 

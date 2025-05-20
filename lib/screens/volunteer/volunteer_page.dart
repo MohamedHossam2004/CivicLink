@@ -6,7 +6,7 @@ import './task_detail_page.dart';
 import '../../widgets/bottom_nav_bar.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import './create_task_page.dart';
-import './create_announcement_page.dart';
+import '../announcement/create_announcement_page.dart';
 
 class FilterBar extends StatelessWidget {
   final List<String> filters;
@@ -262,24 +262,6 @@ class _VolunteerPageState extends State<VolunteerPage>
                               ),
                             );
                             if (created == true) _refreshTasks();
-                          },
-                        ),
-                        ListTile(
-                          leading: const Icon(Icons.announcement),
-                          title: const Text('Create Announcement'),
-                          onTap: () async {
-                            Navigator.pop(context);
-                            // TODO: Replace with your announcement page
-                            final created = await Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => CreateAnnouncementPage(
-                                    userId: widget.userId),
-                              ),
-                            );
-                            if (created == true) {
-                              // optional: refresh if announcements are shown in this page
-                            }
                           },
                         ),
                       ],
