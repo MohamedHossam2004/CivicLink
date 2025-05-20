@@ -4,6 +4,9 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import '../../config/theme.dart';
 import '../../utils/date_formatter.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'edit_advertisement_screen.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 
 class AdvertisementDetailScreen extends StatefulWidget {
   final String advertisementId;
@@ -28,11 +31,14 @@ class _AdvertisementDetailScreenState extends State<AdvertisementDetailScreen> {
   bool _isLoading = true;
   Map<String, dynamic>? _advertisement;
   GoogleMapController? _mapController;
+  bool _isAdvertiser = false;
+  bool _isOwner = false;
 
   @override
   void initState() {
     super.initState();
     _fetchAdvertisement();
+    _checkUserType();
   }
 
   @override
@@ -67,9 +73,93 @@ class _AdvertisementDetailScreenState extends State<AdvertisementDetailScreen> {
     }
   }
 
+  Future<void> _checkUserType() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      final userDoc = await _firestore.collection('users').doc(user.uid).get();
+
+      if (mounted) {
+        setState(() {
+          _isAdvertiser = userDoc.data()?['type'] == 'advertiser';
+          _isOwner =
+              _advertisement != null && _advertisement!['userId'] == user.uid;
+        });
+      }
+    }
+  }
+
   Future<void> _launchUrl(String url) async {
     if (!await launchUrl(Uri.parse(url))) {
       throw Exception('Could not launch $url');
+    }
+  }
+
+  Future<void> _deleteAdvertisement() async {
+    try {
+      // Show confirmation dialog
+      final bool? confirm = await showDialog<bool>(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: const Text('Delete Advertisement'),
+            content: const Text(
+                'Are you sure you want to delete this advertisement? This action cannot be undone.'),
+            actions: <Widget>[
+              TextButton(
+                child: const Text('Cancel'),
+                onPressed: () => Navigator.of(context).pop(false),
+              ),
+              TextButton(
+                child:
+                    const Text('Delete', style: TextStyle(color: Colors.red)),
+                onPressed: () => Navigator.of(context).pop(true),
+              ),
+            ],
+          );
+        },
+      );
+
+      if (confirm != true) return;
+
+      setState(() {
+        _isLoading = true;
+      });
+
+      // Delete images from storage
+      final imageUrls = List<String>.from(_advertisement!['imageUrls'] ?? []);
+      for (String url in imageUrls) {
+        try {
+          final ref = FirebaseStorage.instance.refFromURL(url);
+          await ref.delete();
+        } catch (e) {
+          print('Error deleting image: $e');
+        }
+      }
+
+      // Delete document from Firestore
+      await _firestore
+          .collection('advertisements')
+          .doc(widget.advertisementId)
+          .delete();
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Advertisement deleted successfully')),
+        );
+        Navigator.pop(context); // Return to previous screen
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error deleting advertisement: $e')),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
     }
   }
 
@@ -122,6 +212,33 @@ class _AdvertisementDetailScreenState extends State<AdvertisementDetailScreen> {
         ),
         backgroundColor: Colors.white,
         elevation: 0,
+        actions: [
+          if (_isAdvertiser && _isOwner) ...[
+            IconButton(
+              icon: const Icon(Icons.edit, color: Color(0xFF1E293B)),
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => EditAdvertisementScreen(
+                      advertisementId: widget.advertisementId,
+                      advertisement: _advertisement!,
+                    ),
+                  ),
+                );
+              },
+            ),
+            IconButton(
+              icon: const Icon(Icons.delete, color: Colors.red),
+              onPressed: _deleteAdvertisement,
+            ),
+          ],
+          if (widget.isAdmin)
+            IconButton(
+              icon: const Icon(Icons.delete, color: Colors.red),
+              onPressed: _deleteAdvertisement,
+            ),
+        ],
       ),
       body: SingleChildScrollView(
         child: Column(
@@ -311,11 +428,13 @@ class _AdvertisementDetailScreenState extends State<AdvertisementDetailScreen> {
                         children: [
                           Expanded(
                             child: ElevatedButton(
-                              onPressed: () => widget.onStatusUpdate(widget.advertisementId, 'approved'),
+                              onPressed: () => widget.onStatusUpdate(
+                                  widget.advertisementId, 'approved'),
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: Colors.green,
                                 foregroundColor: Colors.white,
-                                padding: const EdgeInsets.symmetric(vertical: 16),
+                                padding:
+                                    const EdgeInsets.symmetric(vertical: 16),
                               ),
                               child: const Text('Approve Advertisement'),
                             ),
@@ -323,11 +442,13 @@ class _AdvertisementDetailScreenState extends State<AdvertisementDetailScreen> {
                           const SizedBox(width: 16),
                           Expanded(
                             child: ElevatedButton(
-                              onPressed: () => widget.onStatusUpdate(widget.advertisementId, 'declined'),
+                              onPressed: () => widget.onStatusUpdate(
+                                  widget.advertisementId, 'declined'),
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: Colors.red,
                                 foregroundColor: Colors.white,
-                                padding: const EdgeInsets.symmetric(vertical: 16),
+                                padding:
+                                    const EdgeInsets.symmetric(vertical: 16),
                               ),
                               child: const Text('Decline Advertisement'),
                             ),

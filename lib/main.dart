@@ -53,7 +53,7 @@ void main() async {
 // Initialize content moderation service
 void _initializeContentModeration() {
   final contentModerationService = ContentModerationService();
-  
+
   // Initialize with environment variables or defaults
   contentModerationService.initialize(
     // In production, set testMode to false
@@ -146,10 +146,10 @@ class MainScreen extends StatefulWidget {
   const MainScreen({Key? key}) : super(key: key);
 
   @override
-  State<MainScreen> createState() => _MainScreenState();
+  State<MainScreen> createState() => MainScreenState();
 }
 
-class _MainScreenState extends State<MainScreen> {
+class MainScreenState extends State<MainScreen> {
   int _currentIndex = 0;
 
   final List<Widget> _screens = [
@@ -159,6 +159,12 @@ class _MainScreenState extends State<MainScreen> {
     CalendarPage(userId: FirebaseAuth.instance.currentUser?.uid ?? ''),
     const ProfilePage(),
   ];
+
+  void changeIndex(int index) {
+    setState(() {
+      _currentIndex = index;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {

@@ -59,7 +59,7 @@ class _ProfilePageState extends State<ProfilePage>
       final taskSnap = await _firestore
           .collection('tasks')
           .where('volunteeredUsers', arrayContains: uid)
-          .orderBy('createdAt')
+          .orderBy('createdOn')
           .limit(3)
           .get();
 
@@ -320,18 +320,19 @@ class _OverviewTab extends StatelessWidget {
             child: Column(
               children: tasks.map((t) {
                 // Firestore Timestamp → DateTime
-                final ts = (t['createdAt'] as Timestamp).toDate();
+                final ts = (t['createdAt'] ?? t['createdOn']);
+                final createdDate =
+                    (ts is Timestamp ? ts.toDate() : DateTime.now());
+
                 final DateFormat dateFmt =
                     DateFormat.yMMMd(); // e.g. May 18, 2025
                 final DateFormat timeFmt = DateFormat.jm(); // e.g. 11:07 AM
                 return Column(
                   children: [
                     _UpcomingTaskItem(
-                      title: t['title'] as String,
-                      date: dateFmt
-                          .format((t['createdAt'] as Timestamp).toDate()),
-                      time: timeFmt
-                          .format((t['createdAt'] as Timestamp).toDate()),
+                      title: t['title']?.toString() ?? 'Untitled Task',
+                      date: dateFmt.format(createdDate!),
+                      time: timeFmt.format(createdDate!),
                       joined: true, // or use your logic
                       iconColor: Colors.green,
                     ),

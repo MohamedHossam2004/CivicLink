@@ -3,6 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../models/report.dart';
 import '../../screens/admin/report_detail_screen.dart';
 import 'package:intl/intl.dart';
+import '../../config/theme.dart';
 
 class AdminDashboard extends StatefulWidget {
   const AdminDashboard({Key? key}) : super(key: key);
@@ -14,6 +15,12 @@ class AdminDashboard extends StatefulWidget {
 class _AdminDashboardState extends State<AdminDashboard> {
   String _selectedStatusFilter = 'All';
   String _searchQuery = '';
+  Map<String, int> _stats = {
+    'total': 0,
+    'pending': 0,
+    'under review': 0,
+    'closed': 0,
+  };
 
   final List<String> _statusOptions = [
     'All',
@@ -23,24 +30,54 @@ class _AdminDashboardState extends State<AdminDashboard> {
   ];
 
   @override
+  void initState() {
+    super.initState();
+    _fetchStats();
+  }
+
+  Future<void> _fetchStats() async {
+    try {
+      final reportsSnapshot =
+          await FirebaseFirestore.instance.collection('reports').get();
+
+      setState(() {
+        _stats['total'] = reportsSnapshot.docs.length;
+        _stats['pending'] = reportsSnapshot.docs
+            .where((doc) => doc.data()['status'] == 'Pending')
+            .length;
+        _stats['under review'] = reportsSnapshot.docs
+            .where((doc) => doc.data()['status'] == 'Under Review')
+            .length;
+        _stats['closed'] = reportsSnapshot.docs
+            .where((doc) => doc.data()['status'] == 'Closed')
+            .length;
+      });
+    } catch (e) {
+      print('Error fetching stats: $e');
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Admin Dashboard'),
-        backgroundColor: Colors.teal,
-        foregroundColor: Colors.white,
-        elevation: 2,
+        title: const Text('Reports Dashboard'),
+        backgroundColor: Colors.white,
+        foregroundColor: Colors.black,
+        elevation: 1,
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh),
             onPressed: () {
               setState(() {});
+              _fetchStats();
             },
           ),
         ],
       ),
       body: Column(
         children: [
+          _buildStatsSection(),
           _buildFilterBar(),
           Expanded(
             child: _buildReportsList(),
@@ -50,51 +87,226 @@ class _AdminDashboardState extends State<AdminDashboard> {
     );
   }
 
-  Widget _buildFilterBar() {
+  Widget _buildStatsSection() {
     return Container(
       padding: const EdgeInsets.all(16),
       color: Colors.white,
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          TextField(
-            decoration: InputDecoration(
-              hintText: 'Search reports...',
-              prefixIcon: const Icon(Icons.search),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(8),
-              ),
-              contentPadding:
-                  const EdgeInsets.symmetric(vertical: 0, horizontal: 16),
+          const Text(
+            'Report Statistics',
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
             ),
-            onChanged: (value) {
-              setState(() {
-                _searchQuery = value;
-              });
-            },
           ),
           const SizedBox(height: 16),
-          SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            child: Row(
-              children: _statusOptions.map((status) {
-                final isSelected = _selectedStatusFilter == status;
-                return Padding(
-                  padding: const EdgeInsets.only(right: 8),
-                  child: FilterChip(
-                    label: Text(status),
-                    selected: isSelected,
-                    onSelected: (selected) {
+          Row(
+            children: [
+              Expanded(
+                child: _buildStatCard(
+                  'Total Reports',
+                  _stats['total']?.toString() ?? '0',
+                  AppTheme.primaryColor,
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: _buildStatCard(
+                  'Pending',
+                  _stats['pending']?.toString() ?? '0',
+                  Colors.orange,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Row(
+            children: [
+              Expanded(
+                child: _buildStatCard(
+                  'Under Review',
+                  _stats['under review']?.toString() ?? '0',
+                  Colors.blue,
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: _buildStatCard(
+                  'Closed',
+                  _stats['closed']?.toString() ?? '0',
+                  Colors.green,
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildStatCard(String title, String value, Color color) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: color.withOpacity(0.3)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            title,
+            style: TextStyle(
+              fontSize: 14,
+              color: color,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            value,
+            style: TextStyle(
+              fontSize: 24,
+              fontWeight: FontWeight.bold,
+              color: color,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildFilterBar() {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        border: Border(
+          bottom: BorderSide(
+            color: Colors.grey.shade200,
+            width: 1,
+          ),
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'Filter Reports',
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(height: 16),
+          Row(
+            children: [
+              Expanded(
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade50,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: TextField(
+                    decoration: InputDecoration(
+                      hintText: 'Search by issue type, description...',
+                      hintStyle: TextStyle(
+                        color: Colors.grey.shade500,
+                        fontSize: 14,
+                      ),
+                      prefixIcon: Icon(
+                        Icons.search,
+                        color: Colors.grey.shade500,
+                        size: 20,
+                      ),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide.none,
+                      ),
+                      contentPadding: const EdgeInsets.symmetric(
+                          vertical: 0, horizontal: 16),
+                    ),
+                    onChanged: (value) {
                       setState(() {
-                        _selectedStatusFilter = status;
+                        _searchQuery = value;
                       });
                     },
-                    backgroundColor: Colors.grey[200],
-                    selectedColor: Colors.teal[100],
-                    checkmarkColor: Colors.teal,
                   ),
-                );
-              }).toList(),
-            ),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Container(
+                decoration: BoxDecoration(
+                  color: Colors.grey.shade50,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: PopupMenuButton<String>(
+                  offset: const Offset(0, 40),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 16, vertical: 12),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          _selectedStatusFilter,
+                          style: TextStyle(
+                            color: Colors.grey[700],
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                        const SizedBox(width: 4),
+                        Icon(
+                          Icons.arrow_drop_down,
+                          color: Colors.grey[700],
+                        ),
+                      ],
+                    ),
+                  ),
+                  itemBuilder: (context) => _statusOptions.map((status) {
+                    return PopupMenuItem<String>(
+                      value: status,
+                      child: Row(
+                        children: [
+                          Icon(
+                            _selectedStatusFilter == status
+                                ? Icons.radio_button_checked
+                                : Icons.radio_button_unchecked,
+                            color: _selectedStatusFilter == status
+                                ? AppTheme.primaryColor
+                                : Colors.grey,
+                            size: 20,
+                          ),
+                          const SizedBox(width: 8),
+                          Text(
+                            status,
+                            style: TextStyle(
+                              color: _selectedStatusFilter == status
+                                  ? AppTheme.primaryColor
+                                  : Colors.grey[700],
+                              fontWeight: _selectedStatusFilter == status
+                                  ? FontWeight.bold
+                                  : FontWeight.normal,
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  }).toList(),
+                  onSelected: (String status) {
+                    setState(() {
+                      _selectedStatusFilter = status;
+                    });
+                  },
+                ),
+              ),
+            ],
           ),
         ],
       ),
@@ -114,7 +326,35 @@ class _AdminDashboardState extends State<AdminDashboard> {
         }
 
         if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-          return const Center(child: Text('No reports found'));
+          return Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  Icons.report_problem_outlined,
+                  size: 64,
+                  color: Colors.grey[400],
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  'No reports found',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.grey[600],
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  'There are no reports matching your filters',
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: Colors.grey[500],
+                  ),
+                ),
+              ],
+            ),
+          );
         }
 
         // Filter reports based on selected status and search query
@@ -140,6 +380,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
         }).toList();
 
         return ListView.builder(
+          padding: const EdgeInsets.all(16),
           itemCount: filteredDocs.length,
           itemBuilder: (context, index) {
             final doc = filteredDocs[index];
@@ -175,8 +416,13 @@ class _AdminDashboardState extends State<AdminDashboard> {
     }
 
     return Card(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      elevation: 2,
+      margin: const EdgeInsets.only(bottom: 16),
+      elevation: 0,
+      color: Colors.white,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+        side: BorderSide(color: Colors.grey.shade200),
+      ),
       child: InkWell(
         onTap: () {
           Navigator.push(
@@ -186,6 +432,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
             ),
           );
         },
+        borderRadius: BorderRadius.circular(12),
         child: Padding(
           padding: const EdgeInsets.all(16),
           child: Column(
@@ -206,11 +453,11 @@ class _AdminDashboardState extends State<AdminDashboard> {
                   ),
                   Container(
                     padding:
-                        const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                     decoration: BoxDecoration(
                       color: statusColor.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: statusColor),
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(color: statusColor.withOpacity(0.3)),
                     ),
                     child: Text(
                       report.status,
@@ -223,15 +470,15 @@ class _AdminDashboardState extends State<AdminDashboard> {
                   ),
                 ],
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: 12),
               Text(
                 report.issueType,
                 style: const TextStyle(
                   fontWeight: FontWeight.w500,
-                  fontSize: 14,
+                  fontSize: 15,
                 ),
               ),
-              const SizedBox(height: 4),
+              const SizedBox(height: 8),
               Text(
                 report.description,
                 maxLines: 2,
@@ -247,6 +494,20 @@ class _AdminDashboardState extends State<AdminDashboard> {
                 children: [
                   Row(
                     children: [
+                      Icon(Icons.calendar_today,
+                          size: 16, color: Colors.grey[600]),
+                      const SizedBox(width: 4),
+                      Text(
+                        formattedDate,
+                        style: TextStyle(
+                          color: Colors.grey[600],
+                          fontSize: 12,
+                        ),
+                      ),
+                    ],
+                  ),
+                  Row(
+                    children: [
                       Icon(Icons.photo, size: 16, color: Colors.grey[600]),
                       const SizedBox(width: 4),
                       Text(
@@ -257,13 +518,6 @@ class _AdminDashboardState extends State<AdminDashboard> {
                         ),
                       ),
                     ],
-                  ),
-                  Text(
-                    formattedDate,
-                    style: TextStyle(
-                      color: Colors.grey[600],
-                      fontSize: 12,
-                    ),
                   ),
                 ],
               ),

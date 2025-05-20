@@ -5,6 +5,8 @@ import './widgets/task_list_card.dart';
 import './task_detail_page.dart';
 import '../../widgets/bottom_nav_bar.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import './create_task_page.dart';
+import './create_announcement_page.dart';
 
 class FilterBar extends StatelessWidget {
   final List<String> filters;
@@ -218,6 +220,77 @@ class _VolunteerPageState extends State<VolunteerPage>
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFF8FAFC),
+      floatingActionButton: FutureBuilder<DocumentSnapshot>(
+        future: FirebaseFirestore.instance
+            .collection('users')
+            .doc(widget.userId)
+            .get(),
+        builder: (context, snapshot) {
+          if (!snapshot.hasData || snapshot.hasError) {
+            return const SizedBox();
+          }
+
+          final userData = snapshot.data!.data() as Map<String, dynamic>;
+          final isAdmin = userData['type'] == 'Admin';
+
+          if (!isAdmin) return const SizedBox();
+
+          return FloatingActionButton(
+            backgroundColor: const Color(0xFF8B5CF6),
+            child: const Icon(Icons.add),
+            onPressed: () {
+              showModalBottomSheet(
+                context: context,
+                shape: const RoundedRectangleBorder(
+                  borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+                ),
+                builder: (context) {
+                  return SafeArea(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        ListTile(
+                          leading: const Icon(Icons.task),
+                          title: const Text('Create Task'),
+                          onTap: () async {
+                            Navigator.pop(context);
+                            final created = await Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) =>
+                                    CreateTaskPage(userId: widget.userId),
+                              ),
+                            );
+                            if (created == true) _refreshTasks();
+                          },
+                        ),
+                        ListTile(
+                          leading: const Icon(Icons.announcement),
+                          title: const Text('Create Announcement'),
+                          onTap: () async {
+                            Navigator.pop(context);
+                            // TODO: Replace with your announcement page
+                            final created = await Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => CreateAnnouncementPage(
+                                    userId: widget.userId),
+                              ),
+                            );
+                            if (created == true) {
+                              // optional: refresh if announcements are shown in this page
+                            }
+                          },
+                        ),
+                      ],
+                    ),
+                  );
+                },
+              );
+            },
+          );
+        },
+      ),
       body: _error != null
           ? Center(
               child: Column(

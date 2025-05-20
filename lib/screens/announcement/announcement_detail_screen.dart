@@ -4,6 +4,8 @@ import '../../services/announcement_service.dart';
 import '../../services/auth_service.dart';
 import '../../services/content_moderation_service.dart';
 import '../../utils/date_formatter.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'edit_announcement_screen.dart';
 
 class AnnouncementDetailScreen extends StatefulWidget {
   final String announcementId;
@@ -14,7 +16,8 @@ class AnnouncementDetailScreen extends StatefulWidget {
   });
 
   @override
-  State<AnnouncementDetailScreen> createState() => _AnnouncementDetailScreenState();
+  State<AnnouncementDetailScreen> createState() =>
+      _AnnouncementDetailScreenState();
 }
 
 class _AnnouncementDetailScreenState extends State<AnnouncementDetailScreen> {
@@ -24,6 +27,77 @@ class _AnnouncementDetailScreenState extends State<AnnouncementDetailScreen> {
   bool _isLiked = false;
   bool _isHelpful = false;
   bool _isAnonymous = false;
+  bool _isAdmin = false;
+  bool _isAdvertiser = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _checkUserType();
+  }
+
+  Future<void> _checkUserType() async {
+    final user = _authService.currentUser;
+    if (user != null) {
+      final userDoc = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(user.uid)
+          .get();
+
+      if (mounted) {
+        setState(() {
+          _isAdmin = userDoc.data()?['type'] == 'admin' ||
+              userDoc.data()?['type'] == 'Admin';
+          _isAdvertiser = userDoc.data()?['type'] == 'advertiser' ||
+              userDoc.data()?['type'] == 'Advertiser';
+        });
+      }
+    }
+  }
+
+  Future<void> _deleteAnnouncement() async {
+    try {
+      // Show confirmation dialog
+      final bool? confirm = await showDialog<bool>(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: const Text('Delete Announcement'),
+            content: const Text(
+                'Are you sure you want to delete this announcement? This action cannot be undone.'),
+            actions: <Widget>[
+              TextButton(
+                child: const Text('Cancel'),
+                onPressed: () => Navigator.of(context).pop(false),
+              ),
+              TextButton(
+                child:
+                    const Text('Delete', style: TextStyle(color: Colors.red)),
+                onPressed: () => Navigator.of(context).pop(true),
+              ),
+            ],
+          );
+        },
+      );
+
+      if (confirm != true) return;
+
+      await _service.deleteAnnouncement(widget.announcementId);
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Announcement deleted successfully')),
+        );
+        Navigator.pop(context); // Return to previous screen
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error deleting announcement: $e')),
+        );
+      }
+    }
+  }
 
   @override
   void dispose() {
@@ -62,7 +136,9 @@ class _AnnouncementDetailScreenState extends State<AnnouncementDetailScreen> {
       _isHelpful = !_isHelpful;
     });
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(_isHelpful ? 'Marked as helpful' : 'Removed from helpful')),
+      SnackBar(
+          content:
+              Text(_isHelpful ? 'Marked as helpful' : 'Removed from helpful')),
     );
   }
 
@@ -86,31 +162,32 @@ class _AnnouncementDetailScreenState extends State<AnnouncementDetailScreen> {
 
     try {
       // Get current saved status
-      final isSaved = await _service.isAnnouncementSaved(widget.announcementId).first;
-      
+      final isSaved =
+          await _service.isAnnouncementSaved(widget.announcementId).first;
+
       if (isSaved) {
         // Unsave the announcement
         await _service.unsaveAnnouncement(widget.announcementId);
-        
+
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Announcement removed from saved')),
         );
       } else {
         // Save the announcement
         await _service.saveAnnouncement(widget.announcementId);
-        
+
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Announcement saved')),
         );
       }
     } catch (e) {
       print('Error toggling save status: $e');
-      
+
       // Show a more informative error message
-      final errorMessage = e.toString().contains('permission-denied') 
+      final errorMessage = e.toString().contains('permission-denied')
           ? 'Permission denied. You may not have access to save announcements.'
           : 'Error saving announcement. Please try again later.';
-      
+
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(errorMessage)),
       );
@@ -129,28 +206,50 @@ class _AnnouncementDetailScreenState extends State<AnnouncementDetailScreen> {
           },
         ),
         actions: [
-          StreamBuilder<bool>(
-            stream: _service.isAnnouncementSaved(widget.announcementId),
-            builder: (context, snapshot) {
-              final isSaved = snapshot.data ?? false;
-              return IconButton(
-                icon: Icon(
-                  isSaved ? Icons.bookmark : Icons.bookmark_border,
-                  color: isSaved ? Colors.purple : null,
-                ),
-                onPressed: _toggleSave,
-              );
-            },
-          ),
-          IconButton(
-            icon: const Icon(Icons.share),
-            onPressed: () {
-              // TODO: Implement share functionality
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Share functionality not implemented')),
-              );
-            },
-          ),
+          if (_isAdmin) ...[
+            IconButton(
+              icon: const Icon(Icons.edit),
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => StreamBuilder<Announcement?>(
+                      stream: _service
+                          .getAnnouncementById(widget.announcementId)
+                          .asStream(),
+                      builder: (context, snapshot) {
+                        if (snapshot.hasData && snapshot.data != null) {
+                          return EditAnnouncementScreen(
+                            announcementId: widget.announcementId,
+                            announcement: snapshot.data!,
+                          );
+                        }
+                        return const Center(child: CircularProgressIndicator());
+                      },
+                    ),
+                  ),
+                );
+              },
+            ),
+            IconButton(
+              icon: const Icon(Icons.delete, color: Colors.red),
+              onPressed: _deleteAnnouncement,
+            ),
+          ],
+          if (!_isAdmin && !_isAdvertiser)
+            StreamBuilder<bool>(
+              stream: _service.isAnnouncementSaved(widget.announcementId),
+              builder: (context, snapshot) {
+                final isSaved = snapshot.data ?? false;
+                return IconButton(
+                  icon: Icon(
+                    isSaved ? Icons.bookmark : Icons.bookmark_border,
+                    color: isSaved ? Colors.purple : null,
+                  ),
+                  onPressed: _toggleSave,
+                );
+              },
+            ),
         ],
       ),
       body: StreamBuilder<Announcement?>(
@@ -190,7 +289,8 @@ class _AnnouncementDetailScreenState extends State<AnnouncementDetailScreen> {
                   ),
                 ),
               ),
-              CommentInputWidget(announcementId: widget.announcementId),
+              if (!_isAdmin && !_isAdvertiser)
+                CommentInputWidget(announcementId: widget.announcementId),
             ],
           );
         },
@@ -365,18 +465,20 @@ class _AnnouncementDetailScreenState extends State<AnnouncementDetailScreen> {
             );
           },
         ),
-        _buildActionButton(
-          icon: Icons.thumb_up_outlined,
-          label: 'Helpful',
-          isActive: _isHelpful,
-          onTap: _toggleHelpful,
-        ),
-        _buildActionButton(
-          icon: Icons.favorite_outline,
-          label: 'Thanks',
-          isActive: _isLiked,
-          onTap: _toggleThanks,
-        ),
+        if (!_isAdmin && !_isAdvertiser) ...[
+          _buildActionButton(
+            icon: Icons.thumb_up_outlined,
+            label: 'Helpful',
+            isActive: _isHelpful,
+            onTap: _toggleHelpful,
+          ),
+          _buildActionButton(
+            icon: Icons.favorite_outline,
+            label: 'Thanks',
+            isActive: _isLiked,
+            onTap: _toggleThanks,
+          ),
+        ],
       ],
     );
   }
@@ -551,7 +653,9 @@ class _AnnouncementDetailScreenState extends State<AnnouncementDetailScreen> {
                         onTap: () {
                           // TODO: Implement reply functionality
                           ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('Reply functionality not implemented')),
+                            const SnackBar(
+                                content: Text(
+                                    'Reply functionality not implemented')),
                           );
                         },
                         borderRadius: BorderRadius.circular(4),
@@ -605,7 +709,8 @@ class _CommentInputWidgetState extends State<CommentInputWidget> {
   final FocusNode _focusNode = FocusNode();
   final AnnouncementService _service = AnnouncementService();
   final AuthService _authService = AuthService();
-  final ContentModerationService _moderationService = ContentModerationService();
+  final ContentModerationService _moderationService =
+      ContentModerationService();
   bool _isAnonymous = false;
   bool _isSubmitting = false;
 
@@ -642,7 +747,8 @@ class _CommentInputWidgetState extends State<CommentInputWidget> {
 
     try {
       // Check if comment is hateful - using custom model or built-in moderation
-      final isHateful = await _moderationService.isCommentHatefulUsingCustomModel(commentText);
+      final isHateful = await _moderationService
+          .isCommentHatefulUsingCustomModel(commentText);
 
       if (isHateful) {
         // Comment is hateful, show alert and don't submit
@@ -655,10 +761,10 @@ class _CommentInputWidgetState extends State<CommentInputWidget> {
           commentText,
           isAnonymous: _isAnonymous,
         );
-        
+
         _commentController.clear();
         _focusNode.unfocus();
-        
+
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Comment posted successfully')),
         );
@@ -717,7 +823,8 @@ class _CommentInputWidgetState extends State<CommentInputWidget> {
                     hintText: 'Add Your Comment',
                     filled: true,
                     fillColor: Colors.grey.shade100,
-                    contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                    contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 16, vertical: 12),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(24),
                       borderSide: BorderSide.none,
@@ -745,7 +852,8 @@ class _CommentInputWidgetState extends State<CommentInputWidget> {
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(24),
                   ),
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                 ),
                 child: _isSubmitting
                     ? const SizedBox(

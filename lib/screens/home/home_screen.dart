@@ -13,6 +13,9 @@ import '../../models/task.dart';
 import '../../utils/date_formatter.dart';
 import '../volunteer/volunteer_page.dart';
 import '../advertisements/advertisements_screen.dart';
+import '../polls/polls_screen.dart';
+import '../../main.dart';
+import '../admin/admin_dashboard.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({Key? key}) : super(key: key);
@@ -351,13 +354,35 @@ class _HomeScreenState extends State<HomeScreen> {
               label: 'Report',
               color: Colors.red,
               bgColor: Colors.red.shade100,
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const ReportIssueStep1(),
-                  ),
-                );
+              onTap: () async {
+                // Check if user is admin
+                final user = _auth.currentUser;
+                if (user != null) {
+                  final userDoc =
+                      await _firestore.collection('users').doc(user.uid).get();
+                  if (userDoc.exists && userDoc.data()?['type'] == 'Admin') {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const AdminDashboard(),
+                      ),
+                    );
+                  } else {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const ReportIssueStep1(),
+                      ),
+                    );
+                  }
+                } else {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const ReportIssueStep1(),
+                    ),
+                  );
+                }
               },
             ),
             const SizedBox(width: 32),
@@ -367,7 +392,12 @@ class _HomeScreenState extends State<HomeScreen> {
               color: AppTheme.communityColor,
               bgColor: AppTheme.communityColor.withOpacity(0.1),
               onTap: () {
-                // Navigate to announcements screen
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const AnnouncementsScreen(),
+                  ),
+                );
               },
             ),
             const SizedBox(width: 16),
@@ -381,6 +411,21 @@ class _HomeScreenState extends State<HomeScreen> {
                   context,
                   MaterialPageRoute(
                     builder: (context) => const AdvertisementsScreen(),
+                  ),
+                );
+              },
+            ),
+            const SizedBox(width: 32),
+            _buildServiceItem(
+              icon: Icons.poll_outlined,
+              label: 'Polls',
+              color: Colors.orange,
+              bgColor: Colors.orange.shade100,
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const PollsScreen(),
                   ),
                 );
               },
@@ -743,7 +788,12 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
             TextButton(
               onPressed: () {
-                Navigator.pushNamed(context, '/volunteer');
+                // Find the MainScreen ancestor and update its index
+                final mainScreen =
+                    context.findAncestorStateOfType<MainScreenState>();
+                if (mainScreen != null) {
+                  mainScreen.changeIndex(1); // Switch to Tasks tab
+                }
               },
               child: const Row(
                 children: [
