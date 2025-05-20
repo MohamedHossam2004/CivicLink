@@ -30,9 +30,12 @@ class FilterBar extends StatelessWidget {
             child: GestureDetector(
               onTap: () => onTap(index),
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 8),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 18, vertical: 8),
                 decoration: BoxDecoration(
-                  color: isSelected ? const Color(0xFF7C3AED) : const Color(0xFFF4F4F6),
+                  color: isSelected
+                      ? const Color(0xFF7C3AED)
+                      : const Color(0xFFF4F4F6),
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: Text(
@@ -60,7 +63,8 @@ class VolunteerPage extends StatefulWidget {
   _VolunteerPageState createState() => _VolunteerPageState();
 }
 
-class _VolunteerPageState extends State<VolunteerPage> with SingleTickerProviderStateMixin {
+class _VolunteerPageState extends State<VolunteerPage>
+    with SingleTickerProviderStateMixin {
   late TabController _tabController;
   TaskDepartment? _selectedDepartment;
   List<Task> _allTasks = [];
@@ -106,45 +110,53 @@ class _VolunteerPageState extends State<VolunteerPage> with SingleTickerProvider
 
   List<Task> _getFilteredTasks(List<Task> tasks) {
     var filteredTasks = tasks;
-    
+
     // Apply department filter
     if (_selectedDepartment != null) {
-      filteredTasks = filteredTasks.where((task) => task.department == _selectedDepartment).toList();
+      filteredTasks = filteredTasks
+          .where((task) => task.department == _selectedDepartment)
+          .toList();
     }
-    
+
     // Apply search filter
     if (_searchQuery.isNotEmpty) {
-      filteredTasks = filteredTasks.where((task) =>
-        task.name.toLowerCase().contains(_searchQuery.toLowerCase()) ||
-        task.description.toLowerCase().contains(_searchQuery.toLowerCase())
-      ).toList();
+      filteredTasks = filteredTasks
+          .where((task) =>
+              task.name.toLowerCase().contains(_searchQuery.toLowerCase()) ||
+              task.description
+                  .toLowerCase()
+                  .contains(_searchQuery.toLowerCase()))
+          .toList();
     }
-    
+
     return filteredTasks;
   }
 
   List<Task> _getAvailableTasks() {
-    return _getFilteredTasks(_allTasks.where((task) => 
-      task.status != TaskStatus.Completed && 
-      task.status != TaskStatus.Cancelled &&
-      !task.volunteeredUsers.contains(widget.userId) &&
-      task.currVolunteers < task.maxVolunteers
-    ).toList());
+    return _getFilteredTasks(_allTasks
+        .where((task) =>
+            task.status != TaskStatus.Completed &&
+            task.status != TaskStatus.Cancelled &&
+            !task.volunteeredUsers.contains(widget.userId) &&
+            task.currVolunteers < task.maxVolunteers)
+        .toList());
   }
 
   List<Task> _getMyVolunteeredTasks() {
-    return _getFilteredTasks(_allTasks.where((task) => 
-      task.status != TaskStatus.Completed && 
-      task.status != TaskStatus.Cancelled &&
-      task.volunteeredUsers.contains(widget.userId)
-    ).toList());
+    return _getFilteredTasks(_allTasks
+        .where((task) =>
+            task.status != TaskStatus.Completed &&
+            task.status != TaskStatus.Cancelled &&
+            task.volunteeredUsers.contains(widget.userId))
+        .toList());
   }
 
   List<Task> _getCompletedTasks() {
-    return _getFilteredTasks(_allTasks.where((task) => 
-      task.status == TaskStatus.Completed && 
-      task.volunteeredUsers.contains(widget.userId)
-    ).toList());
+    return _getFilteredTasks(_allTasks
+        .where((task) =>
+            task.status == TaskStatus.Completed &&
+            task.volunteeredUsers.contains(widget.userId))
+        .toList());
   }
 
   Future<void> _refreshTasks() async {
@@ -162,83 +174,78 @@ class _VolunteerPageState extends State<VolunteerPage> with SingleTickerProvider
         elevation: 1,
       ),
       body: _error != null
-        ? Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text('Error: $_error'),
-                ElevatedButton(
-                  onPressed: _fetchTasks,
-                  child: const Text('Retry'),
-                ),
-              ],
-            ),
-          )
-        : RefreshIndicator(
-            onRefresh: _refreshTasks,
-            child: Column(
-              children: [
-                // Search Bar
-                Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: TextField(
-                    onChanged: (value) {
-                      setState(() {
-                        _searchQuery = value;
-                      });
-                    },
-                    decoration: InputDecoration(
-                      hintText: 'Search tasks...',
-                      prefixIcon: const Icon(Icons.search),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(30),
-                        borderSide: BorderSide.none,
+          ? Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text('Error: $_error'),
+                  ElevatedButton(
+                    onPressed: _fetchTasks,
+                    child: const Text('Retry'),
+                  ),
+                ],
+              ),
+            )
+          : RefreshIndicator(
+              onRefresh: _refreshTasks,
+              child: Column(
+                children: [
+                  // Search Bar
+                  Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: TextField(
+                      onChanged: (value) {
+                        setState(() {
+                          _searchQuery = value;
+                        });
+                      },
+                      decoration: InputDecoration(
+                        hintText: 'Search tasks...',
+                        prefixIcon: const Icon(Icons.search),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(30),
+                          borderSide: BorderSide.none,
+                        ),
+                        filled: true,
+                        fillColor: Colors.white,
+                        contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 20, vertical: 12),
                       ),
-                      filled: true,
-                      fillColor: Colors.white,
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
                     ),
                   ),
-                ),
-                
-                // Department Filter
-                _buildDepartmentFilter(),
-                
-                // Tabs
-                TabBar(
-                  controller: _tabController,
-                  labelColor: Colors.deepPurple,
-                  unselectedLabelColor: Colors.grey,
-                  indicatorColor: Colors.deepPurple,
-                  tabs: const [
-                    Tab(text: 'Available'),
-                    Tab(text: 'My Tasks'),
-                    Tab(text: 'Completed'),
-                  ],
-                ),
-                
-                // Tab Content
-                Expanded(
-                  child: _isLoading
-                    ? const Center(child: CircularProgressIndicator())
-                    : TabBarView(
-                        controller: _tabController,
-                        children: [
-                          _buildTasksList(_getAvailableTasks()),
-                          _buildTasksList(_getMyVolunteeredTasks()),
-                          _buildTasksList(_getCompletedTasks()),
-                        ],
-                      ),
-                ),
-              ],
+
+                  // Department Filter
+                  _buildDepartmentFilter(),
+
+                  // Tabs
+                  TabBar(
+                    controller: _tabController,
+                    labelColor: Colors.deepPurple,
+                    unselectedLabelColor: Colors.grey,
+                    indicatorColor: Colors.deepPurple,
+                    tabs: const [
+                      Tab(text: 'Available'),
+                      Tab(text: 'My Tasks'),
+                      Tab(text: 'Completed'),
+                    ],
+                  ),
+
+                  // Tab Content
+                  Expanded(
+                    child: _isLoading
+                        ? const Center(child: CircularProgressIndicator())
+                        : TabBarView(
+                            controller: _tabController,
+                            children: [
+                              _buildTasksList(_getAvailableTasks()),
+                              _buildTasksList(_getMyVolunteeredTasks()),
+                              _buildTasksList(_getCompletedTasks()),
+                            ],
+                          ),
+                  ),
+                ],
+              ),
             ),
-          ),
-      bottomNavigationBar: BottomNavBar(
-        currentIndex: 1, // Set to the correct index for Volunteer page
-        onTap: (index) {
-          // Implement navigation logic if needed
-        },
-      ),
     );
   }
 
@@ -266,7 +273,8 @@ class _VolunteerPageState extends State<VolunteerPage> with SingleTickerProvider
                     userId: widget.userId,
                   ),
                 ),
-              ).then((_) => _fetchTasks()); // Refresh tasks after returning from detail page
+              ).then((_) =>
+                  _fetchTasks()); // Refresh tasks after returning from detail page
             },
           ),
         );
@@ -292,7 +300,9 @@ class _VolunteerPageState extends State<VolunteerPage> with SingleTickerProvider
             selectedColor: Colors.deepPurple[100],
             checkmarkColor: Colors.deepPurple,
             labelStyle: TextStyle(
-              color: _selectedDepartment == null ? Colors.deepPurple : Colors.black,
+              color: _selectedDepartment == null
+                  ? Colors.deepPurple
+                  : Colors.black,
             ),
           ),
           const SizedBox(width: 8),
@@ -311,7 +321,9 @@ class _VolunteerPageState extends State<VolunteerPage> with SingleTickerProvider
                 selectedColor: Colors.deepPurple[100],
                 checkmarkColor: Colors.deepPurple,
                 labelStyle: TextStyle(
-                  color: _selectedDepartment == department ? Colors.deepPurple : Colors.black,
+                  color: _selectedDepartment == department
+                      ? Colors.deepPurple
+                      : Colors.black,
                 ),
               ),
             );
@@ -320,4 +332,4 @@ class _VolunteerPageState extends State<VolunteerPage> with SingleTickerProvider
       ),
     );
   }
-} 
+}

@@ -11,6 +11,7 @@ class TaskCard extends StatelessWidget {
   final int participants;
   final int maxParticipants;
   final Color color;
+  final VoidCallback? onTap;
 
   const TaskCard({
     Key? key,
@@ -22,6 +23,7 @@ class TaskCard extends StatelessWidget {
     required this.participants,
     required this.maxParticipants,
     required this.color,
+    this.onTap,
   }) : super(key: key);
 
   @override
@@ -31,9 +33,7 @@ class TaskCard extends StatelessWidget {
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
       child: InkWell(
-        onTap: () {
-          // Navigate to task detail
-        },
+        onTap: onTap,
         borderRadius: BorderRadius.circular(12),
         child: Stack(
           children: [

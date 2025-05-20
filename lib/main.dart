@@ -57,12 +57,13 @@ class MyApp extends StatelessWidget {
       routes: {
         '/home': (context) => const MainScreen(),
         '/event-details': (context) => const EventDetailPage(),
-        '/volunteer': (context) {
-          final args = ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>;
-          return VolunteerPage(userId: args['userId']);
-        },
+        '/volunteer': (context) =>
+            VolunteerPage(userId: FirebaseAuth.instance.currentUser?.uid ?? ''),
         '/login': (context) => const LoginPage(),
         '/register': (context) => const RegistrationPage(),
+        '/chat': (context) => ChatScreen(),
+        '/calendar': (context) => const CalendarPage(),
+        '/profile': (context) => const ProfilePage(),
       },
     );
   }
@@ -128,7 +129,7 @@ class _MainScreenState extends State<MainScreen> {
 
   final List<Widget> _screens = [
     const HomeScreen(),
-    const ReportIssueStep1(),
+    VolunteerPage(userId: FirebaseAuth.instance.currentUser?.uid ?? ''),
     ChatScreen(),
     const CalendarPage(),
     const ProfilePage(),

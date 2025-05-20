@@ -5,7 +5,11 @@ import 'package:gov_app/screens/home/widgets/task_card.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:gov_app/screens/reportIssue/report_issue_step1.dart';
 import '../announcement/announcements_screen.dart';
-
+import '../announcement/announcement_detail_screen.dart';
+import '../volunteer/task_detail_page.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import '../../models/task.dart';
+import '../../utils/date_formatter.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({Key? key}) : super(key: key);
@@ -34,15 +38,40 @@ class _HomeScreenState extends State<HomeScreen> {
           .orderBy('createdOn', descending: true)
           .limit(2)
           .get();
-      final announcements =
-          announcementsSnapshot.docs.map((doc) => doc.data()).toList();
+
+      final announcements = announcementsSnapshot.docs.map((doc) {
+        final data = doc.data();
+        return {
+          ...data,
+          'id': doc.id,
+        };
+      }).toList();
 
       final tasksSnapshot = await _firestore
           .collection('tasks')
           .orderBy('createdOn')
-          .limit(3)
+          .limit(10)
           .get();
-      final tasks = tasksSnapshot.docs.map((doc) => doc.data()).toList();
+
+      // Get unique tasks by name to avoid repetition
+      final tasks = tasksSnapshot.docs
+          .map((doc) {
+            final data = doc.data();
+            return {
+              ...data,
+              'id': doc.id,
+            };
+          })
+          .toList()
+          .fold<Map<String, Map<String, dynamic>>>({}, (map, task) {
+            if (!map.containsKey(task['name'])) {
+              map[task['name']] = task;
+            }
+            return map;
+          })
+          .values
+          .take(3)
+          .toList();
 
       setState(() {
         _announcements = announcements;
@@ -470,10 +499,10 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
             TextButton(
               onPressed: () {
-                // Navigate to volunteer screen
+                Navigator.pushNamed(context, '/volunteer');
               },
               child: const Row(
-                children:  [
+                children: [
                   Text('View All'),
                   Icon(
                     Icons.chevron_right,
@@ -485,18 +514,75 @@ class _HomeScreenState extends State<HomeScreen> {
           ],
         ),
         const SizedBox(height: 16),
-        ..._tasks.map((task) => TaskCard(
-              title: task['name'] ?? '',
-              location: task['location'] != null
-                  ? '${task['location']['latitude']}, ${task['location']['longitude']}'
-                  : '',
-              date: task['startTime'] ?? '',
-              time: task['endTime'] ?? '',
-              category: task['label'] ?? '',
-              participants: task['currVolunteers'] ?? 0,
-              maxParticipants: task['maxVolunteers'] ?? 0,
-              color: _getCategoryColor(task['label']),
-            )),
+        ..._tasks.map((task) {
+          // Format the date and time
+          final startTime = task['startTime'];
+          final endTime = task['endTime'];
+
+          String formattedDate = 'No date set';
+          String formattedTime = 'No time set';
+
+          if (startTime != null) {
+            if (startTime is Timestamp) {
+              formattedDate = DateFormatter.format(startTime);
+            } else if (startTime is String) {
+              try {
+                final date = DateTime.parse(startTime);
+                formattedDate = DateFormatter.format(date);
+              } catch (e) {
+                // Handle parsing error silently
+              }
+            }
+          }
+
+          if (endTime != null) {
+            if (endTime is Timestamp) {
+              formattedTime = DateFormatter.formatWithTime(endTime);
+            } else if (endTime is String) {
+              try {
+                final date = DateTime.parse(endTime);
+                formattedTime = DateFormatter.formatWithTime(date);
+              } catch (e) {
+                // Handle parsing error silently
+              }
+            }
+          }
+
+          return TaskCard(
+            title: task['name'] ?? '',
+            location: task['location'] != null
+                ? '${task['location']['latitude']}, ${task['location']['longitude']}'
+                : '',
+            date: formattedDate,
+            time: formattedTime,
+            category: task['label'] ?? '',
+            participants: task['currVolunteers'] ?? 0,
+            maxParticipants: task['maxVolunteers'] ?? 0,
+            color: _getCategoryColor(task['label']),
+            onTap: () async {
+              final taskId = task['id'];
+
+              if (taskId != null) {
+                final taskDoc = await FirebaseFirestore.instance
+                    .collection('tasks')
+                    .doc(taskId)
+                    .get();
+
+                if (taskDoc.exists) {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => TaskDetailPage(
+                        task: Task.fromFirestore(taskDoc),
+                        userId: FirebaseAuth.instance.currentUser?.uid ?? '',
+                      ),
+                    ),
+                  );
+                }
+              }
+            },
+          );
+        }),
       ],
     );
   }
@@ -538,19 +624,44 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
         const SizedBox(height: 16),
         ..._announcements.map((announcement) {
-          final timestamp = announcement['startTime'];
-          final date = timestamp is Timestamp
-              ? timestamp
-                  .toDate()
-                  .toString() // Convert Timestamp to DateTime, then to String
-              : 'Unknown Date';
+          // Format the date
+          String formattedDate = 'No date set';
+          final timestamp =
+              announcement['startTime'] ?? announcement['createdOn'];
+
+          if (timestamp != null) {
+            if (timestamp is Timestamp) {
+              formattedDate = DateFormatter.format(timestamp);
+            } else if (timestamp is String) {
+              try {
+                final date = DateTime.parse(timestamp);
+                formattedDate = DateFormatter.format(date);
+              } catch (e) {
+                // Handle parsing error silently
+              }
+            }
+          }
 
           return AnnouncementCard(
             title: announcement['name'] ?? '',
             description: announcement['description'] ?? '',
-            date: date,
+            date: formattedDate,
             category: announcement['label'] ?? '',
             color: _getCategoryColor(announcement['label']),
+            onTap: () {
+              final announcementId = announcement['id'];
+
+              if (announcementId != null) {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => AnnouncementDetailScreen(
+                      announcementId: announcementId,
+                    ),
+                  ),
+                );
+              }
+            },
           );
         }),
       ],
