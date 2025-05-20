@@ -11,6 +11,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import '../../models/task.dart';
 import '../../utils/date_formatter.dart';
 import '../volunteer/volunteer_page.dart';
+import '../advertisements/advertisements_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({Key? key}) : super(key: key);
@@ -300,26 +301,8 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
         const SizedBox(height: 16),
         Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            _buildServiceItem(
-              icon: Icons.check_circle_outline,
-              label: 'Volunteer',
-              color: AppTheme.primaryColor,
-              bgColor: AppTheme.primaryLightColor,
-              onTap: () {
-                // Navigate to volunteer screen
-              },
-            ),
-            _buildServiceItem(
-              icon: Icons.chat_bubble_outline,
-              label: 'AI Chat',
-              color: AppTheme.secondaryColor,
-              bgColor: AppTheme.secondaryLightColor,
-              onTap: () {
-                // Navigate to chat screen
-              },
-            ),
             _buildServiceItem(
               icon: Icons.location_on_outlined,
               label: 'Report',
@@ -334,6 +317,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 );
               },
             ),
+            const SizedBox(width: 32),
             _buildServiceItem(
               icon: Icons.notifications_none,
               label: 'Updates',
@@ -341,6 +325,21 @@ class _HomeScreenState extends State<HomeScreen> {
               bgColor: AppTheme.communityColor.withOpacity(0.1),
               onTap: () {
                 // Navigate to announcements screen
+              },
+            ),
+            const SizedBox(width: 32),
+            _buildServiceItem(
+              icon: Icons.campaign_outlined,
+              label: 'Advertisements',
+              color: AppTheme.primaryColor,
+              bgColor: AppTheme.primaryLightColor,
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const AdvertisementsScreen(),
+                  ),
+                );
               },
             ),
           ],
