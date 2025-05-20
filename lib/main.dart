@@ -21,6 +21,7 @@ import 'package:gov_app/screens/profile/profile_page.dart';
 import 'package:gov_app/services/auth_service.dart';
 import 'package:gov_app/services/content_moderation_service.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:gov_app/services/chat_service.dart';
 
 // Top-level function for handling background messages
 @pragma('vm:entry-point')
@@ -43,9 +44,31 @@ void main() async {
 
   // Initialize Firebase
   await Firebase.initializeApp();
+  
+  // Initialize FCM settings early
+  await FirebaseMessaging.instance.setForegroundNotificationPresentationOptions(
+    alert: true,
+    badge: true,
+    sound: true,
+  );
+
+  // Request permission for notifications right at startup
+  await FirebaseMessaging.instance.requestPermission(
+    alert: true,
+    announcement: false,
+    badge: true,
+    carPlay: false,
+    criticalAlert: false,
+    provisional: false,
+    sound: true,
+  );
 
   // Set up background message handler
   FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
+
+  // Get FCM token for debugging
+  final fcmToken = await FirebaseMessaging.instance.getToken();
+  print('FCM Token: $fcmToken');
 
   // Configure Firebase Auth settings globally
   try {
@@ -82,6 +105,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      navigatorKey: NotificationService.navigatorKey,
       title: 'CivicLink',
       theme: ThemeData(
         primarySwatch: Colors.deepPurple,
@@ -176,6 +200,7 @@ class MainScreenState extends State<MainScreen> {
   int _currentIndex = 0;
   final AnnouncementService _announcementService = AnnouncementService();
   final TaskService _taskService = TaskService();
+  final ChatService _chatService = ChatService();
 
   final List<Widget> _screens = [
     const HomeScreen(),
@@ -192,6 +217,7 @@ class MainScreenState extends State<MainScreen> {
     // Start listeners for notifications
     _announcementService.startAnnouncementListener();
     _taskService.startTaskUpdateListener();
+    _chatService.startMessageListener();
   }
 
   void changeIndex(int index) {

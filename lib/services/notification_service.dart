@@ -22,6 +22,9 @@ class NotificationService {
   
   bool _initialized = false;
   
+  // Store a global navigator key
+  static final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
+  
   // Initialize the notification service
   Future<void> initialize(BuildContext? context) async {
     if (_initialized) return;
@@ -106,9 +109,28 @@ class NotificationService {
       // Save to user document if logged in
       User? user = _auth.currentUser;
       if (user != null) {
-        await _firestore.collection('users').doc(user.uid).update({
-          'fcmTokens': FieldValue.arrayUnion([token]),
-        });
+        try {
+          // First check if user document exists
+          DocumentSnapshot userDoc = await _firestore.collection('users').doc(user.uid).get();
+          
+          if (userDoc.exists) {
+            // Update existing document
+            await _firestore.collection('users').doc(user.uid).update({
+              'fcmTokens': FieldValue.arrayUnion([token]),
+            });
+            print('Updated FCM token for user ${user.uid}');
+          } else {
+            // Create new document with fcmTokens field
+            await _firestore.collection('users').doc(user.uid).set({
+              'fcmTokens': [token],
+              'userId': user.uid,
+              'lastTokenUpdate': FieldValue.serverTimestamp(),
+            }, SetOptions(merge: true));
+            print('Created new user document with FCM token for user ${user.uid}');
+          }
+        } catch (e) {
+          print('Error updating FCM token: $e');
+        }
       }
     }
   }
@@ -118,23 +140,46 @@ class NotificationService {
     if (payload == null) return;
     
     try {
+      print('Handling notification tap with payload: $payload');
       Map<String, dynamic> data = jsonDecode(payload);
       
-      // Handle different notification types
-      switch (data['type']) {
-        case 'chat':
-          // Navigate to chat screen
-          break;
-        case 'announcement':
-          // Navigate to announcement details
-          break;
-        case 'task':
-          // Navigate to task details
-          break;
-        default:
-          // Default handling
-          break;
-      }
+      // Wait for the next frame to ensure the navigator is available
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        // Handle different notification types
+        switch (data['type']) {
+          case 'chat':
+            print('Navigating to chat screen');
+            navigatorKey.currentState?.pushNamed('/chat');
+            break;
+          case 'announcement':
+            print('Navigating to announcement details');
+            final announcementId = data['announcementId'];
+            if (announcementId != null) {
+              // Navigate to specific announcement if ID is provided
+              navigatorKey.currentState?.pushNamed('/announcement-details', arguments: {'id': announcementId});
+            } else {
+              // Otherwise just go to announcements list
+              navigatorKey.currentState?.pushNamed('/home');
+            }
+            break;
+          case 'task':
+            print('Navigating to task details');
+            final taskId = data['taskId'];
+            if (taskId != null) {
+              // Navigate to specific task if ID is provided
+              navigatorKey.currentState?.pushNamed('/task-details', arguments: {'id': taskId});
+            } else {
+              // Otherwise go to tasks list
+              navigatorKey.currentState?.pushNamed('/volunteer');
+            }
+            break;
+          default:
+            // Default handling - go to home
+            print('Unknown notification type, navigating to home');
+            navigatorKey.currentState?.pushNamed('/home');
+            break;
+        }
+      });
     } catch (e) {
       print('Error parsing notification payload: $e');
     }
@@ -217,6 +262,119 @@ class NotificationService {
       'sentAt': FieldValue.serverTimestamp(),
       'userId': userId,
     });
+  }
+
+  // Test notification - can be called from anywhere to verify notifications are working
+  Future<void> sendTestNotification(String userId) async {
+    try {
+      print('Attempting to send test notification to user: $userId');
+      
+      // First, check if the user document exists and has FCM tokens
+      final userDoc = await _firestore.collection('users').doc(userId).get();
+      if (!userDoc.exists) {
+        print('User document does not exist, creating one...');
+        // Try to create the user document with current token
+        String? token = await _fcm.getToken();
+        if (token != null) {
+          await _firestore.collection('users').doc(userId).set({
+            'userId': userId,
+            'fcmTokens': [token],
+            'lastUpdated': FieldValue.serverTimestamp(),
+          }, SetOptions(merge: true));
+          print('Created user document and set FCM token: $token');
+        } else {
+          print('Could not get FCM token, cannot send test notification');
+          return;
+        }
+      }
+      
+      // Send via local notifications first (doesn't require FCM backend)
+      if (_flutterLocalNotificationsPlugin != null && _channel != null) {
+        print('Sending local test notification');
+        await _flutterLocalNotificationsPlugin!.show(
+          0,
+          'Test Notification',
+          'This is a test notification from CivicLink',
+          NotificationDetails(
+            android: AndroidNotificationDetails(
+              _channel!.id,
+              _channel!.name,
+              channelDescription: _channel!.description,
+              importance: Importance.max,
+              priority: Priority.high,
+            ),
+            iOS: const DarwinNotificationDetails(),
+          ),
+        );
+        
+        // Try sending a second notification after a slight delay
+        await Future.delayed(const Duration(seconds: 2));
+        await _flutterLocalNotificationsPlugin!.show(
+          1,
+          'Chat Notification',
+          'You have a new message in your chats!',
+          NotificationDetails(
+            android: AndroidNotificationDetails(
+              _channel!.id,
+              _channel!.name,
+              channelDescription: _channel!.description,
+              importance: Importance.max,
+              priority: Priority.high,
+            ),
+            iOS: const DarwinNotificationDetails(),
+          ),
+          payload: '{"type":"chat","chatId":"test-chat"}',
+        );
+        
+        print('Local notifications sent successfully');
+        return; // We've sent the notifications locally, no need for Firestore trigger
+      } else {
+        print('Flutter local notifications plugin not initialized');
+      }
+      
+      // Since Cloud Functions may not be available due to payment plan,
+      // we won't rely on Firestore triggers
+      
+    } catch (e) {
+      print('Error sending test notification: $e');
+    }
+  }
+
+  // Show a local notification directly
+  Future<void> showLocalNotification({
+    required String title,
+    required String body,
+    String? payload,
+  }) async {
+    if (!_initialized) {
+      await initialize(null);
+    }
+    
+    if (_flutterLocalNotificationsPlugin != null && _channel != null) {
+      await _flutterLocalNotificationsPlugin!.show(
+        title.hashCode, // Use title hashcode as notification ID
+        title,
+        body,
+        NotificationDetails(
+          android: AndroidNotificationDetails(
+            _channel!.id,
+            _channel!.name,
+            channelDescription: _channel!.description,
+            importance: Importance.max,
+            priority: Priority.high,
+          ),
+          iOS: const DarwinNotificationDetails(
+            presentAlert: true,
+            presentBadge: true,
+            presentSound: true,
+          ),
+        ),
+        payload: payload,
+      );
+      print('Local notification shown: $title');
+    } else {
+      print('Cannot show notification: plugin or channel not initialized');
+    }
   }
 }
 

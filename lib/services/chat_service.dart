@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'dart:convert';
 import '../models/chat.dart';
 import 'notification_service.dart';
 
@@ -60,6 +61,7 @@ class ChatService {
           'lastMessageText': text,
           'lastMessageTimestamp': messageData.timestamp,
           'lastMessageSenderId': senderId,
+          'lastUpdated': FieldValue.serverTimestamp(),
         },
         SetOptions(merge: true),
       );
@@ -67,19 +69,39 @@ class ChatService {
       // Send notification for new message
       if (!toGov) {
         // Government sending message to citizen, notify the citizen
-        await _notificationService.sendNotificationToUser(
-          userId: effectiveCitizenId,
-          title: 'New Message from CivicLink',
-          body: 'You have received a new message from the government',
-          type: 'chat',
-          data: {
-            'conversationId': effectiveCitizenId,
-          },
-        );
+        try {
+          // Get the user's FCM tokens - for future FCM implementation
+          final userDoc = await _db.collection('users').doc(effectiveCitizenId).get();
+          if (userDoc.exists) {
+            final userData = userDoc.data();
+            if (userData != null && userData['fcmTokens'] != null) {
+              // FCM tokens exist, but we'll use local notifications for now
+              // since Cloud Functions require a paid plan
+              print('User has FCM tokens, would send push notification');
+            }
+          }
+          
+          // Initialize notification service if needed
+          await _notificationService.initialize(null);
+          
+          // Send local notification directly - this works without Cloud Functions
+          await _notificationService.showLocalNotification(
+            title: 'New Message',
+            body: 'You have received a new message',
+            payload: jsonEncode({
+              'type': 'chat',
+              'conversationId': effectiveCitizenId
+            })
+          );
+          
+          print('Local notification sent for new message to: $effectiveCitizenId');
+        } catch (e) {
+          print('Error sending notification: $e');
+        }
       } else if (toGov) {
         // Message from citizen to government
-        // You can notify admins or specific department staffs through a Cloud Function
-        // This would be handled server-side
+        // Would notify admins through Cloud Functions, but we'll skip for now
+        print('Message sent to government from user: $effectiveCitizenId');
       }
     } catch (e) {
       print('Error sending message: $e');
@@ -109,5 +131,66 @@ class ChatService {
         .map((snapshot) => snapshot.docs
             .map((doc) => Conversation.fromFirestore(doc))
             .toList());
+  }
+
+  // Listen for incoming messages for the current user
+  void startMessageListener() {
+    final currentUser = _auth.currentUser;
+    if (currentUser == null) {
+      print('Cannot start message listener: User not logged in');
+      return;
+    }
+    
+    print('Starting message listener for user: ${currentUser.uid}');
+    
+    // Listen to the user's chat document
+    _db.collection('chats')
+      .doc(currentUser.uid)
+      .collection('messages')
+      .orderBy('timestamp', descending: true)
+      .limit(1)
+      .snapshots()
+      .listen((snapshot) async {
+        if (snapshot.docs.isEmpty) return;
+        
+        final latestMessage = snapshot.docs.first;
+        final messageData = latestMessage.data();
+        
+        // Only show notification for new messages from the government
+        if (messageData['senderId'] == 'government') {
+          // Check if this is a new message (created within the last minute)
+          final timestamp = messageData['timestamp'] as Timestamp;
+          final now = DateTime.now();
+          final messageTime = timestamp.toDate();
+          final difference = now.difference(messageTime);
+          
+          if (difference.inMinutes <= 1) {
+            // This is a recent message, show notification
+            await _notificationService.showLocalNotification(
+              title: 'New Message from CivicLink',
+              body: messageData['text'] ?? 'You have a new message',
+              payload: jsonEncode({
+                'type': 'chat',
+                'conversationId': currentUser.uid,
+                'messageId': latestMessage.id
+              }),
+            );
+            
+            print('Notification shown for new message from government');
+          }
+        }
+      },
+      onError: (error) {
+        print('Error listening for messages: $error');
+      });
+  }
+  
+  // Get conversation metadata for the current user
+  Future<Map<String, dynamic>?> getConversationMetadata() async {
+    final currentUser = _auth.currentUser;
+    if (currentUser == null) return null;
+    
+    final doc = await _db.collection('chats').doc(currentUser.uid).get();
+    return doc.data();
   }
 }

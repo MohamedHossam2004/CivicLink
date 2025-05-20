@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:gov_app/services/notification_service.dart';
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({Key? key}) : super(key: key);
@@ -18,6 +19,7 @@ class _ProfilePageState extends State<ProfilePage>
   late final TabController _tabController;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final FirebaseAuth _auth = FirebaseAuth.instance;
+  final NotificationService _notificationService = NotificationService();
 
   // Firestore-driven state
   int _totalTasks = 0;
@@ -28,6 +30,7 @@ class _ProfilePageState extends State<ProfilePage>
   String? _error;
   String? _fullName;
   DateTime? _createdAt;
+  bool _sendingTestNotification = false;
 
   @override
   void initState() {
@@ -40,6 +43,40 @@ class _ProfilePageState extends State<ProfilePage>
   void dispose() {
     _tabController.dispose();
     super.dispose();
+  }
+
+  Future<void> _sendTestNotification() async {
+    final user = _auth.currentUser;
+    if (user == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('No authenticated user')),
+      );
+      return;
+    }
+
+    setState(() {
+      _sendingTestNotification = true;
+    });
+
+    try {
+      // Initialize notification service
+      await _notificationService.initialize(context);
+      
+      // Send test notification
+      await _notificationService.sendTestNotification(user.uid);
+      
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Test notification sent. Check console for details.')),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error sending notification: $e')),
+      );
+    } finally {
+      setState(() {
+        _sendingTestNotification = false;
+      });
+    }
   }
 
   Future<void> _fetchData() async {
@@ -148,6 +185,25 @@ class _ProfilePageState extends State<ProfilePage>
                       ? 'Joined ${DateFormat.yMMMM().format(_createdAt!)}'
                       : 'Join date unavailable',
                   style: const TextStyle(color: Colors.white70, fontSize: 14),
+                ),
+                const SizedBox(height: 8),
+                ElevatedButton.icon(
+                  onPressed: _sendingTestNotification ? null : _sendTestNotification,
+                  icon: _sendingTestNotification ? Container(
+                      width: 24,
+                      height: 24,
+                      padding: const EdgeInsets.all(2.0),
+                      child: const CircularProgressIndicator(
+                        color: Colors.white,
+                        strokeWidth: 3,
+                      ),
+                    ) : const Icon(Icons.notifications),
+                  label: Text(_sendingTestNotification ? 'Sending...' : 'Test Notification'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.white,
+                    foregroundColor: const Color(0xFF5E35B1),
+                    elevation: 2,
+                  ),
                 ),
               ],
             ),
@@ -274,9 +330,6 @@ class _StatCard extends StatelessWidget {
     );
   }
 }
-
-// … keep the rest of your _OverviewTab, _ActivityTab, _SettingsTab, and
-//    item widgets exactly as before. They’ll now live below in the file. …
 
 /// The Overview tab, now with Upcoming Tasks & Recent Reports
 class _OverviewTab extends StatelessWidget {
