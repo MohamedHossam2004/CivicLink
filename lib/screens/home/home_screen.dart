@@ -346,11 +346,11 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ),
         const SizedBox(height: 16),
-        SingleChildScrollView(
-          scrollDirection: Axis.horizontal,
-          child: Row(
-            children: [
-              _buildServiceItem(
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          children: [
+            Expanded(
+              child: _buildServiceItem(
                 icon: Icons.location_on_outlined,
                 label: 'Report',
                 color: Colors.red,
@@ -384,8 +384,9 @@ class _HomeScreenState extends State<HomeScreen> {
                   }
                 },
               ),
-              const SizedBox(width: 16),
-              _buildServiceItem(
+            ),
+            Expanded(
+              child: _buildServiceItem(
                 icon: Icons.notifications_none,
                 label: 'Updates',
                 color: AppTheme.communityColor,
@@ -398,10 +399,11 @@ class _HomeScreenState extends State<HomeScreen> {
                   );
                 },
               ),
-              const SizedBox(width: 16),
-              _buildServiceItem(
+            ),
+            Expanded(
+              child: _buildServiceItem(
                 icon: Icons.campaign_outlined,
-                label: 'Advertisements',
+                label: 'Ads',
                 color: AppTheme.primaryColor,
                 bgColor: AppTheme.primaryLightColor,
                 onTap: () {
@@ -412,8 +414,9 @@ class _HomeScreenState extends State<HomeScreen> {
                   );
                 },
               ),
-              const SizedBox(width: 16),
-              _buildServiceItem(
+            ),
+            Expanded(
+              child: _buildServiceItem(
                 icon: Icons.poll_outlined,
                 label: 'Polls',
                 color: Colors.orange,
@@ -426,8 +429,9 @@ class _HomeScreenState extends State<HomeScreen> {
                   );
                 },
               ),
-              const SizedBox(width: 16),
-              _buildServiceItem(
+            ),
+            Expanded(
+              child: _buildServiceItem(
                 icon: Icons.warning_amber_outlined,
                 label: 'Contacts',
                 color: Colors.red,
@@ -440,8 +444,8 @@ class _HomeScreenState extends State<HomeScreen> {
                   );
                 },
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ],
     );
