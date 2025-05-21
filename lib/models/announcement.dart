@@ -15,6 +15,7 @@ class Announcement {
   final String phone;
   final String email;
   final bool isImportant;
+  final List<String> imageUrls;
 
   Announcement({
     required this.id,
@@ -30,6 +31,7 @@ class Announcement {
     required this.phone,
     required this.email,
     this.isImportant = false,
+    this.imageUrls = const [],
   });
 
   // Create a copy of the announcement with updated fields
@@ -47,6 +49,7 @@ class Announcement {
     String? phone,
     String? email,
     bool? isImportant,
+    List<String>? imageUrls,
   }) {
     return Announcement(
       id: id ?? this.id,
@@ -62,6 +65,7 @@ class Announcement {
       phone: phone ?? this.phone,
       email: email ?? this.email,
       isImportant: isImportant ?? this.isImportant,
+      imageUrls: imageUrls ?? this.imageUrls,
     );
   }
 
@@ -146,6 +150,15 @@ class Announcement {
       }
     }
 
+    // Parse image URLs
+    List<String> parseImageUrls(dynamic value) {
+      if (value == null) return [];
+      if (value is List) {
+        return List<String>.from(value.map((item) => item.toString()));
+      }
+      return [];
+    }
+
     return Announcement(
       id: doc.id,
       label: data['label'] ?? '',
@@ -160,6 +173,7 @@ class Announcement {
       phone: data['phone'] ?? '',
       email: data['email'] ?? '',
       isImportant: data['isImportant'] ?? false,
+      imageUrls: parseImageUrls(data['imageUrls']),
     );
   }
 
@@ -178,6 +192,7 @@ class Announcement {
       'phone': phone,
       'email': email,
       'isImportant': isImportant,
+      'imageUrls': imageUrls,
     };
   }
 }

@@ -363,8 +363,9 @@ class AnnouncementService {
     required bool isImportant,
     required DateTime? startTime,
     required DateTime? endTime,
+    List<String>? imageUrls,
   }) async {
-    await _announcementsCollection.doc(id).update({
+    final updateData = {
       'name': name,
       'description': description,
       'phone': phone,
@@ -375,29 +376,55 @@ class AnnouncementService {
       'startTime': startTime != null ? Timestamp.fromDate(startTime) : null,
       'endTime': endTime != null ? Timestamp.fromDate(endTime) : null,
       'updatedAt': FieldValue.serverTimestamp(),
-    });
+    };
+    
+    // Only update imageUrls if provided
+    if (imageUrls != null) {
+      updateData['imageUrls'] = imageUrls;
+    }
+
+    await _announcementsCollection.doc(id).update(updateData);
   }
 
   // Delete announcement
   Future<void> deleteAnnouncement(String id) async {
-    // Delete the announcement
-    await _announcementsCollection.doc(id).delete();
-
-    // Delete associated comments
-    final comments =
-        await _commentsCollection.where('announcementId', isEqualTo: id).get();
-
-    for (var doc in comments.docs) {
-      await doc.reference.delete();
+    final user = _authService.currentUser;
+    if (user == null) {
+      throw Exception('User not authenticated');
+    }
+    
+    // Force token refresh to ensure we have fresh credentials
+    try {
+      await user.getIdToken(true);
+      print("Token refreshed successfully");
+    } catch (e) {
+      print("Error refreshing token: $e");
+      // Continue anyway as this is just a precaution
     }
 
-    // Delete saved announcements
-    final savedAnnouncements = await _savedAnnouncementsCollection
-        .where('announcementId', isEqualTo: id)
-        .get();
+    try {
+      // Delete the announcement
+      await _announcementsCollection.doc(id).delete();
 
-    for (var doc in savedAnnouncements.docs) {
-      await doc.reference.delete();
+      // Delete associated comments
+      final comments =
+          await _commentsCollection.where('announcementId', isEqualTo: id).get();
+
+      for (var doc in comments.docs) {
+        await doc.reference.delete();
+      }
+
+      // Delete saved announcements
+      final savedAnnouncements = await _savedAnnouncementsCollection
+          .where('announcementId', isEqualTo: id)
+          .get();
+
+      for (var doc in savedAnnouncements.docs) {
+        await doc.reference.delete();
+      }
+    } catch (e) {
+      print('Error deleting announcement: $e');
+      rethrow;
     }
   }
 }

@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'dart:io';
 import '../../models/announcement.dart';
 import '../../services/announcement_service.dart';
+import '../../services/cloudinary_service.dart';
 import '../../utils/date_formatter.dart';
+import '../../widgets/file_upload_widget.dart';
 
 class EditAnnouncementScreen extends StatefulWidget {
   final String announcementId;
@@ -26,11 +29,17 @@ class _EditAnnouncementScreenState extends State<EditAnnouncementScreen> {
   final _emailController = TextEditingController();
   final _departmentController = TextEditingController();
   final AnnouncementService _service = AnnouncementService();
+  final CloudinaryService _cloudinaryService = CloudinaryService();
+  
   bool _isLoading = false;
   bool _isImportant = false;
   String _selectedLabel = 'General';
   DateTime? _startTime;
   DateTime? _endTime;
+  List<String> _existingImageUrls = [];
+  List<File> _newImageFiles = [];
+  File? _documentFile;
+  String? _existingDocumentUrl;
 
   final List<String> _labels = [
     'General',
@@ -52,6 +61,8 @@ class _EditAnnouncementScreenState extends State<EditAnnouncementScreen> {
     _selectedLabel = widget.announcement.label;
     _startTime = widget.announcement.startTime;
     _endTime = widget.announcement.endTime;
+    _existingImageUrls = List<String>.from(widget.announcement.imageUrls);
+    _existingDocumentUrl = widget.announcement.documentUrl;
   }
 
   @override
@@ -85,6 +96,25 @@ class _EditAnnouncementScreenState extends State<EditAnnouncementScreen> {
     }
   }
 
+  Future<List<String>> _uploadNewImages() async {
+    List<String> uploadedUrls = [];
+
+    for (var imageFile in _newImageFiles) {
+      try {
+        final url = await _cloudinaryService.uploadImage(imageFile);
+        if (url != null) {
+          uploadedUrls.add(url);
+        }
+      } catch (e) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error uploading image: $e')),
+        );
+      }
+    }
+
+    return uploadedUrls;
+  }
+
   Future<void> _updateAnnouncement() async {
     if (!_formKey.currentState!.validate()) return;
 
@@ -93,6 +123,18 @@ class _EditAnnouncementScreenState extends State<EditAnnouncementScreen> {
     });
 
     try {
+      // Upload new images if any
+      final newImageUrls = await _uploadNewImages();
+      final allImageUrls = [..._existingImageUrls, ...newImageUrls];
+      
+      // Handle document upload or keep existing URL
+      String? documentUrl = _existingDocumentUrl;
+      
+      if (_documentFile != null) {
+        // Upload new document
+        documentUrl = await _cloudinaryService.uploadDocument(_documentFile!);
+      }
+
       await _service.updateAnnouncement(
         widget.announcementId,
         name: _nameController.text,
@@ -104,7 +146,16 @@ class _EditAnnouncementScreenState extends State<EditAnnouncementScreen> {
         isImportant: _isImportant,
         startTime: _startTime,
         endTime: _endTime,
+        imageUrls: allImageUrls,
       );
+
+      // Also update document URL if needed
+      if (documentUrl != _existingDocumentUrl) {
+        await FirebaseFirestore.instance
+            .collection('announcements')
+            .doc(widget.announcementId)
+            .update({'documentUrl': documentUrl});
+      }
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -175,6 +226,92 @@ class _EditAnnouncementScreenState extends State<EditAnnouncementScreen> {
                 },
               ),
               const SizedBox(height: 16),
+
+              // Image and Document Upload
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Show existing images
+                  if (_existingImageUrls.isNotEmpty) ...[
+                    const Text(
+                      'Existing Images',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Container(
+                      height: 120,
+                      child: ListView.builder(
+                        scrollDirection: Axis.horizontal,
+                        itemCount: _existingImageUrls.length,
+                        itemBuilder: (context, index) {
+                          return Stack(
+                            children: [
+                              Container(
+                                margin: const EdgeInsets.only(right: 8),
+                                width: 120,
+                                height: 120,
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(8),
+                                  image: DecorationImage(
+                                    image: NetworkImage(_existingImageUrls[index]),
+                                    fit: BoxFit.cover,
+                                  ),
+                                ),
+                              ),
+                              Positioned(
+                                top: 0,
+                                right: 8,
+                                child: GestureDetector(
+                                  onTap: () {
+                                    setState(() {
+                                      _existingImageUrls.removeAt(index);
+                                    });
+                                  },
+                                  child: Container(
+                                    padding: const EdgeInsets.all(4),
+                                    decoration: BoxDecoration(
+                                      color: Colors.red,
+                                      shape: BoxShape.circle,
+                                    ),
+                                    child: Icon(
+                                      Icons.close,
+                                      color: Colors.white,
+                                      size: 16,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          );
+                        },
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                  ],
+
+                  // File upload widget for new images and document
+                  FileUploadWidget(
+                    imageFiles: _newImageFiles,
+                    documentFile: _documentFile,
+                    onImagesSelected: (files) {
+                      setState(() {
+                        _newImageFiles = files;
+                      });
+                    },
+                    onDocumentSelected: (file) {
+                      setState(() {
+                        _documentFile = file;
+                      });
+                    },
+                    allowMultipleImages: true,
+                    documentLabel: 'Supporting Document',
+                  ),
+                  const SizedBox(height: 16),
+                ],
+              ),
 
               // Department Field
               TextFormField(

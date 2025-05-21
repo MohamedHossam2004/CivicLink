@@ -6,6 +6,7 @@ import '../../config/theme.dart';
 import '../../utils/date_formatter.dart';
 import 'advertisement_detail_screen.dart';
 import 'create_advertisement_page.dart';
+import 'package:path/path.dart' as path;
 
 class AdvertisementsScreen extends StatefulWidget {
   const AdvertisementsScreen({Key? key}) : super(key: key);
@@ -97,6 +98,49 @@ class _AdvertisementsScreenState extends State<AdvertisementsScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Error updating status: $e')),
       );
+    }
+  }
+
+  IconData _getDocumentIcon(String documentUrl) {
+    try {
+      // Extract filename from Cloudinary URL
+      Uri uri = Uri.parse(documentUrl);
+      String filename = uri.pathSegments.last;
+      
+      // Check if there's a format/extension in the URL params
+      String format = '';
+      if (uri.queryParameters.containsKey('format')) {
+        format = uri.queryParameters['format']!.toLowerCase();
+      } else {
+        // Try to extract extension from filename
+        final extensionIndex = filename.lastIndexOf('.');
+        if (extensionIndex != -1 && extensionIndex < filename.length - 1) {
+          format = filename.substring(extensionIndex + 1).toLowerCase();
+        }
+      }
+      
+      // Determine icon based on format
+      switch (format) {
+        case 'pdf':
+          return Icons.picture_as_pdf;
+        case 'doc':
+        case 'docx':
+          return Icons.description;
+        case 'xls':
+        case 'xlsx':
+        case 'csv':
+          return Icons.table_chart;
+        case 'ppt':
+        case 'pptx':
+          return Icons.slideshow;
+        case 'txt':
+          return Icons.text_snippet;
+        default:
+          return Icons.insert_drive_file;
+      }
+    } catch (e) {
+      print('Error getting document icon: $e');
+      return Icons.insert_drive_file;
     }
   }
 
@@ -404,21 +448,38 @@ class _AdvertisementsScreenState extends State<AdvertisementsScreen> {
                               // Document Link
                               if (documentUrl != null)
                                 Container(
-                                  width: double.infinity,
-                                  child: ElevatedButton.icon(
-                                    onPressed: () => _launchUrl(documentUrl),
-                                    icon: const Icon(Icons.description),
-                                    label: const Text('View Business Information'),
-                                    style: ElevatedButton.styleFrom(
-                                      backgroundColor: AppTheme.primaryColor,
-                                      foregroundColor: Colors.white,
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: 16,
-                                        vertical: 12,
-                                      ),
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(8),
-                                      ),
+                                  padding: const EdgeInsets.all(12),
+                                  decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.circular(8),
+                                    border: Border.all(color: Colors.grey[300]!),
+                                    color: Colors.grey[50],
+                                  ),
+                                  child: InkWell(
+                                    onTap: () => _launchUrl(documentUrl),
+                                    borderRadius: BorderRadius.circular(8),
+                                    child: Row(
+                                      children: [
+                                        Icon(
+                                          _getDocumentIcon(documentUrl),
+                                          size: 24,
+                                          color: AppTheme.primaryColor,
+                                        ),
+                                        const SizedBox(width: 12),
+                                        Expanded(
+                                          child: const Text(
+                                            'View Business Document',
+                                            style: TextStyle(
+                                              fontWeight: FontWeight.bold,
+                                              color: Color(0xFF1E293B),
+                                            ),
+                                          ),
+                                        ),
+                                        Icon(
+                                          Icons.open_in_new,
+                                          size: 20,
+                                          color: AppTheme.primaryColor,
+                                        ),
+                                      ],
                                     ),
                                   ),
                                 ),

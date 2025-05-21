@@ -6,6 +6,8 @@ import 'dart:io';
 import 'package:image_picker/image_picker.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:location/location.dart';
+import '../../services/cloudinary_service.dart';
+import '../../widgets/file_upload_widget.dart';
 
 class EditAdvertisementScreen extends StatefulWidget {
   final String advertisementId;
@@ -25,13 +27,15 @@ class EditAdvertisementScreen extends StatefulWidget {
 class _EditAdvertisementScreenState extends State<EditAdvertisementScreen> {
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
-  final _documentUrlController = TextEditingController();
   final _latitudeController = TextEditingController();
   final _longitudeController = TextEditingController();
   final _phoneController = TextEditingController();
   List<File> _newImageFiles = [];
   List<String> _existingImageUrls = [];
+  File? _documentFile;
+  String? _existingDocumentUrl;
   bool _isLoading = false;
+  final CloudinaryService _cloudinaryService = CloudinaryService();
   
   // Map related variables
   LatLng? _selectedLocation;
@@ -43,7 +47,7 @@ class _EditAdvertisementScreenState extends State<EditAdvertisementScreen> {
     super.initState();
     // Initialize controllers with existing data
     _nameController.text = widget.advertisement['name'] ?? '';
-    _documentUrlController.text = widget.advertisement['documentUrl'] ?? '';
+    _existingDocumentUrl = widget.advertisement['documentUrl'];
     _latitudeController.text =
         widget.advertisement['location']?['latitude']?.toString() ?? '';
     _longitudeController.text =
@@ -106,14 +110,11 @@ class _EditAdvertisementScreenState extends State<EditAdvertisementScreen> {
 
     for (var imageFile in _newImageFiles) {
       try {
-        final storageRef = FirebaseStorage.instance
-            .ref()
-            .child('advertisements')
-            .child('${DateTime.now().millisecondsSinceEpoch}.jpg');
-
-        await storageRef.putFile(imageFile);
-        final url = await storageRef.getDownloadURL();
-        uploadedUrls.add(url);
+        // Use CloudinaryService instead of direct Firebase Storage
+        final url = await _cloudinaryService.uploadImage(imageFile);
+        if (url != null) {
+          uploadedUrls.add(url);
+        }
       } catch (e) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Error uploading image: $e')),
@@ -134,6 +135,14 @@ class _EditAdvertisementScreenState extends State<EditAdvertisementScreen> {
     try {
       final newImageUrls = await _uploadNewImages();
       final allImageUrls = [..._existingImageUrls, ...newImageUrls];
+      
+      // Handle document upload or keep existing URL
+      String? documentUrl = _existingDocumentUrl;
+      
+      if (_documentFile != null) {
+        // Upload new document
+        documentUrl = await _cloudinaryService.uploadDocument(_documentFile!);
+      }
 
       await FirebaseFirestore.instance
           .collection('advertisements')
@@ -145,9 +154,7 @@ class _EditAdvertisementScreenState extends State<EditAdvertisementScreen> {
           'longitude': double.parse(_longitudeController.text),
           'latitude': double.parse(_latitudeController.text),
         },
-        'documentUrl': _documentUrlController.text.isNotEmpty
-            ? _documentUrlController.text
-            : null,
+        'documentUrl': documentUrl,
         'phoneNumber': _phoneController.text,
         'status': 'pending', // Reset status to pending for admin review
       });
@@ -176,7 +183,6 @@ class _EditAdvertisementScreenState extends State<EditAdvertisementScreen> {
   @override
   void dispose() {
     _nameController.dispose();
-    _documentUrlController.dispose();
     _latitudeController.dispose();
     _longitudeController.dispose();
     _phoneController.dispose();
@@ -200,8 +206,27 @@ class _EditAdvertisementScreenState extends State<EditAdvertisementScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              // File Upload Widget
+              FileUploadWidget(
+                imageFiles: _newImageFiles,
+                documentFile: _documentFile,
+                onImagesSelected: (files) {
+                  setState(() {
+                    _newImageFiles = files;
+                  });
+                },
+                onDocumentSelected: (file) {
+                  setState(() {
+                    _documentFile = file;
+                  });
+                },
+                allowMultipleImages: true,
+                documentLabel: 'Business Document',
+              ),
+              
               // Existing Images
               if (_existingImageUrls.isNotEmpty) ...[
+                const SizedBox(height: 24),
                 const Text(
                   'Current Images',
                   style: TextStyle(
@@ -258,78 +283,58 @@ class _EditAdvertisementScreenState extends State<EditAdvertisementScreen> {
                     },
                   ),
                 ),
-                const SizedBox(height: 16),
               ],
-
-              // Add New Images
-              GestureDetector(
-                onTap: _pickImages,
-                child: Container(
-                  height: 200,
-                  width: double.infinity,
-                  decoration: BoxDecoration(
-                    color: Colors.grey[200],
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: Colors.grey[300]!),
+              
+              // Show existing document URL if any
+              if (_existingDocumentUrl != null && _documentFile == null) ...[
+                const SizedBox(height: 16),
+                const Text(
+                  'Current Document',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
                   ),
-                  child: _newImageFiles.isEmpty
-                      ? Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: const [
-                            Icon(Icons.add_photo_alternate,
-                                size: 50, color: Colors.grey),
-                            SizedBox(height: 8),
-                            Text('Add New Images',
-                                style: TextStyle(color: Colors.grey)),
-                          ],
-                        )
-                      : ListView.builder(
-                          scrollDirection: Axis.horizontal,
-                          itemCount: _newImageFiles.length,
-                          itemBuilder: (context, index) {
-                            return Padding(
-                              padding: const EdgeInsets.all(8.0),
-                              child: Stack(
-                                children: [
-                                  ClipRRect(
-                                    borderRadius: BorderRadius.circular(8),
-                                    child: Image.file(
-                                      _newImageFiles[index],
-                                      width: 150,
-                                      height: 150,
-                                      fit: BoxFit.cover,
-                                    ),
-                                  ),
-                                  Positioned(
-                                    top: 4,
-                                    right: 4,
-                                    child: GestureDetector(
-                                      onTap: () {
-                                        setState(() {
-                                          _newImageFiles.removeAt(index);
-                                        });
-                                      },
-                                      child: Container(
-                                        padding: const EdgeInsets.all(4),
-                                        decoration: BoxDecoration(
-                                          color: Colors.black.withOpacity(0.5),
-                                          shape: BoxShape.circle,
-                                        ),
-                                        child: const Icon(
-                                          Icons.close,
-                                          color: Colors.white,
-                                          size: 16,
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            );
-                          },
-                        ),
                 ),
-              ),
+                const SizedBox(height: 8),
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    border: Border.all(color: Colors.grey),
+                    borderRadius: BorderRadius.circular(8),
+                    color: Colors.grey[100],
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(
+                        Icons.description,
+                        size: 36,
+                        color: Theme.of(context).primaryColor,
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Text(
+                          'Business Document',
+                          style: const TextStyle(fontWeight: FontWeight.bold),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      TextButton(
+                        onPressed: () {
+                          setState(() {
+                            _existingDocumentUrl = null;
+                          });
+                        },
+                        child: const Text('Remove'),
+                        style: TextButton.styleFrom(
+                          foregroundColor: Colors.red,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+              
               const SizedBox(height: 24),
 
               // Name Field
@@ -460,16 +465,6 @@ class _EditAdvertisementScreenState extends State<EditAdvertisementScreen> {
                 ],
               ),
               const SizedBox(height: 16),
-
-              // Document URL Field
-              TextFormField(
-                controller: _documentUrlController,
-                decoration: const InputDecoration(
-                  labelText: 'Document URL (optional)',
-                  border: OutlineInputBorder(),
-                ),
-              ),
-              const SizedBox(height: 24),
 
               // Submit Button
               SizedBox(

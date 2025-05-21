@@ -6,6 +6,8 @@ import 'dart:io';
 import 'package:image_picker/image_picker.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:location/location.dart';
+import '../../services/cloudinary_service.dart';
+import '../../widgets/file_upload_widget.dart';
 
 class CreateAdvertisementPage extends StatefulWidget {
   const CreateAdvertisementPage({Key? key}) : super(key: key);
@@ -17,12 +19,13 @@ class CreateAdvertisementPage extends StatefulWidget {
 class _CreateAdvertisementPageState extends State<CreateAdvertisementPage> {
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
-  final _documentUrlController = TextEditingController();
   final _latitudeController = TextEditingController();
   final _longitudeController = TextEditingController();
   final _phoneController = TextEditingController();
   List<File> _imageFiles = [];
+  File? _documentFile;
   bool _isLoading = false;
+  final CloudinaryService _cloudinaryService = CloudinaryService();
   
   // Map related variables
   bool _isMapVisible = false;
@@ -138,14 +141,11 @@ class _CreateAdvertisementPageState extends State<CreateAdvertisementPage> {
     
     for (var imageFile in _imageFiles) {
       try {
-        final storageRef = FirebaseStorage.instance
-            .ref()
-            .child('advertisements')
-            .child('${DateTime.now().millisecondsSinceEpoch}.jpg');
-
-        await storageRef.putFile(imageFile);
-        final url = await storageRef.getDownloadURL();
-        uploadedUrls.add(url);
+        // Use CloudinaryService instead of direct Firebase Storage
+        final url = await _cloudinaryService.uploadImage(imageFile);
+        if (url != null) {
+          uploadedUrls.add(url);
+        }
       } catch (e) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Error uploading image: $e')),
@@ -165,6 +165,13 @@ class _CreateAdvertisementPageState extends State<CreateAdvertisementPage> {
 
     try {
       final imageUrls = await _uploadImages();
+      String? documentUrl;
+      
+      // Upload document if one is selected
+      if (_documentFile != null) {
+        documentUrl = await _cloudinaryService.uploadDocument(_documentFile!);
+      }
+      
       final userId = FirebaseAuth.instance.currentUser?.uid;
       
       if (userId == null) {
@@ -180,9 +187,7 @@ class _CreateAdvertisementPageState extends State<CreateAdvertisementPage> {
           'latitude': double.parse(_latitudeController.text),
         },
         'createdOn': Timestamp.now(),
-        'documentUrl': _documentUrlController.text.isNotEmpty 
-            ? _documentUrlController.text 
-            : null,
+        'documentUrl': documentUrl,
         'phoneNumber': _phoneController.text,
         'status': 'pending',
       });
@@ -211,7 +216,6 @@ class _CreateAdvertisementPageState extends State<CreateAdvertisementPage> {
   @override
   void dispose() {
     _nameController.dispose();
-    _documentUrlController.dispose();
     _latitudeController.dispose();
     _longitudeController.dispose();
     _phoneController.dispose();
@@ -235,45 +239,22 @@ class _CreateAdvertisementPageState extends State<CreateAdvertisementPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Image Upload Section
-              GestureDetector(
-                onTap: _pickImages,
-                child: Container(
-                  height: 200,
-                  width: double.infinity,
-                  decoration: BoxDecoration(
-                    color: Colors.grey[200],
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: Colors.grey[300]!),
-                  ),
-                  child: _imageFiles.isEmpty
-                      ? Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: const [
-                            Icon(Icons.add_photo_alternate, size: 50, color: Colors.grey),
-                            SizedBox(height: 8),
-                            Text('Add Images', style: TextStyle(color: Colors.grey)),
-                          ],
-                        )
-                      : ListView.builder(
-                          scrollDirection: Axis.horizontal,
-                          itemCount: _imageFiles.length,
-                          itemBuilder: (context, index) {
-                            return Padding(
-                              padding: const EdgeInsets.all(8.0),
-                              child: ClipRRect(
-                                borderRadius: BorderRadius.circular(8),
-                                child: Image.file(
-                                  _imageFiles[index],
-                                  width: 150,
-                                  height: 150,
-                                  fit: BoxFit.cover,
-                                ),
-                              ),
-                            );
-                          },
-                        ),
-                ),
+              // File Upload Widget
+              FileUploadWidget(
+                imageFiles: _imageFiles,
+                documentFile: _documentFile,
+                onImagesSelected: (files) {
+                  setState(() {
+                    _imageFiles = files;
+                  });
+                },
+                onDocumentSelected: (file) {
+                  setState(() {
+                    _documentFile = file;
+                  });
+                },
+                allowMultipleImages: true,
+                documentLabel: 'Business Document',
               ),
               const SizedBox(height: 24),
 
@@ -456,14 +437,6 @@ class _CreateAdvertisementPageState extends State<CreateAdvertisementPage> {
               ),
               const SizedBox(height: 16),
 
-              // Document URL Field
-              TextFormField(
-                controller: _documentUrlController,
-                decoration: const InputDecoration(
-                  labelText: 'Document URL (optional)',
-                  border: OutlineInputBorder(),
-                ),
-              ),
               const SizedBox(height: 24),
 
               // Submit Button

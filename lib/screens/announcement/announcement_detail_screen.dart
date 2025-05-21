@@ -6,6 +6,8 @@ import '../../services/content_moderation_service.dart';
 import '../../utils/date_formatter.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'edit_announcement_screen.dart';
+import 'package:url_launcher/url_launcher.dart';
+import 'package:url_launcher/url_launcher_string.dart';
 
 class AnnouncementDetailScreen extends StatefulWidget {
   final String announcementId;
@@ -39,24 +41,49 @@ class _AnnouncementDetailScreenState extends State<AnnouncementDetailScreen> {
   Future<void> _checkUserType() async {
     final user = _authService.currentUser;
     if (user != null) {
-      final userDoc = await FirebaseFirestore.instance
-          .collection('users')
-          .doc(user.uid)
-          .get();
+      try {
+        // Refresh token to ensure we have the latest permissions
+        await user.getIdToken(true);
+        
+        final userDoc = await FirebaseFirestore.instance
+            .collection('users')
+            .doc(user.uid)
+            .get();
+        
+        final userType = userDoc.data()?['type'];
+        print('User type: $userType');
 
-      if (mounted) {
-        setState(() {
-          _isAdmin = userDoc.data()?['type'] == 'admin' ||
-              userDoc.data()?['type'] == 'Admin';
-          _isAdvertiser = userDoc.data()?['type'] == 'advertiser' ||
-              userDoc.data()?['type'] == 'Advertiser';
-        });
+        if (mounted) {
+          setState(() {
+            // Check for both lowercase and uppercase variants for better compatibility
+            _isAdmin = userType == 'admin' || userType == 'Admin';
+            _isAdvertiser = userType == 'advertiser' || userType == 'Advertiser';
+          });
+        }
+      } catch (e) {
+        print('Error checking user type: $e');
       }
     }
   }
 
   Future<void> _deleteAnnouncement() async {
     try {
+      // Refresh token to ensure we have the latest permissions
+      final user = _authService.currentUser;
+      if (user == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('You must be logged in to delete announcements')),
+        );
+        return;
+      }
+      
+      try {
+        await user.getIdToken(true);
+      } catch (e) {
+        print('Error refreshing token: $e');
+        // Continue anyway as this is just a precaution
+      }
+      
       // Show confirmation dialog
       final bool? confirm = await showDialog<bool>(
         context: context,
@@ -82,6 +109,20 @@ class _AnnouncementDetailScreenState extends State<AnnouncementDetailScreen> {
 
       if (confirm != true) return;
 
+      // Check if user is admin one more time
+      final userDoc = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(user.uid)
+          .get();
+      
+      final userType = userDoc.data()?['type'];
+      if (userType != 'admin' && userType != 'Admin') {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Only admins can delete announcements')),
+        );
+        return;
+      }
+
       await _service.deleteAnnouncement(widget.announcementId);
 
       if (mounted) {
@@ -91,6 +132,7 @@ class _AnnouncementDetailScreenState extends State<AnnouncementDetailScreen> {
         Navigator.pop(context); // Return to previous screen
       }
     } catch (e) {
+      print('Error deleting announcement: $e');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Error deleting announcement: $e')),
@@ -199,6 +241,9 @@ class _AnnouncementDetailScreenState extends State<AnnouncementDetailScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Announcement'),
+        backgroundColor: const Color(0xFF8B5CF6),
+        foregroundColor: Colors.white,
+        elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () {
@@ -232,7 +277,7 @@ class _AnnouncementDetailScreenState extends State<AnnouncementDetailScreen> {
               },
             ),
             IconButton(
-              icon: const Icon(Icons.delete, color: Colors.red),
+              icon: const Icon(Icons.delete, color: Colors.white),
               onPressed: _deleteAnnouncement,
             ),
           ],
@@ -244,7 +289,7 @@ class _AnnouncementDetailScreenState extends State<AnnouncementDetailScreen> {
                 return IconButton(
                   icon: Icon(
                     isSaved ? Icons.bookmark : Icons.bookmark_border,
-                    color: isSaved ? Colors.purple : null,
+                    color: isSaved ? Colors.yellow : Colors.white,
                   ),
                   onPressed: _toggleSave,
                 );
@@ -260,7 +305,9 @@ class _AnnouncementDetailScreenState extends State<AnnouncementDetailScreen> {
           }
 
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
+            return const Center(child: CircularProgressIndicator(
+              valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF8B5CF6)),
+            ));
           }
 
           final announcement = snapshot.data;
@@ -268,25 +315,239 @@ class _AnnouncementDetailScreenState extends State<AnnouncementDetailScreen> {
             return const Center(child: Text('Announcement not found'));
           }
 
+          // Get the image URLs directly from the announcement model
+          final List<String> imageUrls = announcement.imageUrls;
+
           return Column(
             children: [
               Expanded(
-                child: SingleChildScrollView(
-                  padding: const EdgeInsets.all(16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      _buildAnnouncementHeader(announcement),
-                      const SizedBox(height: 16),
-                      _buildAnnouncementContent(announcement),
-                      const SizedBox(height: 24),
-                      _buildContactInfo(announcement),
-                      const SizedBox(height: 24),
-                      _buildActionButtons(),
-                      const Divider(height: 32),
-                      _buildCommentsSection(),
-                    ],
-                  ),
+                child: CustomScrollView(
+                  slivers: [
+                    // Image Carousel
+                    if (imageUrls.isNotEmpty)
+                      SliverToBoxAdapter(
+                        child: Container(
+                          height: 250,
+                          child: Stack(
+                            children: [
+                              PageView.builder(
+                                itemCount: imageUrls.length,
+                                itemBuilder: (context, index) {
+                                  return Image.network(
+                                    imageUrls[index],
+                                    fit: BoxFit.cover,
+                                    errorBuilder: (context, error, stackTrace) {
+                                      return Container(
+                                        color: Colors.grey[100],
+                                        child: Center(
+                                          child: Icon(
+                                            Icons.image_not_supported,
+                                            size: 50,
+                                            color: Colors.grey[400],
+                                          ),
+                                        ),
+                                      );
+                                    },
+                                  );
+                                },
+                              ),
+                              Positioned(
+                                bottom: 0,
+                                left: 0,
+                                right: 0,
+                                child: Container(
+                                  height: 80,
+                                  decoration: BoxDecoration(
+                                    gradient: LinearGradient(
+                                      begin: Alignment.bottomCenter,
+                                      end: Alignment.topCenter,
+                                      colors: [
+                                        Colors.black.withOpacity(0.7),
+                                        Colors.transparent,
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              Positioned(
+                                bottom: 20,
+                                left: 20,
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 12,
+                                    vertical: 6,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFF8B5CF6),
+                                    borderRadius: BorderRadius.circular(20),
+                                  ),
+                                  child: Text(
+                                    announcement.label,
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+
+                    // Content
+                    SliverToBoxAdapter(
+                      child: Padding(
+                        padding: const EdgeInsets.all(16),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            // Title and Date
+                            Text(
+                              announcement.name,
+                              style: const TextStyle(
+                                fontSize: 24,
+                                fontWeight: FontWeight.bold,
+                                color: Color(0xFF1E293B),
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            Row(
+                              children: [
+                                const Icon(
+                                  Icons.calendar_today,
+                                  size: 16,
+                                  color: Color(0xFF8B5CF6),
+                                ),
+                                const SizedBox(width: 6),
+                                Text(
+                                  DateFormatter.formatWithTime(announcement.createdOn),
+                                  style: TextStyle(
+                                    color: Colors.grey[600],
+                                    fontSize: 14,
+                                  ),
+                                ),
+                                const SizedBox(width: 16),
+                                const Icon(
+                                  Icons.business,
+                                  size: 16,
+                                  color: Color(0xFF8B5CF6),
+                                ),
+                                const SizedBox(width: 6),
+                                Text(
+                                  announcement.department,
+                                  style: TextStyle(
+                                    color: Colors.grey[600],
+                                    fontSize: 14,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            
+                            // Time Period
+                            Container(
+                              margin: const EdgeInsets.symmetric(vertical: 16),
+                              padding: const EdgeInsets.all(12),
+                              decoration: BoxDecoration(
+                                gradient: LinearGradient(
+                                  colors: [
+                                    const Color(0xFF8B5CF6).withOpacity(0.1),
+                                    const Color(0xFF6366F1).withOpacity(0.1),
+                                  ],
+                                  begin: Alignment.topLeft,
+                                  end: Alignment.bottomRight,
+                                ),
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(
+                                  color: const Color(0xFF8B5CF6).withOpacity(0.2),
+                                ),
+                              ),
+                              child: Row(
+                                children: [
+                                  CircleAvatar(
+                                    backgroundColor: const Color(0xFF8B5CF6).withOpacity(0.2),
+                                    child: const Icon(
+                                      Icons.access_time,
+                                      color: Color(0xFF8B5CF6),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 12),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          'From: ${DateFormatter.formatWithTime(announcement.startTime)}',
+                                          style: const TextStyle(
+                                            fontWeight: FontWeight.bold,
+                                            color: Color(0xFF1E293B),
+                                          ),
+                                        ),
+                                        const SizedBox(height: 4),
+                                        Text(
+                                          'To: ${DateFormatter.formatWithTime(announcement.endTime)}',
+                                          style: const TextStyle(
+                                            fontWeight: FontWeight.bold,
+                                            color: Color(0xFF1E293B),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            
+                            // Main content box
+                            Container(
+                              padding: const EdgeInsets.all(16),
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(12),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black.withOpacity(0.05),
+                                    offset: const Offset(0, 2),
+                                    blurRadius: 8,
+                                  ),
+                                ],
+                              ),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  // Description
+                                  const Text(
+                                    'Description',
+                                    style: TextStyle(
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.bold,
+                                      color: Color(0xFF1E293B),
+                                    ),
+                                  ),
+                                  const SizedBox(height: 8),
+                                  Text(
+                                    announcement.description,
+                                    style: const TextStyle(
+                                      fontSize: 16,
+                                      height: 1.5,
+                                      color: Color(0xFF334155),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            
+                            const SizedBox(height: 24),
+                            _buildContactInfo(announcement),
+                            const SizedBox(height: 20),
+                            _buildActionButtons(),
+                            const Divider(height: 32),
+                            _buildCommentsSection(),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ),
               if (!_isAdmin && !_isAdvertiser)
@@ -298,96 +559,26 @@ class _AnnouncementDetailScreenState extends State<AnnouncementDetailScreen> {
     );
   }
 
-  Widget _buildAnnouncementHeader(Announcement announcement) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.blue.shade50,
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-            decoration: BoxDecoration(
-              color: Colors.blue.shade100,
-              borderRadius: BorderRadius.circular(4),
-            ),
-            child: Text(
-              announcement.label,
-              style: TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.bold,
-                color: Colors.blue.shade700,
-              ),
-            ),
-          ),
-          const SizedBox(height: 12),
-          Text(
-            announcement.name,
-            style: const TextStyle(
-              fontSize: 22,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Row(
-            children: [
-              const Icon(
-                Icons.calendar_today,
-                size: 14,
-                color: Colors.grey,
-              ),
-              const SizedBox(width: 4),
-              Text(
-                'Posted on ${DateFormatter.formatWithTime(announcement.createdOn)}',
-                style: const TextStyle(
-                  fontSize: 12,
-                  color: Colors.grey,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 4),
-          Row(
-            children: [
-              const Icon(
-                Icons.business,
-                size: 14,
-                color: Colors.grey,
-              ),
-              const SizedBox(width: 4),
-              Text(
-                announcement.department,
-                style: const TextStyle(
-                  fontSize: 12,
-                  color: Colors.grey,
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildAnnouncementContent(Announcement announcement) {
-    return Text(
-      announcement.description,
-      style: const TextStyle(
-        fontSize: 16,
-        height: 1.5,
-      ),
-    );
-  }
-
   Widget _buildContactInfo(Announcement announcement) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.grey.shade100,
+        gradient: LinearGradient(
+          colors: [
+            Colors.blue.shade50,
+            Colors.purple.shade50,
+          ],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
         borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            offset: const Offset(0, 2),
+            blurRadius: 8,
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -395,76 +586,276 @@ class _AnnouncementDetailScreenState extends State<AnnouncementDetailScreen> {
           const Text(
             'Contact Information',
             style: TextStyle(
-              fontSize: 16,
+              fontSize: 18,
               fontWeight: FontWeight.bold,
+              color: Color(0xFF1E293B),
             ),
           ),
+          const SizedBox(height: 16),
+          
+          // Phone
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF8B5CF6).withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: const Icon(
+                    Icons.phone,
+                    color: Color(0xFF8B5CF6),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Phone Number',
+                      style: TextStyle(
+                        color: Color(0xFF64748B),
+                        fontSize: 12,
+                      ),
+                    ),
+                    Text(
+                      announcement.phone,
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                        color: Color(0xFF1E293B),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          
           const SizedBox(height: 12),
-          Row(
-            children: [
-              const Icon(
-                Icons.phone,
-                size: 16,
-                color: Colors.grey,
-              ),
-              const SizedBox(width: 8),
-              const Text(
-                'Phone:',
-                style: TextStyle(
-                  fontWeight: FontWeight.w500,
+          
+          // Email
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF8B5CF6).withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: const Icon(
+                    Icons.email,
+                    color: Color(0xFF8B5CF6),
+                  ),
                 ),
-              ),
-              const SizedBox(width: 4),
-              Text(
-                announcement.phone,
-                style: TextStyle(
-                  color: Colors.blue.shade700,
+                const SizedBox(width: 12),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Email Address',
+                      style: TextStyle(
+                        color: Color(0xFF64748B),
+                        fontSize: 12,
+                      ),
+                    ),
+                    Text(
+                      announcement.email,
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                        color: Color(0xFF1E293B),
+                      ),
+                    ),
+                  ],
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
-          const SizedBox(height: 8),
-          Row(
-            children: [
-              const Icon(
-                Icons.email,
-                size: 16,
-                color: Colors.grey,
+          
+          // Document
+          if (announcement.documentUrl != null && announcement.documentUrl!.isNotEmpty) ...[
+            const SizedBox(height: 12),
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(8),
               ),
-              const SizedBox(width: 8),
-              const Text(
-                'Email:',
-                style: TextStyle(
-                  fontWeight: FontWeight.w500,
+              child: InkWell(
+                onTap: () => _launchUrl(announcement.documentUrl!),
+                borderRadius: BorderRadius.circular(8),
+                child: Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF8B5CF6).withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Icon(
+                        _getDocumentIcon(announcement.documentUrl!),
+                        color: const Color(0xFF8B5CF6),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            'Document',
+                            style: TextStyle(
+                              color: Color(0xFF64748B),
+                              fontSize: 12,
+                            ),
+                          ),
+                          Text(
+                            _getDocumentTypeName(announcement.documentUrl!),
+                            style: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 16,
+                              color: Color(0xFF1E293B),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const Icon(
+                      Icons.open_in_new,
+                      color: Color(0xFF8B5CF6),
+                    ),
+                  ],
                 ),
               ),
-              const SizedBox(width: 4),
-              Text(
-                announcement.email,
-                style: TextStyle(
-                  color: Colors.blue.shade700,
-                ),
-              ),
-            ],
-          ),
+            ),
+          ],
         ],
       ),
     );
+  }
+
+  IconData _getDocumentIcon(String documentUrl) {
+    try {
+      // Extract filename from Cloudinary URL
+      Uri uri = Uri.parse(documentUrl);
+      String filename = uri.pathSegments.last;
+      
+      // Check if there's a format/extension in the URL params
+      String format = '';
+      if (uri.queryParameters.containsKey('format')) {
+        format = uri.queryParameters['format']!.toLowerCase();
+      } else {
+        // Try to extract extension from filename
+        final extensionIndex = filename.lastIndexOf('.');
+        if (extensionIndex != -1 && extensionIndex < filename.length - 1) {
+          format = filename.substring(extensionIndex + 1).toLowerCase();
+        }
+      }
+      
+      // Determine icon based on format
+      switch (format) {
+        case 'pdf':
+          return Icons.picture_as_pdf;
+        case 'doc':
+        case 'docx':
+          return Icons.description;
+        case 'xls':
+        case 'xlsx':
+        case 'csv':
+          return Icons.table_chart;
+        case 'ppt':
+        case 'pptx':
+          return Icons.slideshow;
+        case 'txt':
+          return Icons.text_snippet;
+        default:
+          return Icons.insert_drive_file;
+      }
+    } catch (e) {
+      print('Error getting document icon: $e');
+      return Icons.insert_drive_file;
+    }
+  }
+
+  String _getDocumentTypeName(String documentUrl) {
+    try {
+      // Extract filename from Cloudinary URL
+      Uri uri = Uri.parse(documentUrl);
+      String filename = uri.pathSegments.last;
+      
+      // Check if there's a format in the URL params
+      String format = '';
+      if (uri.queryParameters.containsKey('format')) {
+        format = uri.queryParameters['format']!.toLowerCase();
+      } else {
+        // Try to extract extension from filename
+        final extensionIndex = filename.lastIndexOf('.');
+        if (extensionIndex != -1 && extensionIndex < filename.length - 1) {
+          format = filename.substring(extensionIndex + 1).toLowerCase();
+        }
+      }
+      
+      // Determine document type based on format
+      switch (format) {
+        case 'pdf':
+          return 'PDF Document';
+        case 'doc':
+        case 'docx':
+          return 'Word Document';
+        case 'xls':
+        case 'xlsx':
+          return 'Excel Spreadsheet';
+        case 'csv':
+          return 'CSV File';
+        case 'ppt':
+        case 'pptx':
+          return 'PowerPoint Presentation';
+        case 'txt':
+          return 'Text Document';
+        default:
+          return 'Document';
+      }
+    } catch (e) {
+      print('Error getting document type: $e');
+      return 'Document';
+    }
+  }
+
+  Future<void> _launchUrl(String url) async {
+    try {
+      final Uri uri = Uri.parse(url);
+      if (!await launchUrl(
+        uri,
+        mode: LaunchMode.externalApplication,
+      )) {
+        throw Exception('Could not launch $url');
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error opening document: $e')),
+        );
+      }
+    }
   }
 
   Widget _buildActionButtons() {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
       children: [
-        _buildActionButton(
-          icon: Icons.file_download_outlined,
-          label: 'Download PDF',
-          onTap: () {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Downloading PDF...')),
-            );
-          },
-        ),
         if (!_isAdmin && !_isAdvertiser) ...[
           _buildActionButton(
             icon: Icons.thumb_up_outlined,

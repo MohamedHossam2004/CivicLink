@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
-import 'package:location/location.dart';
+import 'package:location/location.dart' as location_package;
+import 'dart:io';
+import '../../services/cloudinary_service.dart';
+import '../../widgets/file_upload_widget.dart';
 
 class CreateAnnouncementPage extends StatefulWidget {
   final String userId;
@@ -18,7 +21,6 @@ class _CreateAnnouncementPageState extends State<CreateAnnouncementPage> {
 
   final _departmentController = TextEditingController();
   final _descriptionController = TextEditingController();
-  final _documentUrlController = TextEditingController();
   final _emailController = TextEditingController();
   final _latitudeController = TextEditingController();
   final _longitudeController = TextEditingController();
@@ -35,6 +37,10 @@ class _CreateAnnouncementPageState extends State<CreateAnnouncementPage> {
   LatLng? _selectedLocation;
   Set<Marker> _markers = {};
   GoogleMapController? _mapController;
+  bool _isLoading = false;
+  List<File> _imageFiles = [];
+  File? _documentFile;
+  final CloudinaryService _cloudinaryService = CloudinaryService();
 
   @override
   void initState() {
@@ -44,7 +50,7 @@ class _CreateAnnouncementPageState extends State<CreateAnnouncementPage> {
 
   Future<void> _getCurrentLocation() async {
     try {
-      Location location = Location();
+      location_package.Location location = location_package.Location();
 
       // Check if location services are enabled
       bool serviceEnabled = await location.serviceEnabled();
@@ -56,10 +62,10 @@ class _CreateAnnouncementPageState extends State<CreateAnnouncementPage> {
       }
 
       // Check if permission is granted
-      PermissionStatus permissionGranted = await location.hasPermission();
-      if (permissionGranted == PermissionStatus.denied) {
+      location_package.PermissionStatus permissionGranted = await location.hasPermission();
+      if (permissionGranted == location_package.PermissionStatus.denied) {
         permissionGranted = await location.requestPermission();
-        if (permissionGranted != PermissionStatus.granted) {
+        if (permissionGranted != location_package.PermissionStatus.granted) {
           return;
         }
       }
@@ -127,18 +133,38 @@ class _CreateAnnouncementPageState extends State<CreateAnnouncementPage> {
     });
   }
 
-  Future<void> _submitAnnouncement() async {
-    if (!_formKey.currentState!.validate() ||
-        _startTime == null ||
-        _endTime == null) return;
+  Future<void> _createAnnouncement() async {
+    if (!_formKey.currentState!.validate()) return;
+    if (_startTime == null || _endTime == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please select both start and end times')),
+      );
+      return;
+    }
 
-    setState(() => _isSubmitting = true);
+    setState(() {
+      _isLoading = true;
+    });
 
     try {
+      String? documentUrl;
+      if (_documentFile != null) {
+        documentUrl = await _cloudinaryService.uploadDocument(_documentFile!);
+      }
+
+      // Process and upload images if needed
+      List<String> imageUrls = [];
+      for (var imageFile in _imageFiles) {
+        final url = await _cloudinaryService.uploadImage(imageFile);
+        if (url != null) {
+          imageUrls.add(url);
+        }
+      }
+
       await _firestore.collection('announcements').add({
         'department': _departmentController.text,
         'description': _descriptionController.text,
-        'documentUrl': _documentUrlController.text,
+        'documentUrl': documentUrl,
         'email': _emailController.text,
         'location': {
           'latitude': double.parse(_latitudeController.text),
@@ -151,14 +177,28 @@ class _CreateAnnouncementPageState extends State<CreateAnnouncementPage> {
         'label': _label,
         'isImportant': _isImportant,
         'createdOn': FieldValue.serverTimestamp(),
+        'imageUrls': imageUrls,
       });
 
-      Navigator.pop(context, true);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Announcement created successfully!')),
+        );
+        Navigator.pop(context);
+      }
     } catch (e) {
-      setState(() => _isSubmitting = false);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to create announcement: $e')),
-      );
+      print('Error creating announcement: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error creating announcement: $e')),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
     }
   }
 
@@ -219,7 +259,6 @@ class _CreateAnnouncementPageState extends State<CreateAnnouncementPage> {
   void dispose() {
     _departmentController.dispose();
     _descriptionController.dispose();
-    _documentUrlController.dispose();
     _emailController.dispose();
     _latitudeController.dispose();
     _longitudeController.dispose();
@@ -256,8 +295,23 @@ class _CreateAnnouncementPageState extends State<CreateAnnouncementPage> {
                   label: 'Description',
                   validator: _required,
                   maxLines: 2),
-              _buildTextField(
-                  controller: _documentUrlController, label: 'Document URL'),
+              // File Upload Widget for document and images
+              FileUploadWidget(
+                imageFiles: _imageFiles,
+                documentFile: _documentFile,
+                onImagesSelected: (files) {
+                  setState(() {
+                    _imageFiles = files;
+                  });
+                },
+                onDocumentSelected: (file) {
+                  setState(() {
+                    _documentFile = file;
+                  });
+                },
+                allowMultipleImages: true,
+                documentLabel: 'Supporting Document',
+              ),
               _buildTextField(
                   controller: _emailController,
                   label: 'Email',
@@ -450,7 +504,7 @@ class _CreateAnnouncementPageState extends State<CreateAnnouncementPage> {
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
-                  onPressed: _isSubmitting ? null : _submitAnnouncement,
+                  onPressed: _isSubmitting ? null : _createAnnouncement,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFF8B5CF6),
                     padding: const EdgeInsets.symmetric(vertical: 14),

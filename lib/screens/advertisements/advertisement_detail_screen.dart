@@ -7,6 +7,7 @@ import '../../utils/date_formatter.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'edit_advertisement_screen.dart';
 import 'package:firebase_storage/firebase_storage.dart';
+import 'package:path/path.dart' as path;
 
 class AdvertisementDetailScreen extends StatefulWidget {
   final String advertisementId;
@@ -125,17 +126,9 @@ class _AdvertisementDetailScreenState extends State<AdvertisementDetailScreen> {
         _isLoading = true;
       });
 
-      // Delete images from storage
-      final imageUrls = List<String>.from(_advertisement!['imageUrls'] ?? []);
-      for (String url in imageUrls) {
-        try {
-          final ref = FirebaseStorage.instance.refFromURL(url);
-          await ref.delete();
-        } catch (e) {
-          print('Error deleting image: $e');
-        }
-      }
-
+      // Note: We don't need to delete images from Firebase Storage anymore
+      // as we're using Cloudinary for image storage
+      
       // Delete document from Firestore
       await _firestore
           .collection('advertisements')
@@ -160,6 +153,93 @@ class _AdvertisementDetailScreenState extends State<AdvertisementDetailScreen> {
           _isLoading = false;
         });
       }
+    }
+  }
+
+  IconData _getDocumentIcon(String documentUrl) {
+    try {
+      // Extract filename from Cloudinary URL
+      Uri uri = Uri.parse(documentUrl);
+      String filename = uri.pathSegments.last;
+      
+      // Check if there's a format/extension in the URL params
+      String format = '';
+      if (uri.queryParameters.containsKey('format')) {
+        format = uri.queryParameters['format']!.toLowerCase();
+      } else {
+        // Try to extract extension from filename
+        final extensionIndex = filename.lastIndexOf('.');
+        if (extensionIndex != -1 && extensionIndex < filename.length - 1) {
+          format = filename.substring(extensionIndex + 1).toLowerCase();
+        }
+      }
+      
+      // Determine icon based on format
+      switch (format) {
+        case 'pdf':
+          return Icons.picture_as_pdf;
+        case 'doc':
+        case 'docx':
+          return Icons.description;
+        case 'xls':
+        case 'xlsx':
+        case 'csv':
+          return Icons.table_chart;
+        case 'ppt':
+        case 'pptx':
+          return Icons.slideshow;
+        case 'txt':
+          return Icons.text_snippet;
+        default:
+          return Icons.insert_drive_file;
+      }
+    } catch (e) {
+      print('Error getting document icon: $e');
+      return Icons.insert_drive_file;
+    }
+  }
+
+  String _getDocumentTypeName(String documentUrl) {
+    try {
+      // Extract filename from Cloudinary URL
+      Uri uri = Uri.parse(documentUrl);
+      String filename = uri.pathSegments.last;
+      
+      // Check if there's a format in the URL params
+      String format = '';
+      if (uri.queryParameters.containsKey('format')) {
+        format = uri.queryParameters['format']!.toLowerCase();
+      } else {
+        // Try to extract extension from filename
+        final extensionIndex = filename.lastIndexOf('.');
+        if (extensionIndex != -1 && extensionIndex < filename.length - 1) {
+          format = filename.substring(extensionIndex + 1).toLowerCase();
+        }
+      }
+      
+      // Determine document type based on format
+      switch (format) {
+        case 'pdf':
+          return 'PDF Document';
+        case 'doc':
+        case 'docx':
+          return 'Word Document';
+        case 'xls':
+        case 'xlsx':
+          return 'Excel Spreadsheet';
+        case 'csv':
+          return 'CSV File';
+        case 'ppt':
+        case 'pptx':
+          return 'PowerPoint Presentation';
+        case 'txt':
+          return 'Text Document';
+        default:
+          return 'Business Document';
+      }
+    } catch (e) {
+      print('Error getting document type: $e');
+      return 'Business Document';
     }
   }
 
@@ -457,15 +537,48 @@ class _AdvertisementDetailScreenState extends State<AdvertisementDetailScreen> {
                       ),
                     ),
                     const SizedBox(height: 8),
-                    TextButton.icon(
-                      onPressed: () => _launchUrl(documentUrl),
-                      icon: const Icon(Icons.description),
-                      label: const Text('View Document'),
-                      style: TextButton.styleFrom(
-                        foregroundColor: AppTheme.primaryColor,
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 12,
+                    Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: Colors.grey[300]!),
+                        color: Colors.grey[50],
+                      ),
+                      child: InkWell(
+                        onTap: () => _launchUrl(documentUrl),
+                        child: Row(
+                          children: [
+                            Icon(
+                              _getDocumentIcon(documentUrl),
+                              size: 36,
+                              color: AppTheme.primaryColor,
+                            ),
+                            const SizedBox(width: 16),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    _getDocumentTypeName(documentUrl),
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 16,
+                                    ),
+                                  ),
+                                  const Text(
+                                    'Tap to view document',
+                                    style: TextStyle(
+                                      color: Colors.grey,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            Icon(
+                              Icons.open_in_new,
+                              color: AppTheme.primaryColor,
+                            ),
+                          ],
                         ),
                       ),
                     ),
