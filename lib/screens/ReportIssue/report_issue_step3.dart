@@ -59,19 +59,20 @@ class _ReportIssueStep3State extends State<ReportIssueStep3> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: const Color(0xFF1A365D),
       appBar: AppBar(
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
+          icon: const Icon(Icons.arrow_back, color: Colors.white),
           onPressed: () => Navigator.pop(context),
         ),
-        title: const Text('Report an Issue'),
-        backgroundColor: Colors.white,
-        foregroundColor: Colors.black,
+        title: const Text('Report an Issue',
+            style: TextStyle(color: Colors.white)),
+        backgroundColor: const Color(0xFF1A365D),
+        foregroundColor: Colors.white,
         elevation: 0,
       ),
       body: Column(
         children: [
-          // Progress indicator
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
             child: Column(
@@ -80,22 +81,33 @@ class _ReportIssueStep3State extends State<ReportIssueStep3> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    const Text('Step 3 of 3'),
-                    Text('100% Complete'),
+                    const Text('Step 3 of 3',
+                        style: TextStyle(color: Colors.white)),
+                    const Text('100% Complete',
+                        style: TextStyle(color: Colors.white)),
                   ],
                 ),
                 const SizedBox(height: 8),
-                LinearProgressIndicator(
-                  value: 1.0,
-                  backgroundColor: Colors.grey[200],
-                  color: Colors.green,
-                  minHeight: 5,
+                Container(
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(4),
+                    gradient: const LinearGradient(
+                      colors: [Color(0xFF1E3A8A), Color(0xFF1A365D)],
+                      begin: Alignment.centerLeft,
+                      end: Alignment.centerRight,
+                    ),
+                  ),
+                  child: LinearProgressIndicator(
+                    value: 1.0,
+                    backgroundColor: Colors.white.withOpacity(0.1),
+                    valueColor:
+                        const AlwaysStoppedAnimation<Color>(Colors.transparent),
+                    minHeight: 5,
+                  ),
                 ),
               ],
             ),
           ),
-
-          // Main content
           Expanded(
             child: Padding(
               padding: const EdgeInsets.all(20.0),
@@ -107,11 +119,10 @@ class _ReportIssueStep3State extends State<ReportIssueStep3> {
                     style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
+                      color: Colors.white,
                     ),
                   ),
                   const SizedBox(height: 20),
-
-                  // Photo grid
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: List.generate(3, (index) {
@@ -121,33 +132,36 @@ class _ReportIssueStep3State extends State<ReportIssueStep3> {
                           width: 90,
                           height: 90,
                           decoration: BoxDecoration(
-                            color: Colors.grey[200],
+                            color: const Color(0xFF1E3A8A),
                             borderRadius: BorderRadius.circular(8),
-                            border: Border.all(color: Colors.grey.shade300),
+                            border: Border.all(
+                                color: Colors.white.withOpacity(0.3)),
+                            gradient: const LinearGradient(
+                              colors: [Color(0xFF1E3A8A), Color(0xFF1A365D)],
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                            ),
                           ),
                           child: _photos[index] != null
                               ? ClipRRect(
-                            borderRadius: BorderRadius.circular(8),
-                            child: Image.file(
-                              File(_photos[index]!.path),
-                              fit: BoxFit.cover,
-                            ),
-                          )
+                                  borderRadius: BorderRadius.circular(8),
+                                  child: Image.file(
+                                    File(_photos[index]!.path),
+                                    fit: BoxFit.cover,
+                                  ),
+                                )
                               : index == 2
-                              ? const Icon(
-                            Icons.camera_alt,
-                            color: Colors.grey,
-                            size: 32,
-                          )
-                              : null,
+                                  ? const Icon(
+                                      Icons.camera_alt,
+                                      color: Colors.white70,
+                                      size: 32,
+                                    )
+                                  : null,
                         ),
                       );
                     }),
                   ),
-
                   const Spacer(),
-
-                  // Navigation buttons
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
@@ -155,16 +169,45 @@ class _ReportIssueStep3State extends State<ReportIssueStep3> {
                         onPressed: () {
                           Navigator.pop(context);
                         },
+                        style: TextButton.styleFrom(
+                          foregroundColor: Colors.white70,
+                        ),
                         child: const Text('Back'),
                       ),
-                      ElevatedButton(
-                        onPressed: _previewReport,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.teal,
-                          foregroundColor: Colors.white,
-                          minimumSize: const Size(120, 40),
+                      SizedBox(
+                        width: 120,
+                        height: 48,
+                        child: ElevatedButton(
+                          onPressed: _previewReport,
+                          style: ElevatedButton.styleFrom(
+                            padding: EdgeInsets.zero,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(24),
+                            ),
+                            backgroundColor: Colors.transparent,
+                            shadowColor: Colors.transparent,
+                          ),
+                          child: Ink(
+                            decoration: BoxDecoration(
+                              gradient: const LinearGradient(
+                                colors: [Color(0xFF1E3A8A), Color(0xFF1A365D)],
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
+                              ),
+                              borderRadius: BorderRadius.circular(24),
+                            ),
+                            child: const Center(
+                              child: Text(
+                                'Review Report',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 16,
+                                ),
+                              ),
+                            ),
+                          ),
                         ),
-                        child: const Text('Review Report'),
                       ),
                     ],
                   ),

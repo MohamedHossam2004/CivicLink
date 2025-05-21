@@ -44,12 +44,12 @@ class _AnnouncementDetailScreenState extends State<AnnouncementDetailScreen> {
       try {
         // Refresh token to ensure we have the latest permissions
         await user.getIdToken(true);
-        
+
         final userDoc = await FirebaseFirestore.instance
             .collection('users')
             .doc(user.uid)
             .get();
-        
+
         final userType = userDoc.data()?['type'];
         print('User type: $userType');
 
@@ -57,7 +57,8 @@ class _AnnouncementDetailScreenState extends State<AnnouncementDetailScreen> {
           setState(() {
             // Check for both lowercase and uppercase variants for better compatibility
             _isAdmin = userType == 'admin' || userType == 'Admin';
-            _isAdvertiser = userType == 'advertiser' || userType == 'Advertiser';
+            _isAdvertiser =
+                userType == 'advertiser' || userType == 'Advertiser';
           });
         }
       } catch (e) {
@@ -72,18 +73,19 @@ class _AnnouncementDetailScreenState extends State<AnnouncementDetailScreen> {
       final user = _authService.currentUser;
       if (user == null) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('You must be logged in to delete announcements')),
+          const SnackBar(
+              content: Text('You must be logged in to delete announcements')),
         );
         return;
       }
-      
+
       try {
         await user.getIdToken(true);
       } catch (e) {
         print('Error refreshing token: $e');
         // Continue anyway as this is just a precaution
       }
-      
+
       // Show confirmation dialog
       final bool? confirm = await showDialog<bool>(
         context: context,
@@ -114,7 +116,7 @@ class _AnnouncementDetailScreenState extends State<AnnouncementDetailScreen> {
           .collection('users')
           .doc(user.uid)
           .get();
-      
+
       final userType = userDoc.data()?['type'];
       if (userType != 'admin' && userType != 'Admin') {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -241,7 +243,7 @@ class _AnnouncementDetailScreenState extends State<AnnouncementDetailScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Announcement'),
-        backgroundColor: const Color(0xFF8B5CF6),
+        backgroundColor: const Color(0xFF1A365D),
         foregroundColor: Colors.white,
         elevation: 0,
         leading: IconButton(
@@ -253,7 +255,7 @@ class _AnnouncementDetailScreenState extends State<AnnouncementDetailScreen> {
         actions: [
           if (_isAdmin) ...[
             IconButton(
-              icon: const Icon(Icons.edit),
+              icon: const Icon(Icons.edit, color: Colors.white),
               onPressed: () {
                 Navigator.push(
                   context,
@@ -301,12 +303,13 @@ class _AnnouncementDetailScreenState extends State<AnnouncementDetailScreen> {
         stream: _service.getAnnouncementById(widget.announcementId).asStream(),
         builder: (context, snapshot) {
           if (snapshot.hasError) {
-            return Center(child: Text('Error: ${snapshot.error}'));
+            return Center(child: Text('Error: [38;5;9m${snapshot.error}[0m'));
           }
 
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator(
-              valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF8B5CF6)),
+            return const Center(
+                child: CircularProgressIndicator(
+              valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF1A365D)),
             ));
           }
 
@@ -318,241 +321,250 @@ class _AnnouncementDetailScreenState extends State<AnnouncementDetailScreen> {
           // Get the image URLs directly from the announcement model
           final List<String> imageUrls = announcement.imageUrls;
 
-          return Column(
-            children: [
-              Expanded(
-                child: CustomScrollView(
-                  slivers: [
-                    // Image Carousel
-                    if (imageUrls.isNotEmpty)
-                      SliverToBoxAdapter(
-                        child: Container(
-                          height: 250,
-                          child: Stack(
-                            children: [
-                              PageView.builder(
-                                itemCount: imageUrls.length,
-                                itemBuilder: (context, index) {
-                                  return Image.network(
-                                    imageUrls[index],
-                                    fit: BoxFit.cover,
-                                    errorBuilder: (context, error, stackTrace) {
-                                      return Container(
-                                        color: Colors.grey[100],
-                                        child: Center(
-                                          child: Icon(
-                                            Icons.image_not_supported,
-                                            size: 50,
-                                            color: Colors.grey[400],
-                                          ),
-                                        ),
-                                      );
-                                    },
-                                  );
-                                },
-                              ),
-                              Positioned(
-                                bottom: 0,
-                                left: 0,
-                                right: 0,
-                                child: Container(
-                                  height: 80,
-                                  decoration: BoxDecoration(
-                                    gradient: LinearGradient(
-                                      begin: Alignment.bottomCenter,
-                                      end: Alignment.topCenter,
-                                      colors: [
-                                        Colors.black.withOpacity(0.7),
-                                        Colors.transparent,
-                                      ],
-                                    ),
-                                  ),
-                                ),
-                              ),
-                              Positioned(
-                                bottom: 20,
-                                left: 20,
-                                child: Container(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 12,
-                                    vertical: 6,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: const Color(0xFF8B5CF6),
-                                    borderRadius: BorderRadius.circular(20),
-                                  ),
-                                  child: Text(
-                                    announcement.label,
-                                    style: const TextStyle(
-                                      color: Colors.white,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-
-                    // Content
-                    SliverToBoxAdapter(
-                      child: Padding(
-                        padding: const EdgeInsets.all(16),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            // Title and Date
-                            Text(
-                              announcement.name,
-                              style: const TextStyle(
-                                fontSize: 24,
-                                fontWeight: FontWeight.bold,
-                                color: Color(0xFF1E293B),
-                              ),
-                            ),
-                            const SizedBox(height: 8),
-                            Row(
+          return Container(
+            color: const Color(0xFF1A365D),
+            child: Column(
+              children: [
+                Expanded(
+                  child: CustomScrollView(
+                    slivers: [
+                      // Image Carousel
+                      if (imageUrls.isNotEmpty)
+                        SliverToBoxAdapter(
+                          child: Container(
+                            height: 250,
+                            child: Stack(
                               children: [
-                                const Icon(
-                                  Icons.calendar_today,
-                                  size: 16,
-                                  color: Color(0xFF8B5CF6),
+                                PageView.builder(
+                                  itemCount: imageUrls.length,
+                                  itemBuilder: (context, index) {
+                                    return Image.network(
+                                      imageUrls[index],
+                                      fit: BoxFit.cover,
+                                      errorBuilder:
+                                          (context, error, stackTrace) {
+                                        return Container(
+                                          color: Colors.grey[900],
+                                          child: Center(
+                                            child: Icon(
+                                              Icons.image_not_supported,
+                                              size: 50,
+                                              color:
+                                                  Colors.white.withOpacity(0.3),
+                                            ),
+                                          ),
+                                        );
+                                      },
+                                    );
+                                  },
                                 ),
-                                const SizedBox(width: 6),
-                                Text(
-                                  DateFormatter.formatWithTime(announcement.createdOn),
-                                  style: TextStyle(
-                                    color: Colors.grey[600],
-                                    fontSize: 14,
+                                Positioned(
+                                  bottom: 0,
+                                  left: 0,
+                                  right: 0,
+                                  child: Container(
+                                    height: 80,
+                                    decoration: BoxDecoration(
+                                      gradient: LinearGradient(
+                                        begin: Alignment.bottomCenter,
+                                        end: Alignment.topCenter,
+                                        colors: [
+                                          Colors.black.withOpacity(0.7),
+                                          Colors.transparent,
+                                        ],
+                                      ),
+                                    ),
                                   ),
                                 ),
-                                const SizedBox(width: 16),
-                                const Icon(
-                                  Icons.business,
-                                  size: 16,
-                                  color: Color(0xFF8B5CF6),
-                                ),
-                                const SizedBox(width: 6),
-                                Text(
-                                  announcement.department,
-                                  style: TextStyle(
-                                    color: Colors.grey[600],
-                                    fontSize: 14,
+                                Positioned(
+                                  bottom: 20,
+                                  left: 20,
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 12,
+                                      vertical: 6,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: const Color(0xFF1E3A8A),
+                                      borderRadius: BorderRadius.circular(20),
+                                    ),
+                                    child: Text(
+                                      announcement.label,
+                                      style: const TextStyle(
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
                                   ),
                                 ),
                               ],
                             ),
-                            
-                            // Time Period
-                            Container(
-                              margin: const EdgeInsets.symmetric(vertical: 16),
-                              padding: const EdgeInsets.all(12),
-                              decoration: BoxDecoration(
-                                gradient: LinearGradient(
-                                  colors: [
-                                    const Color(0xFF8B5CF6).withOpacity(0.1),
-                                    const Color(0xFF6366F1).withOpacity(0.1),
-                                  ],
-                                  begin: Alignment.topLeft,
-                                  end: Alignment.bottomRight,
+                          ),
+                        ),
+
+                      // Content
+                      SliverToBoxAdapter(
+                        child: Padding(
+                          padding: const EdgeInsets.all(16),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              // Title and Date
+                              Text(
+                                announcement.name,
+                                style: const TextStyle(
+                                  fontSize: 24,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.white,
                                 ),
-                                borderRadius: BorderRadius.circular(12),
-                                border: Border.all(
-                                  color: const Color(0xFF8B5CF6).withOpacity(0.2),
-                                ),
                               ),
-                              child: Row(
+                              const SizedBox(height: 8),
+                              Row(
                                 children: [
-                                  CircleAvatar(
-                                    backgroundColor: const Color(0xFF8B5CF6).withOpacity(0.2),
-                                    child: const Icon(
-                                      Icons.access_time,
-                                      color: Color(0xFF8B5CF6),
-                                    ),
+                                  const Icon(
+                                    Icons.calendar_today,
+                                    size: 16,
+                                    color: Colors.white70,
                                   ),
-                                  const SizedBox(width: 12),
-                                  Expanded(
-                                    child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          'From: ${DateFormatter.formatWithTime(announcement.startTime)}',
-                                          style: const TextStyle(
-                                            fontWeight: FontWeight.bold,
-                                            color: Color(0xFF1E293B),
-                                          ),
-                                        ),
-                                        const SizedBox(height: 4),
-                                        Text(
-                                          'To: ${DateFormatter.formatWithTime(announcement.endTime)}',
-                                          style: const TextStyle(
-                                            fontWeight: FontWeight.bold,
-                                            color: Color(0xFF1E293B),
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            
-                            // Main content box
-                            Container(
-                              padding: const EdgeInsets.all(16),
-                              decoration: BoxDecoration(
-                                color: Colors.white,
-                                borderRadius: BorderRadius.circular(12),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: Colors.black.withOpacity(0.05),
-                                    offset: const Offset(0, 2),
-                                    blurRadius: 8,
-                                  ),
-                                ],
-                              ),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  // Description
-                                  const Text(
-                                    'Description',
-                                    style: TextStyle(
-                                      fontSize: 18,
-                                      fontWeight: FontWeight.bold,
-                                      color: Color(0xFF1E293B),
-                                    ),
-                                  ),
-                                  const SizedBox(height: 8),
+                                  const SizedBox(width: 6),
                                   Text(
-                                    announcement.description,
-                                    style: const TextStyle(
-                                      fontSize: 16,
-                                      height: 1.5,
-                                      color: Color(0xFF334155),
+                                    DateFormatter.formatWithTime(
+                                        announcement.createdOn),
+                                    style: TextStyle(
+                                      color: Colors.white.withOpacity(0.7),
+                                      fontSize: 14,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 16),
+                                  const Icon(
+                                    Icons.business,
+                                    size: 16,
+                                    color: Colors.white70,
+                                  ),
+                                  const SizedBox(width: 6),
+                                  Text(
+                                    announcement.department,
+                                    style: TextStyle(
+                                      color: Colors.white.withOpacity(0.7),
+                                      fontSize: 14,
                                     ),
                                   ),
                                 ],
                               ),
-                            ),
-                            
-                            const SizedBox(height: 24),
-                            _buildContactInfo(announcement),
-                            const SizedBox(height: 20),
-                            _buildActionButtons(),
-                            const Divider(height: 32),
-                            _buildCommentsSection(),
-                          ],
+
+                              // Time Period
+                              Container(
+                                margin:
+                                    const EdgeInsets.symmetric(vertical: 16),
+                                padding: const EdgeInsets.all(12),
+                                decoration: BoxDecoration(
+                                  gradient: LinearGradient(
+                                    colors: [
+                                      const Color(0xFF1E3A8A).withOpacity(0.7),
+                                      const Color(0xFF1A365D).withOpacity(0.7),
+                                    ],
+                                    begin: Alignment.topLeft,
+                                    end: Alignment.bottomRight,
+                                  ),
+                                  borderRadius: BorderRadius.circular(12),
+                                  border: Border.all(
+                                    color: Colors.white.withOpacity(0.2),
+                                  ),
+                                ),
+                                child: Row(
+                                  children: [
+                                    CircleAvatar(
+                                      backgroundColor:
+                                          Colors.white.withOpacity(0.1),
+                                      child: const Icon(
+                                        Icons.access_time,
+                                        color: Colors.white,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 12),
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            'From: ${DateFormatter.formatWithTime(announcement.startTime)}',
+                                            style: const TextStyle(
+                                              fontWeight: FontWeight.bold,
+                                              color: Colors.white,
+                                            ),
+                                          ),
+                                          const SizedBox(height: 4),
+                                          Text(
+                                            'To: ${DateFormatter.formatWithTime(announcement.endTime)}',
+                                            style: const TextStyle(
+                                              fontWeight: FontWeight.bold,
+                                              color: Colors.white,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+
+                              // Main content box
+                              Container(
+                                padding: const EdgeInsets.all(16),
+                                decoration: BoxDecoration(
+                                  color: Colors.white.withOpacity(0.05),
+                                  borderRadius: BorderRadius.circular(12),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.black.withOpacity(0.05),
+                                      offset: const Offset(0, 2),
+                                      blurRadius: 8,
+                                    ),
+                                  ],
+                                ),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    // Description
+                                    const Text(
+                                      'Description',
+                                      style: TextStyle(
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.white,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 8),
+                                    Text(
+                                      announcement.description,
+                                      style: const TextStyle(
+                                        fontSize: 16,
+                                        height: 1.5,
+                                        color: Colors.white70,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+
+                              const SizedBox(height: 24),
+                              _buildContactInfo(announcement),
+                              const SizedBox(height: 20),
+                              _buildActionButtons(),
+                              const Divider(height: 32, color: Colors.white24),
+                              _buildCommentsSection(),
+                            ],
+                          ),
                         ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
-              ),
-              if (!_isAdmin && !_isAdvertiser)
-                CommentInputWidget(announcementId: widget.announcementId),
-            ],
+                if (!_isAdmin && !_isAdvertiser)
+                  CommentInputWidget(announcementId: widget.announcementId),
+              ],
+            ),
           );
         },
       ),
@@ -565,8 +577,8 @@ class _AnnouncementDetailScreenState extends State<AnnouncementDetailScreen> {
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: [
-            Colors.blue.shade50,
-            Colors.purple.shade50,
+            const Color(0xFF1E3A8A).withOpacity(0.7),
+            const Color(0xFF1A365D).withOpacity(0.7),
           ],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
@@ -588,16 +600,16 @@ class _AnnouncementDetailScreenState extends State<AnnouncementDetailScreen> {
             style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.bold,
-              color: Color(0xFF1E293B),
+              color: Colors.white,
             ),
           ),
           const SizedBox(height: 16),
-          
+
           // Phone
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: Colors.white.withOpacity(0.05),
               borderRadius: BorderRadius.circular(8),
             ),
             child: Row(
@@ -605,12 +617,12 @@ class _AnnouncementDetailScreenState extends State<AnnouncementDetailScreen> {
                 Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: const Color(0xFF8B5CF6).withOpacity(0.1),
+                    color: Colors.white.withOpacity(0.1),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: const Icon(
                     Icons.phone,
-                    color: Color(0xFF8B5CF6),
+                    color: Colors.white,
                   ),
                 ),
                 const SizedBox(width: 12),
@@ -620,7 +632,7 @@ class _AnnouncementDetailScreenState extends State<AnnouncementDetailScreen> {
                     const Text(
                       'Phone Number',
                       style: TextStyle(
-                        color: Color(0xFF64748B),
+                        color: Colors.white70,
                         fontSize: 12,
                       ),
                     ),
@@ -629,7 +641,7 @@ class _AnnouncementDetailScreenState extends State<AnnouncementDetailScreen> {
                       style: const TextStyle(
                         fontWeight: FontWeight.bold,
                         fontSize: 16,
-                        color: Color(0xFF1E293B),
+                        color: Colors.white,
                       ),
                     ),
                   ],
@@ -637,14 +649,14 @@ class _AnnouncementDetailScreenState extends State<AnnouncementDetailScreen> {
               ],
             ),
           ),
-          
+
           const SizedBox(height: 12),
-          
+
           // Email
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: Colors.white.withOpacity(0.05),
               borderRadius: BorderRadius.circular(8),
             ),
             child: Row(
@@ -652,12 +664,12 @@ class _AnnouncementDetailScreenState extends State<AnnouncementDetailScreen> {
                 Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: const Color(0xFF8B5CF6).withOpacity(0.1),
+                    color: Colors.white.withOpacity(0.1),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: const Icon(
                     Icons.email,
-                    color: Color(0xFF8B5CF6),
+                    color: Colors.white,
                   ),
                 ),
                 const SizedBox(width: 12),
@@ -667,7 +679,7 @@ class _AnnouncementDetailScreenState extends State<AnnouncementDetailScreen> {
                     const Text(
                       'Email Address',
                       style: TextStyle(
-                        color: Color(0xFF64748B),
+                        color: Colors.white70,
                         fontSize: 12,
                       ),
                     ),
@@ -676,7 +688,7 @@ class _AnnouncementDetailScreenState extends State<AnnouncementDetailScreen> {
                       style: const TextStyle(
                         fontWeight: FontWeight.bold,
                         fontSize: 16,
-                        color: Color(0xFF1E293B),
+                        color: Colors.white,
                       ),
                     ),
                   ],
@@ -684,14 +696,15 @@ class _AnnouncementDetailScreenState extends State<AnnouncementDetailScreen> {
               ],
             ),
           ),
-          
+
           // Document
-          if (announcement.documentUrl != null && announcement.documentUrl!.isNotEmpty) ...[
+          if (announcement.documentUrl != null &&
+              announcement.documentUrl!.isNotEmpty) ...[
             const SizedBox(height: 12),
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: Colors.white.withOpacity(0.05),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: InkWell(
@@ -702,12 +715,12 @@ class _AnnouncementDetailScreenState extends State<AnnouncementDetailScreen> {
                     Container(
                       padding: const EdgeInsets.all(8),
                       decoration: BoxDecoration(
-                        color: const Color(0xFF8B5CF6).withOpacity(0.1),
+                        color: Colors.white.withOpacity(0.1),
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: Icon(
                         _getDocumentIcon(announcement.documentUrl!),
-                        color: const Color(0xFF8B5CF6),
+                        color: Colors.white,
                       ),
                     ),
                     const SizedBox(width: 12),
@@ -718,7 +731,7 @@ class _AnnouncementDetailScreenState extends State<AnnouncementDetailScreen> {
                           const Text(
                             'Document',
                             style: TextStyle(
-                              color: Color(0xFF64748B),
+                              color: Colors.white70,
                               fontSize: 12,
                             ),
                           ),
@@ -727,7 +740,7 @@ class _AnnouncementDetailScreenState extends State<AnnouncementDetailScreen> {
                             style: const TextStyle(
                               fontWeight: FontWeight.bold,
                               fontSize: 16,
-                              color: Color(0xFF1E293B),
+                              color: Colors.white,
                             ),
                           ),
                         ],
@@ -735,7 +748,7 @@ class _AnnouncementDetailScreenState extends State<AnnouncementDetailScreen> {
                     ),
                     const Icon(
                       Icons.open_in_new,
-                      color: Color(0xFF8B5CF6),
+                      color: Colors.white,
                     ),
                   ],
                 ),
@@ -752,7 +765,7 @@ class _AnnouncementDetailScreenState extends State<AnnouncementDetailScreen> {
       // Extract filename from Cloudinary URL
       Uri uri = Uri.parse(documentUrl);
       String filename = uri.pathSegments.last;
-      
+
       // Check if there's a format/extension in the URL params
       String format = '';
       if (uri.queryParameters.containsKey('format')) {
@@ -764,7 +777,7 @@ class _AnnouncementDetailScreenState extends State<AnnouncementDetailScreen> {
           format = filename.substring(extensionIndex + 1).toLowerCase();
         }
       }
-      
+
       // Determine icon based on format
       switch (format) {
         case 'pdf':
@@ -795,7 +808,7 @@ class _AnnouncementDetailScreenState extends State<AnnouncementDetailScreen> {
       // Extract filename from Cloudinary URL
       Uri uri = Uri.parse(documentUrl);
       String filename = uri.pathSegments.last;
-      
+
       // Check if there's a format in the URL params
       String format = '';
       if (uri.queryParameters.containsKey('format')) {
@@ -807,7 +820,7 @@ class _AnnouncementDetailScreenState extends State<AnnouncementDetailScreen> {
           format = filename.substring(extensionIndex + 1).toLowerCase();
         }
       }
-      
+
       // Determine document type based on format
       switch (format) {
         case 'pdf':
@@ -889,7 +902,7 @@ class _AnnouncementDetailScreenState extends State<AnnouncementDetailScreen> {
           children: [
             Icon(
               icon,
-              color: isActive ? Colors.red : Colors.grey.shade700,
+              color: isActive ? const Color(0xFF1E3A8A) : Colors.white70,
               size: 24,
             ),
             const SizedBox(height: 4),
@@ -897,7 +910,7 @@ class _AnnouncementDetailScreenState extends State<AnnouncementDetailScreen> {
               label,
               style: TextStyle(
                 fontSize: 12,
-                color: isActive ? Colors.red : Colors.grey.shade700,
+                color: isActive ? const Color(0xFF1E3A8A) : Colors.white70,
               ),
             ),
           ],
@@ -915,7 +928,10 @@ class _AnnouncementDetailScreenState extends State<AnnouncementDetailScreen> {
         }
 
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Center(child: CircularProgressIndicator());
+          return const Center(
+              child: CircularProgressIndicator(
+                  valueColor:
+                      AlwaysStoppedAnimation<Color>(Color(0xFF1A365D))));
         }
 
         final comments = snapshot.data ?? [];
@@ -928,6 +944,7 @@ class _AnnouncementDetailScreenState extends State<AnnouncementDetailScreen> {
               style: const TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
+                color: Colors.white,
               ),
             ),
             const SizedBox(height: 16),
@@ -938,7 +955,7 @@ class _AnnouncementDetailScreenState extends State<AnnouncementDetailScreen> {
                   child: Text(
                     'No comments yet. Be the first to comment!',
                     style: TextStyle(
-                      color: Colors.grey,
+                      color: Colors.white54,
                       fontStyle: FontStyle.italic,
                     ),
                   ),
@@ -949,7 +966,8 @@ class _AnnouncementDetailScreenState extends State<AnnouncementDetailScreen> {
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),
                 itemCount: comments.length,
-                separatorBuilder: (context, index) => const Divider(height: 32),
+                separatorBuilder: (context, index) =>
+                    const Divider(height: 32, color: Colors.white24),
                 itemBuilder: (context, index) {
                   final comment = comments[index];
                   return _buildCommentItem(comment);
@@ -970,11 +988,11 @@ class _AnnouncementDetailScreenState extends State<AnnouncementDetailScreen> {
           children: [
             CircleAvatar(
               radius: 16,
-              backgroundColor: Colors.grey.shade200,
+              backgroundColor: Colors.white.withOpacity(0.1),
               child: Text(
                 comment.isAnonymous ? 'A' : comment.displayName.substring(0, 1),
-                style: TextStyle(
-                  color: Colors.grey.shade700,
+                style: const TextStyle(
+                  color: Colors.white,
                   fontWeight: FontWeight.bold,
                 ),
               ),
@@ -990,88 +1008,29 @@ class _AnnouncementDetailScreenState extends State<AnnouncementDetailScreen> {
                         comment.displayName,
                         style: const TextStyle(
                           fontWeight: FontWeight.bold,
+                          color: Colors.white,
                         ),
                       ),
+                      if (comment.isAnonymous)
+                        const Padding(
+                          padding: EdgeInsets.only(left: 8.0),
+                          child: Text(
+                            '(Anonymous)',
+                            style: TextStyle(
+                              color: Colors.white54,
+                              fontStyle: FontStyle.italic,
+                              fontSize: 12,
+                            ),
+                          ),
+                        ),
                     ],
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    DateFormatter.formatWithTime(comment.createdAt),
-                    style: const TextStyle(
-                      fontSize: 12,
-                      color: Colors.grey,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
                     comment.content,
                     style: const TextStyle(
-                      fontSize: 14,
-                      height: 1.4,
+                      color: Colors.white70,
                     ),
-                  ),
-                  const SizedBox(height: 12),
-                  Row(
-                    children: [
-                      InkWell(
-                        onTap: () {
-                          _likeComment(comment.id);
-                        },
-                        borderRadius: BorderRadius.circular(4),
-                        child: Padding(
-                          padding: const EdgeInsets.all(4),
-                          child: Row(
-                            children: [
-                              Icon(
-                                Icons.thumb_up_outlined,
-                                size: 16,
-                                color: Colors.grey.shade700,
-                              ),
-                              const SizedBox(width: 4),
-                              Text(
-                                comment.likesCount.toString(),
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  color: Colors.grey.shade700,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 16),
-                      InkWell(
-                        onTap: () {
-                          // TODO: Implement reply functionality
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                                content: Text(
-                                    'Reply functionality not implemented')),
-                          );
-                        },
-                        borderRadius: BorderRadius.circular(4),
-                        child: Padding(
-                          padding: const EdgeInsets.all(4),
-                          child: Row(
-                            children: [
-                              Icon(
-                                Icons.reply,
-                                size: 16,
-                                color: Colors.grey.shade700,
-                              ),
-                              const SizedBox(width: 4),
-                              Text(
-                                'Reply',
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  color: Colors.grey.shade700,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ],
                   ),
                 ],
               ),
@@ -1180,10 +1139,10 @@ class _CommentInputWidgetState extends State<CommentInputWidget> {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: const Color(0xFF1A365D),
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.shade200,
+            color: Colors.black.withOpacity(0.2),
             blurRadius: 4,
             offset: const Offset(0, -2),
           ),
@@ -1200,8 +1159,19 @@ class _CommentInputWidgetState extends State<CommentInputWidget> {
                     _isAnonymous = value ?? false;
                   });
                 },
+                fillColor: MaterialStateProperty.resolveWith<Color>(
+                    (Set<MaterialState> states) {
+                  if (states.contains(MaterialState.selected)) {
+                    return const Color(0xFF1E3A8A);
+                  }
+                  return Colors.white.withOpacity(0.2);
+                }),
+                checkColor: Colors.white,
               ),
-              const Text('Post as Anonymous'),
+              const Text(
+                'Post as Anonymous',
+                style: TextStyle(color: Colors.white),
+              ),
             ],
           ),
           Row(
@@ -1210,10 +1180,12 @@ class _CommentInputWidgetState extends State<CommentInputWidget> {
                 child: TextField(
                   controller: _commentController,
                   focusNode: _focusNode,
+                  style: const TextStyle(color: Colors.white),
                   decoration: InputDecoration(
                     hintText: 'Add Your Comment',
+                    hintStyle: TextStyle(color: Colors.white.withOpacity(0.5)),
                     filled: true,
-                    fillColor: Colors.grey.shade100,
+                    fillColor: Colors.white.withOpacity(0.1),
                     contentPadding: const EdgeInsets.symmetric(
                         horizontal: 16, vertical: 12),
                     border: OutlineInputBorder(
@@ -1226,7 +1198,8 @@ class _CommentInputWidgetState extends State<CommentInputWidget> {
                     ),
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(24),
-                      borderSide: BorderSide.none,
+                      borderSide:
+                          BorderSide(color: Colors.white.withOpacity(0.2)),
                     ),
                   ),
                   maxLines: null,
@@ -1238,7 +1211,7 @@ class _CommentInputWidgetState extends State<CommentInputWidget> {
               ElevatedButton(
                 onPressed: _isSubmitting ? null : _addComment,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.purple,
+                  backgroundColor: const Color(0xFF1E3A8A),
                   foregroundColor: Colors.white,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(24),

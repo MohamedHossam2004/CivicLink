@@ -15,33 +15,29 @@ class BottomNavBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 10,
-            offset: const Offset(0, -5),
-          ),
-        ],
-        border: Border(
-          top: BorderSide(
-            color: Colors.grey.shade200,
-            width: 1,
-          ),
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            Color(0xFF1A365D),
+            Color(0xFF1E3A8A),
+          ],
         ),
       ),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 8),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceAround,
-          children: [
-            _buildNavItem(0, 'Home', Icons.home),
-            _buildNavItem(1, 'Tasks', Icons.task),
-            _buildNavItem(2, 'Chat', Icons.chat_bubble_outline),
-            _buildNavItem(3, 'Calendar', Icons.calendar_today),
-            _buildNavItem(4, 'Profile', Icons.person_outline),
-          ],
+      child: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 8),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: [
+              _buildNavItem(0, 'Home', Icons.home),
+              _buildNavItem(1, 'Tasks', Icons.task),
+              _buildNavItem(2, 'Chat', Icons.chat_bubble_outline),
+              _buildNavItem(3, 'Calendar', Icons.calendar_today),
+              _buildNavItem(4, 'Profile', Icons.person_outline),
+            ],
+          ),
         ),
       ),
     );
@@ -59,16 +55,30 @@ class BottomNavBar extends StatelessWidget {
             width: 40,
             height: 40,
             decoration: BoxDecoration(
-              color: isSelected
-                  ? AppTheme.primaryLightColor
-                  : const Color(0xFFF1F5F9),
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: isSelected
+                    ? [
+                        const Color(0xFF1E3A8A),
+                        const Color(0xFF1A365D),
+                      ]
+                    : [
+                        Colors.white.withOpacity(0.1),
+                        Colors.white.withOpacity(0.05),
+                      ],
+              ),
               shape: BoxShape.circle,
+              border: Border.all(
+                color: isSelected
+                    ? Colors.white.withOpacity(0.3)
+                    : Colors.white.withOpacity(0.1),
+                width: 1,
+              ),
             ),
             child: Icon(
               icon,
-              color: isSelected
-                  ? AppTheme.primaryColor
-                  : AppTheme.textSecondaryColor,
+              color: isSelected ? Colors.white : Colors.white.withOpacity(0.7),
               size: 20,
             ),
           ),
@@ -77,9 +87,7 @@ class BottomNavBar extends StatelessWidget {
             label,
             style: TextStyle(
               fontSize: 12,
-              color: isSelected
-                  ? AppTheme.primaryColor
-                  : AppTheme.textSecondaryColor,
+              color: isSelected ? Colors.white : Colors.white.withOpacity(0.7),
             ),
           ),
         ],

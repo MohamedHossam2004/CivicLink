@@ -86,14 +86,16 @@ class _ReportPreviewState extends State<ReportPreview> {
         widget.photos.where((photo) => photo != null).length;
 
     return Scaffold(
+      backgroundColor: const Color(0xFF1A365D),
       appBar: AppBar(
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
+          icon: const Icon(Icons.arrow_back, color: Colors.white),
           onPressed: () => Navigator.pop(context),
         ),
-        title: const Text('Review Report'),
-        backgroundColor: Colors.white,
-        foregroundColor: Colors.black,
+        title:
+            const Text('Review Report', style: TextStyle(color: Colors.white)),
+        backgroundColor: const Color(0xFF1A365D),
+        foregroundColor: Colors.white,
         elevation: 0,
       ),
       body: Column(
@@ -109,6 +111,7 @@ class _ReportPreviewState extends State<ReportPreview> {
                     style: TextStyle(
                       fontSize: 22,
                       fontWeight: FontWeight.bold,
+                      color: Colors.white,
                     ),
                   ),
                   const SizedBox(height: 6),
@@ -116,7 +119,7 @@ class _ReportPreviewState extends State<ReportPreview> {
                     'Please review the information below before submitting your report.',
                     style: TextStyle(
                       fontSize: 14,
-                      color: Colors.grey,
+                      color: Colors.white70,
                     ),
                   ),
                   const SizedBox(height: 24),
@@ -136,7 +139,8 @@ class _ReportPreviewState extends State<ReportPreview> {
                     Container(
                       height: 150,
                       decoration: BoxDecoration(
-                        border: Border.all(color: Colors.grey.shade300),
+                        border:
+                            Border.all(color: Colors.white.withOpacity(0.3)),
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: ClipRRect(
@@ -163,6 +167,171 @@ class _ReportPreviewState extends State<ReportPreview> {
                           rotateGesturesEnabled: false,
                           tiltGesturesEnabled: false,
                           compassEnabled: false,
+                          onMapCreated: (controller) {
+                            controller.setMapStyle('''
+                              [
+                                {
+                                  "elementType": "geometry",
+                                  "stylers": [
+                                    {
+                                      "color": "#242f3e"
+                                    }
+                                  ]
+                                },
+                                {
+                                  "elementType": "labels.text.fill",
+                                  "stylers": [
+                                    {
+                                      "color": "#746855"
+                                    }
+                                  ]
+                                },
+                                {
+                                  "elementType": "labels.text.stroke",
+                                  "stylers": [
+                                    {
+                                      "color": "#242f3e"
+                                    }
+                                  ]
+                                },
+                                {
+                                  "featureType": "administrative.locality",
+                                  "elementType": "labels.text.fill",
+                                  "stylers": [
+                                    {
+                                      "color": "#d59563"
+                                    }
+                                  ]
+                                },
+                                {
+                                  "featureType": "poi",
+                                  "elementType": "labels.text.fill",
+                                  "stylers": [
+                                    {
+                                      "color": "#d59563"
+                                    }
+                                  ]
+                                },
+                                {
+                                  "featureType": "poi.park",
+                                  "elementType": "geometry",
+                                  "stylers": [
+                                    {
+                                      "color": "#263c3f"
+                                    }
+                                  ]
+                                },
+                                {
+                                  "featureType": "poi.park",
+                                  "elementType": "labels.text.fill",
+                                  "stylers": [
+                                    {
+                                      "color": "#6b9a76"
+                                    }
+                                  ]
+                                },
+                                {
+                                  "featureType": "road",
+                                  "elementType": "geometry",
+                                  "stylers": [
+                                    {
+                                      "color": "#38414e"
+                                    }
+                                  ]
+                                },
+                                {
+                                  "featureType": "road",
+                                  "elementType": "geometry.stroke",
+                                  "stylers": [
+                                    {
+                                      "color": "#212a37"
+                                    }
+                                  ]
+                                },
+                                {
+                                  "featureType": "road",
+                                  "elementType": "labels.text.fill",
+                                  "stylers": [
+                                    {
+                                      "color": "#9ca5b3"
+                                    }
+                                  ]
+                                },
+                                {
+                                  "featureType": "road.highway",
+                                  "elementType": "geometry",
+                                  "stylers": [
+                                    {
+                                      "color": "#746855"
+                                    }
+                                  ]
+                                },
+                                {
+                                  "featureType": "road.highway",
+                                  "elementType": "geometry.stroke",
+                                  "stylers": [
+                                    {
+                                      "color": "#1f2835"
+                                    }
+                                  ]
+                                },
+                                {
+                                  "featureType": "road.highway",
+                                  "elementType": "labels.text.fill",
+                                  "stylers": [
+                                    {
+                                      "color": "#f3d19c"
+                                    }
+                                  ]
+                                },
+                                {
+                                  "featureType": "transit",
+                                  "elementType": "geometry",
+                                  "stylers": [
+                                    {
+                                      "color": "#2f3948"
+                                    }
+                                  ]
+                                },
+                                {
+                                  "featureType": "transit.station",
+                                  "elementType": "labels.text.fill",
+                                  "stylers": [
+                                    {
+                                      "color": "#d59563"
+                                    }
+                                  ]
+                                },
+                                {
+                                  "featureType": "water",
+                                  "elementType": "geometry",
+                                  "stylers": [
+                                    {
+                                      "color": "#17263c"
+                                    }
+                                  ]
+                                },
+                                {
+                                  "featureType": "water",
+                                  "elementType": "labels.text.fill",
+                                  "stylers": [
+                                    {
+                                      "color": "#515c6d"
+                                    }
+                                  ]
+                                },
+                                {
+                                  "featureType": "water",
+                                  "elementType": "labels.text.stroke",
+                                  "stylers": [
+                                    {
+                                      "color": "#17263c"
+                                    }
+                                  ]
+                                }
+                              ]
+                            ''');
+                          },
                         ),
                       ),
                     ),
@@ -204,10 +373,10 @@ class _ReportPreviewState extends State<ReportPreview> {
           Container(
             padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: const Color(0xFF1A365D),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.05),
+                  color: Colors.black.withOpacity(0.2),
                   blurRadius: 10,
                   offset: const Offset(0, -5),
                 ),
@@ -220,25 +389,54 @@ class _ReportPreviewState extends State<ReportPreview> {
                   onPressed: () {
                     Navigator.pop(context);
                   },
+                  style: TextButton.styleFrom(
+                    foregroundColor: Colors.white70,
+                  ),
                   child: const Text('Back'),
                 ),
-                ElevatedButton(
-                  onPressed: _isSubmitting ? null : _submitReport,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.teal,
-                    foregroundColor: Colors.white,
-                    minimumSize: const Size(150, 45),
-                  ),
-                  child: _isSubmitting
-                      ? const SizedBox(
-                          width: 20,
-                          height: 20,
-                          child: CircularProgressIndicator(
-                            color: Colors.white,
-                            strokeWidth: 2,
+                SizedBox(
+                  width: 150,
+                  height: 45,
+                  child: ElevatedButton(
+                    onPressed: _isSubmitting ? null : _submitReport,
+                    style: ElevatedButton.styleFrom(
+                      padding: EdgeInsets.zero,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(24),
+                      ),
+                      backgroundColor: Colors.transparent,
+                      shadowColor: Colors.transparent,
+                    ),
+                    child: _isSubmitting
+                        ? const SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(
+                              color: Colors.white,
+                              strokeWidth: 2,
+                            ),
+                          )
+                        : Ink(
+                            decoration: BoxDecoration(
+                              gradient: const LinearGradient(
+                                colors: [Color(0xFF1E3A8A), Color(0xFF1A365D)],
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
+                              ),
+                              borderRadius: BorderRadius.circular(24),
+                            ),
+                            child: const Center(
+                              child: Text(
+                                'Submit Report',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 16,
+                                ),
+                              ),
+                            ),
                           ),
-                        )
-                      : const Text('Submit Report'),
+                  ),
                 ),
               ],
             ),
@@ -256,6 +454,7 @@ class _ReportPreviewState extends State<ReportPreview> {
         style: const TextStyle(
           fontSize: 16,
           fontWeight: FontWeight.bold,
+          color: Colors.white,
         ),
       ),
     );
@@ -266,11 +465,18 @@ class _ReportPreviewState extends State<ReportPreview> {
       width: double.infinity,
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: Colors.grey[50],
+        gradient: const LinearGradient(
+          colors: [Color(0xFF1E3A8A), Color(0xFF1A365D)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
         borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: Colors.grey.shade200),
+        border: Border.all(color: Colors.white.withOpacity(0.3)),
       ),
-      child: Text(content),
+      child: Text(
+        content,
+        style: const TextStyle(color: Colors.white),
+      ),
     );
   }
 }

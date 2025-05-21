@@ -285,7 +285,7 @@ class _CalendarPageState extends State<CalendarPage>
     }
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF8FAFC), // slate-50
+      backgroundColor: const Color(0xFF1A365D),
       body: SafeArea(
         child: Column(
           children: [
@@ -319,10 +319,10 @@ class _CalendarPageState extends State<CalendarPage>
     return Container(
       padding: const EdgeInsets.fromLTRB(16, 24, 16, 16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: const Color(0xFF1A365D),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withOpacity(0.2),
             blurRadius: 2,
             offset: const Offset(0, 1),
           ),
@@ -338,7 +338,7 @@ class _CalendarPageState extends State<CalendarPage>
                 style: TextStyle(
                   fontSize: 24,
                   fontWeight: FontWeight.bold,
-                  color: Color(0xFF1E293B),
+                  color: Colors.white,
                 ),
               ),
             ],
@@ -353,17 +353,17 @@ class _CalendarPageState extends State<CalendarPage>
                     width: 24,
                     height: 24,
                     decoration: BoxDecoration(
-                      color: Colors.white,
+                      color: const Color(0xFF1E3A8A),
                       borderRadius: BorderRadius.circular(8),
                       border: Border.all(
-                        color: const Color(0xFF8B5CF6),
+                        color: Colors.white.withOpacity(0.2),
                         width: 1,
                       ),
                     ),
                     child: IconButton(
                       icon: const Icon(Icons.chevron_left, size: 12),
                       onPressed: _previousMonth,
-                      color: const Color(0xFF8B5CF6),
+                      color: Colors.white,
                       padding: EdgeInsets.zero,
                       constraints: const BoxConstraints(),
                       splashRadius: 12,
@@ -375,7 +375,7 @@ class _CalendarPageState extends State<CalendarPage>
                     style: const TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w600,
-                      color: Color(0xFF1E293B),
+                      color: Colors.white,
                     ),
                   ),
                   const SizedBox(width: 8),
@@ -383,17 +383,17 @@ class _CalendarPageState extends State<CalendarPage>
                     width: 24,
                     height: 24,
                     decoration: BoxDecoration(
-                      color: Colors.white,
+                      color: const Color(0xFF1E3A8A),
                       borderRadius: BorderRadius.circular(8),
                       border: Border.all(
-                        color: const Color(0xFF8B5CF6),
+                        color: Colors.white.withOpacity(0.2),
                         width: 1,
                       ),
                     ),
                     child: IconButton(
                       icon: const Icon(Icons.chevron_right, size: 12),
                       onPressed: _nextMonth,
-                      color: const Color(0xFF8B5CF6),
+                      color: Colors.white,
                       padding: EdgeInsets.zero,
                       constraints: const BoxConstraints(),
                       splashRadius: 12,
@@ -406,11 +406,15 @@ class _CalendarPageState extends State<CalendarPage>
                     const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                 decoration: BoxDecoration(
                   gradient: const LinearGradient(
-                    colors: [Color(0xFF8B5CF6), Color(0xFF7C3AED)],
+                    colors: [Color(0xFF1E3A8A), Color(0xFF1A365D)],
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                   ),
                   borderRadius: BorderRadius.circular(16),
+                  border: Border.all(
+                    color: Colors.white.withOpacity(0.2),
+                    width: 1,
+                  ),
                 ),
                 child: Row(
                   children: [
@@ -420,9 +424,9 @@ class _CalendarPageState extends State<CalendarPage>
                       color: Colors.white,
                     ),
                     const SizedBox(width: 4),
-                    Text(
+                    const Text(
                       'All City Events',
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 12,
                         color: Colors.white,
                         fontWeight: FontWeight.w500,
@@ -462,15 +466,16 @@ class _CalendarPageState extends State<CalendarPage>
         decoration: BoxDecoration(
           gradient: isSelected
               ? const LinearGradient(
-                  colors: [Color(0xFF8B5CF6), Color(0xFF7C3AED)],
+                  colors: [Color(0xFF1E3A8A), Color(0xFF1A365D)],
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                 )
               : null,
-          color: isSelected ? null : Colors.white,
+          color: isSelected ? null : Colors.white.withOpacity(0.1),
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
-            color: isSelected ? Colors.transparent : const Color(0xFFE2E8F0),
+            color:
+                isSelected ? Colors.transparent : Colors.white.withOpacity(0.2),
             width: 1,
           ),
         ),
@@ -488,7 +493,8 @@ class _CalendarPageState extends State<CalendarPage>
               child: Text(
                 label,
                 style: TextStyle(
-                  color: isSelected ? Colors.white : const Color(0xFF64748B),
+                  color:
+                      isSelected ? Colors.white : Colors.white.withOpacity(0.7),
                   fontSize: 12,
                   fontWeight: FontWeight.w500,
                 ),
@@ -501,80 +507,65 @@ class _CalendarPageState extends State<CalendarPage>
   }
 
   Widget _buildTabBar() {
-    return Padding(
-      padding: const EdgeInsets.all(12),
-      child: Container(
-        height: 36,
-        decoration: BoxDecoration(
-          color: const Color(0xFFF1F5F9),
-          borderRadius: BorderRadius.circular(18),
-        ),
-        child: TabBar(
-          controller: _tabController,
-          indicator: BoxDecoration(
-            gradient: const LinearGradient(
-              colors: [Color(0xFF8B5CF6), Color(0xFF7C3AED)],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
-            borderRadius: BorderRadius.circular(18),
-            boxShadow: [
-              BoxShadow(
-                color: const Color(0xFF8B5CF6).withOpacity(0.2),
-                blurRadius: 4,
-                offset: const Offset(0, 2),
-              ),
-            ],
+    return Container(
+      decoration: BoxDecoration(
+        color: const Color(0xFF1E3A8A),
+        border: Border(
+          bottom: BorderSide(
+            color: Colors.transparent,
+            width: 0,
           ),
-          labelColor: Colors.white,
-          unselectedLabelColor: const Color(0xFF64748B),
-          labelStyle: const TextStyle(
-            fontSize: 12,
-            fontWeight: FontWeight.w600,
-          ),
-          tabs: const [
-            Tab(
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Icons.calendar_month, size: 14),
-                  SizedBox(width: 4),
-                  Text('Month'),
-                ],
-              ),
-            ),
-            Tab(
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Icons.view_week, size: 14),
-                  SizedBox(width: 4),
-                  Text('Week'),
-                ],
-              ),
-            ),
-            Tab(
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Icons.calendar_today, size: 14),
-                  SizedBox(width: 4),
-                  Text('Day'),
-                ],
-              ),
-            ),
-            Tab(
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Icons.list_alt, size: 14),
-                  SizedBox(width: 4),
-                  Text('Agenda'),
-                ],
-              ),
-            ),
-          ],
         ),
+      ),
+      child: TabBar(
+        controller: _tabController,
+        indicatorColor: Colors.white,
+        labelColor: Colors.white,
+        unselectedLabelColor: Colors.white.withOpacity(0.7),
+        dividerColor: Colors.transparent,
+        indicatorSize: TabBarIndicatorSize.label,
+        tabs: const [
+          Tab(
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.calendar_month, size: 14),
+                SizedBox(width: 4),
+                Text('Month'),
+              ],
+            ),
+          ),
+          Tab(
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.view_week, size: 14),
+                SizedBox(width: 4),
+                Text('Week'),
+              ],
+            ),
+          ),
+          Tab(
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.calendar_today, size: 14),
+                SizedBox(width: 4),
+                Text('Day'),
+              ],
+            ),
+          ),
+          Tab(
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.list_alt, size: 14),
+                SizedBox(width: 4),
+                Text('Agenda'),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -617,11 +608,11 @@ class _CalendarPageState extends State<CalendarPage>
 
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: const Color(0xFF1E3A8A),
         borderRadius: BorderRadius.circular(8),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withOpacity(0.2),
             blurRadius: 2,
             offset: const Offset(0, 1),
           ),
@@ -632,10 +623,10 @@ class _CalendarPageState extends State<CalendarPage>
         children: [
           // Weekday headers
           Container(
-            decoration: const BoxDecoration(
+            decoration: BoxDecoration(
               border: Border(
                 bottom: BorderSide(
-                  color: Color(0xFFE2E8F0), // slate-200
+                  color: Colors.white.withOpacity(0.1),
                   width: 1,
                 ),
               ),
@@ -648,10 +639,10 @@ class _CalendarPageState extends State<CalendarPage>
                     alignment: Alignment.center,
                     child: Text(
                       day,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 12,
                         fontWeight: FontWeight.w500,
-                        color: Color(0xFF64748B), // slate-500
+                        color: Colors.white.withOpacity(0.7),
                       ),
                     ),
                   ),
@@ -667,40 +658,28 @@ class _CalendarPageState extends State<CalendarPage>
             gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
               crossAxisCount: 7,
               childAspectRatio: 1,
-              mainAxisExtent: 80, // Fixed height for day cells
+              mainAxisExtent: 80,
             ),
             itemCount: days.length,
             itemBuilder: (context, index) {
               final day = days[index];
               if (day == null) {
                 return Container(
-                  decoration: const BoxDecoration(
+                  decoration: BoxDecoration(
                     border: Border(
-                      right: BorderSide(color: Color(0xFFE2E8F0)),
-                      bottom: BorderSide(color: Color(0xFFE2E8F0)),
+                      right: BorderSide(color: Colors.white.withOpacity(0.1)),
+                      bottom: BorderSide(color: Colors.white.withOpacity(0.1)),
                     ),
-                    color: Color(0xFFF8FAFC), // slate-50
+                    color: const Color(0xFF1A365D),
                   ),
                 );
               }
 
-              // Get events for this day
-              final date =
-                  DateTime(_currentMonth.year, _currentMonth.month, day);
-              final events = _getEventsForDate(date);
-
-              // Filter events based on selected event type
-              final filteredEvents = _selectedEventType == "all"
-                  ? events
-                  : events.where((event) {
-                      // In a real app, you would filter based on actual event categories
-                      return true; // For now, show all events regardless of filter
-                    }).toList();
-
               return _buildDayCell(
                 day: day,
                 isSelected: day == _selectedDate,
-                events: filteredEvents,
+                events: _getEventsForDate(
+                    DateTime(_currentMonth.year, _currentMonth.month, day)),
               );
             },
           ),
@@ -710,19 +689,12 @@ class _CalendarPageState extends State<CalendarPage>
   }
 
   Widget _buildSelectedDayEvents() {
-    // Get the selected date as a DateTime
     final selectedDateTime =
         DateTime(_currentMonth.year, _currentMonth.month, _selectedDate);
-
-    // Get events for the selected date
     final events = _getEventsForDate(selectedDateTime);
-
-    // Filter events based on selected event type
     final filteredEvents = _selectedEventType == "all"
         ? events
-        : events.where((event) {
-            return event['type'] == _selectedEventType;
-          }).toList();
+        : events.where((event) => event['type'] == _selectedEventType).toList();
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -732,6 +704,7 @@ class _CalendarPageState extends State<CalendarPage>
           style: const TextStyle(
             fontWeight: FontWeight.w600,
             fontSize: 16,
+            color: Colors.white,
           ),
         ),
         const SizedBox(height: 8),
@@ -739,8 +712,7 @@ class _CalendarPageState extends State<CalendarPage>
           Column(
             children: filteredEvents.map((event) {
               final startTime = event['date'] as DateTime;
-              final endTime =
-                  startTime.add(const Duration(hours: 2)); // Default duration
+              final endTime = startTime.add(const Duration(hours: 2));
               final timeString =
                   '${DateFormat('h:mm a').format(startTime)} - ${DateFormat('h:mm a').format(endTime)}';
 
@@ -768,36 +740,16 @@ class _CalendarPageState extends State<CalendarPage>
             }).toList(),
           )
         else
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.all(24),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(8),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.05),
-                  blurRadius: 2,
-                  offset: const Offset(0, 1),
+          Center(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 24),
+              child: Text(
+                'No events for this day',
+                style: TextStyle(
+                  color: Colors.white.withOpacity(0.7),
+                  fontStyle: FontStyle.italic,
                 ),
-              ],
-            ),
-            child: Column(
-              children: [
-                Icon(
-                  Icons.event_busy,
-                  size: 48,
-                  color: Colors.grey[400],
-                ),
-                const SizedBox(height: 16),
-                Text(
-                  "No events scheduled for this day",
-                  style: TextStyle(
-                    color: Colors.grey[600],
-                    fontSize: 16,
-                  ),
-                ),
-              ],
+              ),
             ),
           ),
       ],
@@ -812,126 +764,134 @@ class _CalendarPageState extends State<CalendarPage>
     required String department,
     required Color color,
   }) {
-    return GestureDetector(
-      onTap: () {
-        // Navigate to event detail
-      },
-      child: Container(
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(8),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.05),
-              blurRadius: 2,
-              offset: const Offset(0, 1),
+    return Container(
+      decoration: BoxDecoration(
+        color: const Color(0xFF1E3A8A),
+        borderRadius: BorderRadius.circular(8),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.2),
+            blurRadius: 2,
+            offset: const Offset(0, 1),
+          ),
+        ],
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            width: 6,
+            constraints: const BoxConstraints(
+              minHeight: 100,
             ),
-          ],
-        ),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Container(
-              width: 6,
-              constraints: const BoxConstraints(
-                minHeight: 100,
-              ),
-              decoration: BoxDecoration(
-                color: color,
-                borderRadius: const BorderRadius.only(
-                  topLeft: Radius.circular(8),
-                  bottomLeft: Radius.circular(8),
-                ),
+            decoration: BoxDecoration(
+              color: color,
+              borderRadius: const BorderRadius.only(
+                topLeft: Radius.circular(8),
+                bottomLeft: Radius.circular(8),
               ),
             ),
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsets.all(12),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Expanded(
-                          child: Text(
-                            title,
-                            style: const TextStyle(
-                              fontWeight: FontWeight.w600,
-                              fontSize: 16,
-                            ),
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
-                        _buildCategoryBadge(category),
-                      ],
+          ),
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsets.all(12),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
                     ),
-                    const SizedBox(height: 4),
-                    Row(
-                      children: [
-                        const Icon(
-                          Icons.access_time,
-                          size: 12,
-                          color: Color(0xFF64748B), // slate-500
+                  ),
+                  const SizedBox(height: 4),
+                  Row(
+                    children: [
+                      Icon(
+                        Icons.access_time,
+                        size: 14,
+                        color: Colors.white.withOpacity(0.7),
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        time,
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: Colors.white.withOpacity(0.7),
                         ),
-                        const SizedBox(width: 4),
-                        Text(
-                          time,
-                          style: const TextStyle(
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 4),
+                  Row(
+                    children: [
+                      Icon(
+                        Icons.location_on,
+                        size: 14,
+                        color: Colors.white.withOpacity(0.7),
+                      ),
+                      const SizedBox(width: 4),
+                      Expanded(
+                        child: Text(
+                          location,
+                          style: TextStyle(
                             fontSize: 12,
-                            color: Color(0xFF64748B), // slate-500
+                            color: Colors.white.withOpacity(0.7),
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 4,
+                        ),
+                        decoration: BoxDecoration(
+                          color: color.withOpacity(0.2),
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        child: Text(
+                          category,
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Colors.white,
+                            fontWeight: FontWeight.w500,
                           ),
                         ),
-                      ],
-                    ),
-                    const SizedBox(height: 4),
-                    Row(
-                      children: [
-                        const Icon(
-                          Icons.location_on,
-                          size: 12,
-                          color: Color(0xFF64748B), // slate-500
+                      ),
+                      const SizedBox(width: 8),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 4,
                         ),
-                        const SizedBox(width: 4),
-                        Expanded(
-                          child: Text(
-                            location,
-                            style: const TextStyle(
-                              fontSize: 12,
-                              color: Color(0xFF64748B), // slate-500
-                            ),
-                            overflow: TextOverflow.ellipsis,
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        child: Text(
+                          department,
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Colors.white.withOpacity(0.7),
                           ),
                         ),
-                      ],
-                    ),
-                    const SizedBox(height: 4),
-                    Row(
-                      children: [
-                        const Icon(
-                          Icons.business,
-                          size: 12,
-                          color: Color(0xFF64748B), // slate-500
-                        ),
-                        const SizedBox(width: 4),
-                        Expanded(
-                          child: Text(
-                            department,
-                            style: const TextStyle(
-                              fontSize: 12,
-                              color: Color(0xFF64748B), // slate-500
-                            ),
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
+                      ),
+                    ],
+                  ),
+                ],
               ),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
@@ -1013,11 +973,11 @@ class _CalendarPageState extends State<CalendarPage>
         child: Container(
           padding: const EdgeInsets.all(24),
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: const Color(0xFF1E3A8A),
             borderRadius: BorderRadius.circular(8),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.05),
+                color: Colors.black.withOpacity(0.2),
                 blurRadius: 2,
                 offset: const Offset(0, 1),
               ),
@@ -1035,6 +995,7 @@ class _CalendarPageState extends State<CalendarPage>
                       style: const TextStyle(
                         fontWeight: FontWeight.w600,
                         fontSize: 16,
+                        color: Colors.white,
                       ),
                       overflow: TextOverflow.ellipsis,
                     ),
@@ -1056,13 +1017,13 @@ class _CalendarPageState extends State<CalendarPage>
                         Icon(
                           Icons.event_busy,
                           size: 48,
-                          color: Colors.grey[400],
+                          color: Colors.white.withOpacity(0.4),
                         ),
                         const SizedBox(height: 16),
                         Text(
                           "No events scheduled for this week",
                           style: TextStyle(
-                            color: Colors.grey[600],
+                            color: Colors.white.withOpacity(0.7),
                             fontSize: 16,
                           ),
                         ),
@@ -1083,10 +1044,10 @@ class _CalendarPageState extends State<CalendarPage>
 
                     return Container(
                       padding: const EdgeInsets.only(bottom: 16),
-                      decoration: const BoxDecoration(
+                      decoration: BoxDecoration(
                         border: Border(
                           bottom: BorderSide(
-                            color: Color(0xFFE2E8F0),
+                            color: Colors.white.withOpacity(0.1),
                             width: 1,
                           ),
                         ),
@@ -1104,9 +1065,18 @@ class _CalendarPageState extends State<CalendarPage>
                                       currentDate.day == DateTime.now().day &&
                                               currentDate.month ==
                                                   DateTime.now().month
-                                          ? const Color(0xFF8B5CF6)
-                                          : const Color(0xFFF1F5F9),
+                                          ? const Color(0xFF1E3A8A)
+                                          : const Color(0xFF1A365D),
                                   borderRadius: BorderRadius.circular(8),
+                                  border: Border.all(
+                                    color:
+                                        currentDate.day == DateTime.now().day &&
+                                                currentDate.month ==
+                                                    DateTime.now().month
+                                            ? Colors.white
+                                            : Colors.white.withOpacity(0.2),
+                                    width: 1,
+                                  ),
                                 ),
                                 alignment: Alignment.center,
                                 child: Column(
@@ -1121,7 +1091,7 @@ class _CalendarPageState extends State<CalendarPage>
                                                 currentDate.month ==
                                                     DateTime.now().month
                                             ? Colors.white
-                                            : const Color(0xFF64748B),
+                                            : Colors.white.withOpacity(0.7),
                                       ),
                                     ),
                                     Text(
@@ -1134,7 +1104,7 @@ class _CalendarPageState extends State<CalendarPage>
                                                 currentDate.month ==
                                                     DateTime.now().month
                                             ? Colors.white
-                                            : const Color(0xFF1E293B),
+                                            : Colors.white.withOpacity(0.7),
                                       ),
                                     ),
                                   ],
@@ -1146,7 +1116,7 @@ class _CalendarPageState extends State<CalendarPage>
                                     ? Text(
                                         "No events",
                                         style: TextStyle(
-                                          color: Colors.grey[400],
+                                          color: Colors.white.withOpacity(0.4),
                                           fontSize: 14,
                                         ),
                                       )
@@ -1195,10 +1165,10 @@ class _CalendarPageState extends State<CalendarPage>
   Widget _buildTimeSlot(String time, Widget? event) {
     return Container(
       padding: const EdgeInsets.only(bottom: 8),
-      decoration: const BoxDecoration(
+      decoration: BoxDecoration(
         border: Border(
           bottom: BorderSide(
-            color: Color(0xFFE2E8F0), // slate-200
+            color: Colors.white.withOpacity(0.1),
             width: 1,
           ),
         ),
@@ -1210,19 +1180,19 @@ class _CalendarPageState extends State<CalendarPage>
             width: 64,
             child: Text(
               time,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 12,
-                color: Color(0xFF64748B), // slate-500
+                color: Colors.white.withOpacity(0.7),
               ),
             ),
           ),
           Expanded(
             child: Container(
               padding: const EdgeInsets.only(left: 8),
-              decoration: const BoxDecoration(
+              decoration: BoxDecoration(
                 border: Border(
                   left: BorderSide(
-                    color: Color(0xFFE2E8F0), // slate-200
+                    color: Colors.white.withOpacity(0.1),
                     width: 1,
                   ),
                 ),
@@ -1235,13 +1205,17 @@ class _CalendarPageState extends State<CalendarPage>
     );
   }
 
-  Widget _buildTimeEvent(
-      String title, String time, String department, Color color) {
+  Widget _buildDetailedTimeEvent(String title, String time, String location,
+      String department, Color color) {
     return Container(
       padding: const EdgeInsets.all(8),
       decoration: BoxDecoration(
-        color: color,
+        color: color.withOpacity(0.2),
         borderRadius: BorderRadius.circular(4),
+        border: Border.all(
+          color: color.withOpacity(0.3),
+          width: 1,
+        ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -1256,10 +1230,32 @@ class _CalendarPageState extends State<CalendarPage>
           ),
           Text(
             time,
-            style: const TextStyle(
-              color: Colors.white,
+            style: TextStyle(
+              color: Colors.white.withOpacity(0.8),
               fontSize: 12,
             ),
+          ),
+          const SizedBox(height: 4),
+          Row(
+            children: [
+              Icon(
+                Icons.location_on,
+                size: 12,
+                color: Colors.white.withOpacity(0.8),
+              ),
+              const SizedBox(width: 4),
+              Expanded(
+                child: Text(
+                  location,
+                  style: TextStyle(
+                    color: Colors.white.withOpacity(0.8),
+                    fontSize: 12,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+            ],
           ),
           const SizedBox(height: 4),
           Text(
@@ -1295,11 +1291,11 @@ class _CalendarPageState extends State<CalendarPage>
         child: Container(
           padding: const EdgeInsets.all(24),
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: const Color(0xFF1E3A8A),
             borderRadius: BorderRadius.circular(8),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.05),
+                color: Colors.black.withOpacity(0.2),
                 blurRadius: 2,
                 offset: const Offset(0, 1),
               ),
@@ -1316,6 +1312,7 @@ class _CalendarPageState extends State<CalendarPage>
                     style: const TextStyle(
                       fontWeight: FontWeight.w600,
                       fontSize: 16,
+                      color: Colors.white,
                     ),
                   ),
                   OutlinedButton.icon(
@@ -1328,8 +1325,8 @@ class _CalendarPageState extends State<CalendarPage>
                     icon: const Icon(Icons.today, size: 16),
                     label: const Text("Today"),
                     style: OutlinedButton.styleFrom(
-                      foregroundColor: const Color(0xFF64748B),
-                      side: const BorderSide(color: Color(0xFFCBD5E1)),
+                      foregroundColor: Colors.white,
+                      side: BorderSide(color: Colors.white.withOpacity(0.2)),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(20),
                       ),
@@ -1351,13 +1348,13 @@ class _CalendarPageState extends State<CalendarPage>
                         Icon(
                           Icons.event_busy,
                           size: 48,
-                          color: Colors.grey[400],
+                          color: Colors.white.withOpacity(0.4),
                         ),
                         const SizedBox(height: 16),
                         Text(
                           "No events scheduled for this day",
                           style: TextStyle(
-                            color: Colors.grey[600],
+                            color: Colors.white.withOpacity(0.7),
                             fontSize: 16,
                           ),
                         ),
@@ -1410,63 +1407,6 @@ class _CalendarPageState extends State<CalendarPage>
     );
   }
 
-  Widget _buildDetailedTimeEvent(String title, String time, String location,
-      String department, Color color) {
-    return Container(
-      padding: const EdgeInsets.all(8),
-      decoration: BoxDecoration(
-        color: color,
-        borderRadius: BorderRadius.circular(4),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            title,
-            style: const TextStyle(
-              color: Colors.white,
-              fontWeight: FontWeight.w600,
-              fontSize: 14,
-            ),
-          ),
-          Text(
-            time,
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: 12,
-            ),
-          ),
-          const SizedBox(height: 4),
-          Row(
-            children: [
-              const Icon(
-                Icons.location_on,
-                size: 12,
-                color: Colors.white,
-              ),
-              const SizedBox(width: 4),
-              Text(
-                location,
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 12,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 4),
-          Text(
-            department,
-            style: TextStyle(
-              color: Colors.white.withOpacity(0.8),
-              fontSize: 12,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
   // Fix for agenda view - use SingleChildScrollView
   Widget _buildAgendaView() {
     // Get all events and sort them by date
@@ -1493,11 +1433,11 @@ class _CalendarPageState extends State<CalendarPage>
         child: Container(
           padding: const EdgeInsets.all(24),
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: const Color(0xFF1E3A8A),
             borderRadius: BorderRadius.circular(8),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.05),
+                color: Colors.black.withOpacity(0.2),
                 blurRadius: 2,
                 offset: const Offset(0, 1),
               ),
@@ -1514,6 +1454,7 @@ class _CalendarPageState extends State<CalendarPage>
                     style: TextStyle(
                       fontWeight: FontWeight.w600,
                       fontSize: 16,
+                      color: Colors.white,
                     ),
                   ),
                 ],
@@ -1528,13 +1469,13 @@ class _CalendarPageState extends State<CalendarPage>
                         Icon(
                           Icons.event_busy,
                           size: 48,
-                          color: Colors.grey[400],
+                          color: Colors.white.withOpacity(0.4),
                         ),
                         const SizedBox(height: 16),
                         Text(
                           "No tasks scheduled",
                           style: TextStyle(
-                            color: Colors.grey[600],
+                            color: Colors.white.withOpacity(0.7),
                             fontSize: 16,
                           ),
                         ),
@@ -1543,7 +1484,7 @@ class _CalendarPageState extends State<CalendarPage>
                           "You haven't volunteered for any tasks yet. Check the volunteer page to find opportunities!",
                           textAlign: TextAlign.center,
                           style: TextStyle(
-                            color: Colors.grey[600],
+                            color: Colors.white.withOpacity(0.7),
                             fontSize: 14,
                           ),
                         ),
@@ -1564,10 +1505,10 @@ class _CalendarPageState extends State<CalendarPage>
                     return Container(
                       padding: const EdgeInsets.only(bottom: 16),
                       margin: const EdgeInsets.only(bottom: 16),
-                      decoration: const BoxDecoration(
+                      decoration: BoxDecoration(
                         border: Border(
                           bottom: BorderSide(
-                            color: Color(0xFFE2E8F0),
+                            color: Colors.white.withOpacity(0.1),
                             width: 1,
                           ),
                         ),
@@ -1579,8 +1520,12 @@ class _CalendarPageState extends State<CalendarPage>
                             width: 64,
                             height: 64,
                             decoration: BoxDecoration(
-                              color: const Color(0xFFF1F5F9),
+                              color: const Color(0xFF1A365D),
                               borderRadius: BorderRadius.circular(8),
+                              border: Border.all(
+                                color: Colors.white.withOpacity(0.2),
+                                width: 1,
+                              ),
                             ),
                             alignment: Alignment.center,
                             child: Column(
@@ -1588,18 +1533,18 @@ class _CalendarPageState extends State<CalendarPage>
                               children: [
                                 Text(
                                   DateFormat('MMM').format(eventDate),
-                                  style: const TextStyle(
+                                  style: TextStyle(
                                     fontSize: 12,
                                     fontWeight: FontWeight.bold,
-                                    color: Color(0xFF1E293B),
+                                    color: Colors.white.withOpacity(0.7),
                                   ),
                                 ),
                                 Text(
                                   "${eventDate.day}",
-                                  style: const TextStyle(
+                                  style: TextStyle(
                                     fontSize: 20,
                                     fontWeight: FontWeight.bold,
-                                    color: Color(0xFF1E293B),
+                                    color: Colors.white.withOpacity(0.7),
                                   ),
                                 ),
                               ],
@@ -1620,27 +1565,49 @@ class _CalendarPageState extends State<CalendarPage>
                                         style: const TextStyle(
                                           fontWeight: FontWeight.w600,
                                           fontSize: 16,
+                                          color: Colors.white,
                                         ),
                                         overflow: TextOverflow.ellipsis,
                                       ),
                                     ),
-                                    _buildCategoryBadge('My Task'),
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 8,
+                                        vertical: 4,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: const Color(0xFF1E3A8A),
+                                        borderRadius: BorderRadius.circular(4),
+                                        border: Border.all(
+                                          color: Colors.white.withOpacity(0.2),
+                                          width: 1,
+                                        ),
+                                      ),
+                                      child: const Text(
+                                        'My Task',
+                                        style: TextStyle(
+                                          fontSize: 12,
+                                          color: Colors.white,
+                                          fontWeight: FontWeight.w500,
+                                        ),
+                                      ),
+                                    ),
                                   ],
                                 ),
                                 const SizedBox(height: 4),
                                 Row(
                                   children: [
-                                    const Icon(
+                                    Icon(
                                       Icons.access_time,
                                       size: 12,
-                                      color: Color(0xFF64748B),
+                                      color: Colors.white.withOpacity(0.7),
                                     ),
                                     const SizedBox(width: 4),
                                     Text(
                                       timeString,
-                                      style: const TextStyle(
+                                      style: TextStyle(
                                         fontSize: 12,
-                                        color: Color(0xFF64748B),
+                                        color: Colors.white.withOpacity(0.7),
                                       ),
                                     ),
                                   ],
@@ -1649,18 +1616,19 @@ class _CalendarPageState extends State<CalendarPage>
                                   const SizedBox(height: 4),
                                   Row(
                                     children: [
-                                      const Icon(
+                                      Icon(
                                         Icons.location_on,
                                         size: 12,
-                                        color: Color(0xFF64748B),
+                                        color: Colors.white.withOpacity(0.7),
                                       ),
                                       const SizedBox(width: 4),
                                       Expanded(
                                         child: Text(
                                           event['location'],
-                                          style: const TextStyle(
+                                          style: TextStyle(
                                             fontSize: 12,
-                                            color: Color(0xFF64748B),
+                                            color:
+                                                Colors.white.withOpacity(0.7),
                                           ),
                                           overflow: TextOverflow.ellipsis,
                                         ),
@@ -1671,18 +1639,18 @@ class _CalendarPageState extends State<CalendarPage>
                                 const SizedBox(height: 4),
                                 Row(
                                   children: [
-                                    const Icon(
+                                    Icon(
                                       Icons.business,
                                       size: 12,
-                                      color: Color(0xFF64748B),
+                                      color: Colors.white.withOpacity(0.7),
                                     ),
                                     const SizedBox(width: 4),
                                     Expanded(
                                       child: Text(
                                         event['department'],
-                                        style: const TextStyle(
+                                        style: TextStyle(
                                           fontSize: 12,
-                                          color: Color(0xFF64748B),
+                                          color: Colors.white.withOpacity(0.7),
                                         ),
                                         overflow: TextOverflow.ellipsis,
                                       ),
@@ -1824,17 +1792,14 @@ class _CalendarPageState extends State<CalendarPage>
       },
       child: Container(
         decoration: BoxDecoration(
-          border: const Border(
-            right: BorderSide(color: Color(0xFFE2E8F0)), // slate-200
-            bottom: BorderSide(color: Color(0xFFE2E8F0)), // slate-200
+          border: Border(
+            right: BorderSide(color: Colors.white.withOpacity(0.1)),
+            bottom: BorderSide(color: Colors.white.withOpacity(0.1)),
           ),
-          color: isSelected
-              ? const Color(0xFFEDE9FE)
-              : Colors.white, // violet-50 : white
+          color: isSelected ? const Color(0xFF1E3A8A) : const Color(0xFF1A365D),
         ),
         child: Column(
           children: [
-            // Date number with fixed height
             Container(
               height: 32,
               padding: const EdgeInsets.all(4),
@@ -1844,9 +1809,7 @@ class _CalendarPageState extends State<CalendarPage>
                 height: 24,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: isSelected
-                      ? const Color(0xFF8B5CF6)
-                      : Colors.transparent, // violet-600 : transparent
+                  color: isSelected ? Colors.white : Colors.transparent,
                 ),
                 alignment: Alignment.center,
                 child: Text(
@@ -1854,65 +1817,36 @@ class _CalendarPageState extends State<CalendarPage>
                   style: TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.w500,
-                    color: isSelected
-                        ? Colors.white
-                        : const Color(0xFF1E293B), // white : slate-700
+                    color: isSelected ? const Color(0xFF1A365D) : Colors.white,
                   ),
                 ),
               ),
             ),
-
-            // Mini events with ListView
             if (events.isNotEmpty)
               Expanded(
-                child: LayoutBuilder(
-                  builder: (context, constraints) {
-                    // Calculate how many events we can show
-                    final maxEventsToShow = 2;
-                    final visibleEvents = events.length > maxEventsToShow
-                        ? events.sublist(0, maxEventsToShow)
-                        : events;
-                    final remainingEvents =
-                        events.length - visibleEvents.length;
-
-                    return Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        // ListView for mini events
-                        Expanded(
-                          child: ListView.builder(
-                            padding: EdgeInsets.zero,
-                            physics: const NeverScrollableScrollPhysics(),
-                            shrinkWrap: true,
-                            itemCount: visibleEvents.length,
-                            itemBuilder: (context, index) {
-                              final event = visibleEvents[index];
-                              return _buildMiniEvent(
-                                event["title"],
-                                event["color"],
-                              );
-                            },
-                          ),
-                        ),
-
-                        // "+X more" indicator if needed
-                        if (remainingEvents > 0)
-                          Padding(
-                            padding: const EdgeInsets.only(left: 4, bottom: 2),
-                            child: Align(
-                              alignment: Alignment.centerLeft,
-                              child: Text(
-                                "+$remainingEvents more",
-                                style: const TextStyle(
-                                  fontSize: 10,
-                                  color: Color(0xFF64748B), // slate-500
-                                ),
-                              ),
-                            ),
-                          ),
-                      ],
+                child: ListView.builder(
+                  padding: EdgeInsets.zero,
+                  physics: const NeverScrollableScrollPhysics(),
+                  shrinkWrap: true,
+                  itemCount: events.length > 2 ? 2 : events.length,
+                  itemBuilder: (context, index) {
+                    final event = events[index];
+                    return _buildMiniEvent(
+                      event["title"],
+                      event["color"],
                     );
                   },
+                ),
+              ),
+            if (events.length > 2)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 4),
+                child: Text(
+                  '+${events.length - 2} more',
+                  style: TextStyle(
+                    fontSize: 10,
+                    color: Colors.white.withOpacity(0.7),
+                  ),
                 ),
               ),
           ],
@@ -1947,22 +1881,21 @@ class _CalendarPageState extends State<CalendarPage>
   // Fixed mini event widget with proper constraints
   Widget _buildMiniEvent(String title, Color color) {
     return Container(
-      margin: const EdgeInsets.only(bottom: 1, left: 2, right: 2),
-      padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 1),
-      height: 12, // Fixed height
+      margin: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
       decoration: BoxDecoration(
-        color: color,
-        borderRadius: BorderRadius.circular(2),
+        color: color.withOpacity(0.2),
+        borderRadius: BorderRadius.circular(4),
       ),
       child: Text(
         title,
         style: const TextStyle(
           color: Colors.white,
-          fontSize: 7,
+          fontSize: 10,
           fontWeight: FontWeight.w500,
         ),
-        overflow: TextOverflow.ellipsis,
         maxLines: 1,
+        overflow: TextOverflow.ellipsis,
       ),
     );
   }

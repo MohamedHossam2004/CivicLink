@@ -216,29 +216,40 @@ class _HomeScreenState extends State<HomeScreen> {
       return Center(child: Text('Error: $_error'));
     }
 
-    print(
-        'Building home screen with featured task: ${_featuredTask != null ? _featuredTask!['name'] : 'null'}');
-
     return Scaffold(
+      backgroundColor: const Color(0xFF1A365D),
       body: SafeArea(
-        child: Column(
-          children: [
-            _buildHeader(),
-            Expanded(
-              child: ListView(
-                padding: const EdgeInsets.all(16),
-                children: [
-                  _buildServicesSection(),
-                  const SizedBox(height: 24),
-                  _buildFeaturedTask(),
-                  const SizedBox(height: 24),
-                  _buildUpcomingTasksSection(),
-                  const SizedBox(height: 24),
-                  _buildAnnouncementsSection(),
-                ],
-              ),
+        child: Container(
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [
+                Color(0xFF1E3A8A),
+                Color(0xFF1A365D),
+              ],
+              stops: [0.0, 0.3],
             ),
-          ],
+          ),
+          child: Column(
+            children: [
+              _buildHeader(),
+              Expanded(
+                child: ListView(
+                  padding: const EdgeInsets.all(16),
+                  children: [
+                    _buildServicesSection(),
+                    const SizedBox(height: 24),
+                    _buildFeaturedTask(),
+                    const SizedBox(height: 24),
+                    _buildUpcomingTasksSection(),
+                    const SizedBox(height: 24),
+                    _buildAnnouncementsSection(),
+                  ],
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -248,10 +259,10 @@ class _HomeScreenState extends State<HomeScreen> {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Colors.transparent,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withOpacity(0.2),
             blurRadius: 10,
             offset: const Offset(0, 5),
           ),
@@ -267,7 +278,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   border: Border.all(
-                    color: AppTheme.primaryLightColor,
+                    color: Colors.white,
                     width: 2,
                   ),
                 ),
@@ -276,7 +287,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   child: Text(
                     _userInitials.isEmpty ? 'U' : _userInitials,
                     style: const TextStyle(
-                      color: AppTheme.primaryColor,
+                      color: Color(0xFF1A365D),
                       fontWeight: FontWeight.bold,
                     ),
                   ),
@@ -291,24 +302,25 @@ class _HomeScreenState extends State<HomeScreen> {
                     style: TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w500,
+                      color: Colors.white,
                     ),
                   ),
                   Text(
                     _fullName.isEmpty ? 'User' : _fullName,
                     style: const TextStyle(
                       fontSize: 12,
-                      color: AppTheme.textSecondaryColor,
+                      color: Colors.white70,
                     ),
                   ),
                 ],
               ),
               const Spacer(),
               IconButton(
-                icon: const Icon(Icons.notifications_none),
+                icon: const Icon(Icons.notifications_none, color: Colors.white),
                 onPressed: () {},
               ),
               IconButton(
-                icon: const Icon(Icons.settings_outlined),
+                icon: const Icon(Icons.settings_outlined, color: Colors.white),
                 onPressed: () {},
               ),
             ],
@@ -317,17 +329,24 @@ class _HomeScreenState extends State<HomeScreen> {
           TextField(
             decoration: InputDecoration(
               hintText: 'Search services, tasks, announcements...',
-              hintStyle: TextStyle(
-                color: Colors.grey.shade500,
+              hintStyle: const TextStyle(
+                color: Colors.white70,
                 fontSize: 14,
               ),
-              prefixIcon: Icon(
+              prefixIcon: const Icon(
                 Icons.search,
-                color: Colors.grey.shade500,
+                color: Colors.white70,
                 size: 20,
+              ),
+              filled: true,
+              fillColor: Colors.white.withOpacity(0.1),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: BorderSide.none,
               ),
               contentPadding: const EdgeInsets.symmetric(vertical: 10),
             ),
+            style: const TextStyle(color: Colors.white),
           ),
         ],
       ),
@@ -343,6 +362,7 @@ class _HomeScreenState extends State<HomeScreen> {
           style: TextStyle(
             fontSize: 18,
             fontWeight: FontWeight.bold,
+            color: Colors.white,
           ),
         ),
         const SizedBox(height: 16),
@@ -353,8 +373,8 @@ class _HomeScreenState extends State<HomeScreen> {
               child: _buildServiceItem(
                 icon: Icons.location_on_outlined,
                 label: 'Report',
-                color: Colors.red,
-                bgColor: Colors.red.shade100,
+                color: Colors.white,
+                bgColor: const Color(0xFF1A365D),
                 onTap: () async {
                   final user = _auth.currentUser;
                   if (user != null) {
@@ -389,8 +409,8 @@ class _HomeScreenState extends State<HomeScreen> {
               child: _buildServiceItem(
                 icon: Icons.notifications_none,
                 label: 'Updates',
-                color: AppTheme.communityColor,
-                bgColor: AppTheme.communityColor.withOpacity(0.1),
+                color: Colors.white,
+                bgColor: const Color(0xFF1A365D),
                 onTap: () {
                   Navigator.push(
                     context,
@@ -404,8 +424,8 @@ class _HomeScreenState extends State<HomeScreen> {
               child: _buildServiceItem(
                 icon: Icons.campaign_outlined,
                 label: 'Ads',
-                color: AppTheme.primaryColor,
-                bgColor: AppTheme.primaryLightColor,
+                color: Colors.white,
+                bgColor: const Color(0xFF1A365D),
                 onTap: () {
                   Navigator.push(
                     context,
@@ -419,8 +439,8 @@ class _HomeScreenState extends State<HomeScreen> {
               child: _buildServiceItem(
                 icon: Icons.poll_outlined,
                 label: 'Polls',
-                color: Colors.orange,
-                bgColor: Colors.orange.shade100,
+                color: Colors.white,
+                bgColor: const Color(0xFF1A365D),
                 onTap: () {
                   Navigator.push(
                     context,
@@ -434,8 +454,8 @@ class _HomeScreenState extends State<HomeScreen> {
               child: _buildServiceItem(
                 icon: Icons.warning_amber_outlined,
                 label: 'Contacts',
-                color: Colors.red,
-                bgColor: Colors.red.shade100,
+                color: Colors.white,
+                bgColor: const Color(0xFF1A365D),
                 onTap: () {
                   Navigator.push(
                     context,
@@ -466,12 +486,16 @@ class _HomeScreenState extends State<HomeScreen> {
             width: 56,
             height: 56,
             decoration: BoxDecoration(
-              color: bgColor,
+              color: const Color(0xFF1A365D),
               shape: BoxShape.circle,
+              border: Border.all(
+                color: Colors.white.withOpacity(0.2),
+                width: 1,
+              ),
             ),
             child: Icon(
               icon,
-              color: color,
+              color: Colors.white,
               size: 24,
             ),
           ),
@@ -481,7 +505,11 @@ class _HomeScreenState extends State<HomeScreen> {
             textAlign: TextAlign.center,
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
-            style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+            style: const TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w600,
+              color: Colors.white,
+            ),
           ),
         ],
       ),
@@ -492,18 +520,22 @@ class _HomeScreenState extends State<HomeScreen> {
     return Container(
       margin: const EdgeInsets.only(bottom: 24),
       decoration: BoxDecoration(
-        gradient: LinearGradient(
+        gradient: const LinearGradient(
           colors: [
-            AppTheme.primaryColor,
-            AppTheme.secondaryColor,
+            Color(0xFF1A365D),
+            Color(0xFF0A1929),
           ],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
         borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: Colors.white.withOpacity(0.1),
+          width: 1,
+        ),
         boxShadow: [
           BoxShadow(
-            color: AppTheme.primaryColor.withOpacity(0.3),
+            color: Colors.black.withOpacity(0.3),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -547,7 +579,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           vertical: 6,
                         ),
                         decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.2),
+                          color: Colors.white.withOpacity(0.1),
                           borderRadius: BorderRadius.circular(20),
                         ),
                         child: Text(
@@ -566,7 +598,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           vertical: 6,
                         ),
                         decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.2),
+                          color: Colors.white.withOpacity(0.1),
                           borderRadius: BorderRadius.circular(20),
                         ),
                         child: Text(
@@ -631,80 +663,17 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                     ],
                   ),
-                  const SizedBox(height: 20),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Row(
-                        children: [
-                          Icon(
-                            Icons.location_on,
-                            color: Colors.white70,
-                            size: 16,
-                          ),
-                          const SizedBox(width: 8),
-                          Text(
-                            _featuredTask!['location'] != null
-                                ? '${_featuredTask!['location']['latitude']}, ${_featuredTask!['location']['longitude']}'
-                                : 'No location set',
-                            style: const TextStyle(
-                              color: Colors.white70,
-                              fontSize: 14,
-                            ),
-                          ),
-                        ],
-                      ),
-                      ElevatedButton(
-                        onPressed: () async {
-                          final doc = await FirebaseFirestore.instance
-                              .collection('tasks')
-                              .doc(_featuredTask!['id'])
-                              .get();
-                          if (doc.exists) {
-                            final task = Task.fromFirestore(doc);
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => TaskDetailPage(
-                                  task: task,
-                                  userId:
-                                      FirebaseAuth.instance.currentUser?.uid ??
-                                          '',
-                                ),
-                              ),
-                            );
-                          }
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.white,
-                          foregroundColor: AppTheme.primaryColor,
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 24,
-                            vertical: 12,
-                          ),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(30),
-                          ),
-                        ),
-                        child: const Text(
-                          'Join Now',
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
                 ] else ...[
-                  Center(
+                  const Center(
                     child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Icon(
                           Icons.event_busy,
                           size: 48,
-                          color: Colors.white,
+                          color: Colors.white70,
                         ),
-                        const SizedBox(height: 16),
+                        SizedBox(height: 16),
                         Text(
                           'No Featured Tasks',
                           style: TextStyle(
@@ -713,13 +682,13 @@ class _HomeScreenState extends State<HomeScreen> {
                             color: Colors.white,
                           ),
                         ),
-                        const SizedBox(height: 8),
+                        SizedBox(height: 8),
                         Text(
                           'There are currently no active tasks that need volunteers. Check back later for new opportunities!',
                           textAlign: TextAlign.center,
                           style: TextStyle(
                             fontSize: 14,
-                            color: Colors.white.withOpacity(0.9),
+                            color: Colors.white70,
                           ),
                         ),
                       ],
@@ -784,17 +753,20 @@ class _HomeScreenState extends State<HomeScreen> {
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
+                color: Colors.white,
               ),
             ),
             TextButton(
               onPressed: () {
-                // Find the MainScreen ancestor and update its index
                 final mainScreen =
                     context.findAncestorStateOfType<MainScreenState>();
                 if (mainScreen != null) {
-                  mainScreen.changeIndex(1); // Switch to Tasks tab
+                  mainScreen.changeIndex(1);
                 }
               },
+              style: TextButton.styleFrom(
+                foregroundColor: Colors.white,
+              ),
               child: const Row(
                 children: [
                   Text('View All'),
@@ -810,42 +782,48 @@ class _HomeScreenState extends State<HomeScreen> {
         const SizedBox(height: 16),
         if (_tasks.isEmpty)
           Container(
-            padding: const EdgeInsets.all(20),
+            padding: const EdgeInsets.all(24),
             decoration: BoxDecoration(
-              color: Colors.grey.shade100,
+              color: const Color(0xFF1E3A8A).withOpacity(0.3),
               borderRadius: BorderRadius.circular(16),
+              border: Border.all(
+                color: Colors.white.withOpacity(0.2),
+                width: 1,
+              ),
             ),
-            child: Column(
-              children: [
-                Icon(
-                  Icons.event_busy,
-                  size: 48,
-                  color: Colors.grey.shade400,
-                ),
-                const SizedBox(height: 16),
-                Text(
-                  'No Upcoming Tasks',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.grey.shade700,
+            child: const Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    Icons.event_busy,
+                    size: 48,
+                    color: Colors.white70,
                   ),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  'There are currently no upcoming tasks. Check back later for new opportunities!',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: Colors.grey.shade600,
+                  SizedBox(height: 16),
+                  Text(
+                    'No Upcoming Tasks',
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
                   ),
-                ),
-              ],
+                  SizedBox(height: 8),
+                  Text(
+                    'There are currently no upcoming tasks available.\nCheck back later for new opportunities!',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: Colors.white70,
+                    ),
+                  ),
+                ],
+              ),
             ),
           )
         else
           ..._tasks.map((task) {
-            // Format the date and time
             final startTime = task['startTime'];
             final endTime = task['endTime'];
 
@@ -888,27 +866,23 @@ class _HomeScreenState extends State<HomeScreen> {
               category: task['label'] ?? '',
               participants: task['currVolunteers'] ?? 0,
               maxParticipants: task['maxVolunteers'] ?? 0,
-              color: _getCategoryColor(task['label']),
+              color: const Color(0xFF1A365D),
               onTap: () async {
-                final taskId = task['id'];
-
-                if (taskId != null) {
-                  final taskDoc = await FirebaseFirestore.instance
-                      .collection('tasks')
-                      .doc(taskId)
-                      .get();
-
-                  if (taskDoc.exists) {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => TaskDetailPage(
-                          task: Task.fromFirestore(taskDoc),
-                          userId: FirebaseAuth.instance.currentUser?.uid ?? '',
-                        ),
+                final doc = await FirebaseFirestore.instance
+                    .collection('tasks')
+                    .doc(task['id'])
+                    .get();
+                if (doc.exists) {
+                  final taskObj = Task.fromFirestore(doc);
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => TaskDetailPage(
+                        task: taskObj,
+                        userId: FirebaseAuth.instance.currentUser?.uid ?? '',
                       ),
-                    );
-                  }
+                    ),
+                  );
                 }
               },
             );
@@ -929,6 +903,7 @@ class _HomeScreenState extends State<HomeScreen> {
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
+                color: Colors.white,
               ),
             ),
             TextButton(
@@ -936,10 +911,12 @@ class _HomeScreenState extends State<HomeScreen> {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => const AnnouncementsScreen(),
-                  ),
+                      builder: (context) => const AnnouncementsScreen()),
                 );
               },
+              style: TextButton.styleFrom(
+                foregroundColor: Colors.white,
+              ),
               child: const Row(
                 children: [
                   Text('View All'),
@@ -953,63 +930,86 @@ class _HomeScreenState extends State<HomeScreen> {
           ],
         ),
         const SizedBox(height: 16),
-        ..._announcements.map((announcement) {
-          // Format the date
-          String formattedDate = 'No date set';
-          final timestamp =
-              announcement['startTime'] ?? announcement['createdOn'];
+        if (_announcements.isEmpty)
+          Container(
+            padding: const EdgeInsets.all(24),
+            decoration: BoxDecoration(
+              color: const Color(0xFF1E3A8A).withOpacity(0.3),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(
+                color: Colors.white.withOpacity(0.2),
+                width: 1,
+              ),
+            ),
+            child: const Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    Icons.announcement_outlined,
+                    size: 48,
+                    color: Colors.white70,
+                  ),
+                  SizedBox(height: 16),
+                  Text(
+                    'No Announcements',
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
+                  SizedBox(height: 8),
+                  Text(
+                    'There are currently no announcements available.\nCheck back later for updates!',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: Colors.white70,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          )
+        else
+          ..._announcements.map((announcement) {
+            String formattedDate = 'No date set';
+            final timestamp =
+                announcement['startTime'] ?? announcement['createdOn'];
 
-          if (timestamp != null) {
-            if (timestamp is Timestamp) {
-              formattedDate = DateFormatter.format(timestamp);
-            } else if (timestamp is String) {
-              try {
-                final date = DateTime.parse(timestamp);
-                formattedDate = DateFormatter.format(date);
-              } catch (e) {
-                // Handle parsing error silently
+            if (timestamp != null) {
+              if (timestamp is Timestamp) {
+                formattedDate = DateFormatter.format(timestamp);
+              } else if (timestamp is String) {
+                try {
+                  final date = DateTime.parse(timestamp);
+                  formattedDate = DateFormatter.format(date);
+                } catch (e) {
+                  // Handle parsing error silently
+                }
               }
             }
-          }
 
-          return AnnouncementCard(
-            title: announcement['name'] ?? '',
-            description: announcement['description'] ?? '',
-            date: formattedDate,
-            category: announcement['label'] ?? '',
-            color: _getCategoryColor(announcement['label']),
-            onTap: () {
-              final announcementId = announcement['id'];
-
-              if (announcementId != null) {
+            return AnnouncementCard(
+              title: announcement['name'] ?? '',
+              description: announcement['description'] ?? '',
+              date: formattedDate,
+              category: announcement['label'] ?? '',
+              color: const Color(0xFF1A365D),
+              onTap: () {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
                     builder: (context) => AnnouncementDetailScreen(
-                      announcementId: announcementId,
+                      announcementId: announcement['id'],
                     ),
                   ),
                 );
-              }
-            },
-          );
-        }),
+              },
+            );
+          }),
       ],
     );
-  }
-
-  Color _getCategoryColor(String category) {
-    switch (category) {
-      case 'Environment':
-        return AppTheme.environmentColor;
-      case 'Community':
-        return AppTheme.communityColor;
-      case 'Healthcare':
-        return AppTheme.healthcareColor;
-      case 'Education':
-        return AppTheme.educationColor;
-      default:
-        return Colors.grey;
-    }
   }
 }

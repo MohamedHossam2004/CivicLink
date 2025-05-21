@@ -28,20 +28,21 @@ class AnnouncementService {
         .snapshots()
         .listen((snapshot) async {
       if (snapshot.docs.isNotEmpty) {
-        final latestAnnouncement = Announcement.fromFirestore(snapshot.docs.first);
-        
+        final latestAnnouncement =
+            Announcement.fromFirestore(snapshot.docs.first);
+
         // Check if it's a new announcement (created within the last minute)
         final now = DateTime.now();
         final difference = now.difference(latestAnnouncement.createdOn);
-        
+
         if (difference.inMinutes <= 1) {
           // This is likely a new announcement
-          
+
           // If it's important, send to all users
           if (latestAnnouncement.isImportant) {
             // Instead of individual notifications, we can use a topic
             // Assuming all users subscribe to 'announcements' topic on login
-            
+
             // But we can also notify specific users directly if needed
             final allUsers = await _firestore.collection('users').get();
             for (final userDoc in allUsers.docs) {
@@ -124,7 +125,7 @@ class AnnouncementService {
 
     // Get the announcement details
     final announcement = await getAnnouncementById(announcementId);
-    
+
     // Check if this is a reply to another comment (notifications would be handled differently)
     // For now, we notify the announcement creator if different from commenter
     if (announcement != null) {
@@ -134,7 +135,7 @@ class AnnouncementService {
           .where('announcementId', isEqualTo: announcementId)
           .where('userId', isNotEqualTo: userId) // Don't notify the commenter
           .get();
-      
+
       // Get unique user IDs
       final Set<String> usersToNotify = {};
       for (final doc in previousComments.docs) {
@@ -142,7 +143,7 @@ class AnnouncementService {
         final commentUserId = commentData['userId'] as String;
         usersToNotify.add(commentUserId);
       }
-      
+
       // Send notifications
       for (final userToNotify in usersToNotify) {
         await _notificationService.sendNotificationToUser(
@@ -377,7 +378,7 @@ class AnnouncementService {
       'endTime': endTime != null ? Timestamp.fromDate(endTime) : null,
       'updatedAt': FieldValue.serverTimestamp(),
     };
-    
+
     // Only update imageUrls if provided
     if (imageUrls != null) {
       updateData['imageUrls'] = imageUrls;
@@ -392,7 +393,7 @@ class AnnouncementService {
     if (user == null) {
       throw Exception('User not authenticated');
     }
-    
+
     // Force token refresh to ensure we have fresh credentials
     try {
       await user.getIdToken(true);
@@ -407,8 +408,9 @@ class AnnouncementService {
       await _announcementsCollection.doc(id).delete();
 
       // Delete associated comments
-      final comments =
-          await _commentsCollection.where('announcementId', isEqualTo: id).get();
+      final comments = await _commentsCollection
+          .where('announcementId', isEqualTo: id)
+          .get();
 
       for (var doc in comments.docs) {
         await doc.reference.delete();

@@ -39,11 +39,8 @@ class _AdvertisementsScreenState extends State<AdvertisementsScreen> {
   Future<void> _checkUserType() async {
     final user = FirebaseAuth.instance.currentUser;
     if (user != null) {
-      final userDoc = await _firestore
-          .collection('users')
-          .doc(user.uid)
-          .get();
-      
+      final userDoc = await _firestore.collection('users').doc(user.uid).get();
+
       if (mounted) {
         setState(() {
           _isAdvertiser = userDoc.data()?['type'] == 'advertiser';
@@ -84,13 +81,14 @@ class _AdvertisementsScreenState extends State<AdvertisementsScreen> {
     }
   }
 
-  Future<void> _updateAdvertisementStatus(String advertisementId, String status) async {
+  Future<void> _updateAdvertisementStatus(
+      String advertisementId, String status) async {
     try {
       await _firestore
           .collection('advertisements')
           .doc(advertisementId)
           .update({'status': status});
-      
+
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Advertisement $status successfully')),
       );
@@ -106,7 +104,7 @@ class _AdvertisementsScreenState extends State<AdvertisementsScreen> {
       // Extract filename from Cloudinary URL
       Uri uri = Uri.parse(documentUrl);
       String filename = uri.pathSegments.last;
-      
+
       // Check if there's a format/extension in the URL params
       String format = '';
       if (uri.queryParameters.containsKey('format')) {
@@ -118,7 +116,7 @@ class _AdvertisementsScreenState extends State<AdvertisementsScreen> {
           format = filename.substring(extensionIndex + 1).toLowerCase();
         }
       }
-      
+
       // Determine icon based on format
       switch (format) {
         case 'pdf':
@@ -151,12 +149,12 @@ class _AdvertisementsScreenState extends State<AdvertisementsScreen> {
         title: const Text(
           'Advertisements',
           style: TextStyle(
-            color: Color(0xFF1E293B),
+            color: Colors.white,
             fontSize: 20,
             fontWeight: FontWeight.bold,
           ),
         ),
-        backgroundColor: Colors.white,
+        backgroundColor: const Color(0xFF1A365D),
         elevation: 0,
         actions: [
           if (_isAdvertiser)
@@ -165,7 +163,7 @@ class _AdvertisementsScreenState extends State<AdvertisementsScreen> {
               child: IconButton(
                 icon: const Icon(
                   Icons.add_circle_outline,
-                  color: Color(0xFF1E293B),
+                  color: Colors.white,
                 ),
                 onPressed: () {
                   Navigator.push(
@@ -179,6 +177,7 @@ class _AdvertisementsScreenState extends State<AdvertisementsScreen> {
             ),
         ],
       ),
+      backgroundColor: const Color(0xFF1A365D),
       body: StreamBuilder<QuerySnapshot>(
         stream: _firestore
             .collection('advertisements')
@@ -209,25 +208,27 @@ class _AdvertisementsScreenState extends State<AdvertisementsScreen> {
                   Icon(
                     Icons.campaign_outlined,
                     size: 64,
-                    color: Colors.grey[400],
+                    color: Colors.white.withOpacity(0.4),
                   ),
                   const SizedBox(height: 16),
                   Text(
-                    _isAdmin ? 'No Advertisements' : 'No Approved Advertisements',
+                    _isAdmin
+                        ? 'No Advertisements'
+                        : 'No Approved Advertisements',
                     style: TextStyle(
                       fontSize: 20,
                       fontWeight: FontWeight.bold,
-                      color: Colors.grey[700],
+                      color: Colors.white.withOpacity(0.7),
                     ),
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    _isAdmin 
+                    _isAdmin
                         ? 'There are currently no advertisements in the system.'
                         : 'There are currently no approved advertisements available.',
                     style: TextStyle(
                       fontSize: 14,
-                      color: Colors.grey[600],
+                      color: Colors.white.withOpacity(0.5),
                     ),
                   ),
                 ],
@@ -249,11 +250,11 @@ class _AdvertisementsScreenState extends State<AdvertisementsScreen> {
               return Container(
                 margin: const EdgeInsets.only(bottom: 16),
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: const Color(0xFF1E3A8A),
                   borderRadius: BorderRadius.circular(16),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.08),
+                      color: Colors.black.withOpacity(0.2),
                       blurRadius: 12,
                       offset: const Offset(0, 4),
                     ),
@@ -298,11 +299,12 @@ class _AdvertisementsScreenState extends State<AdvertisementsScreen> {
                                         errorBuilder:
                                             (context, error, stackTrace) {
                                           return Container(
-                                            color: Colors.grey[100],
-                                            child: const Icon(
+                                            color: const Color(0xFF1A365D),
+                                            child: Icon(
                                               Icons.image_not_supported,
                                               size: 48,
-                                              color: Colors.grey,
+                                              color:
+                                                  Colors.white.withOpacity(0.4),
                                             ),
                                           );
                                         },
@@ -337,8 +339,8 @@ class _AdvertisementsScreenState extends State<AdvertisementsScreen> {
                                           decoration: BoxDecoration(
                                             shape: BoxShape.circle,
                                             color: currentPage == index
-                                                ? AppTheme.primaryColor
-                                                : Colors.white.withOpacity(0.5),
+                                                ? Colors.white
+                                                : Colors.white.withOpacity(0.3),
                                           ),
                                         );
                                       },
@@ -356,7 +358,8 @@ class _AdvertisementsScreenState extends State<AdvertisementsScreen> {
                             children: [
                               // Title and Status
                               Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
                                 children: [
                                   Expanded(
                                     child: Text(
@@ -364,7 +367,7 @@ class _AdvertisementsScreenState extends State<AdvertisementsScreen> {
                                       style: const TextStyle(
                                         fontSize: 18,
                                         fontWeight: FontWeight.bold,
-                                        color: Color(0xFF1E293B),
+                                        color: Colors.white,
                                       ),
                                     ),
                                   ),
@@ -376,20 +379,21 @@ class _AdvertisementsScreenState extends State<AdvertisementsScreen> {
                                       ),
                                       decoration: BoxDecoration(
                                         color: status == 'approved'
-                                            ? Colors.green.withOpacity(0.1)
+                                            ? Colors.green.withOpacity(0.2)
                                             : status == 'declined'
-                                                ? Colors.red.withOpacity(0.1)
-                                                : Colors.orange.withOpacity(0.1),
+                                                ? Colors.red.withOpacity(0.2)
+                                                : Colors.orange
+                                                    .withOpacity(0.2),
                                         borderRadius: BorderRadius.circular(12),
                                       ),
                                       child: Text(
                                         status.toUpperCase(),
                                         style: TextStyle(
                                           color: status == 'approved'
-                                              ? Colors.green
+                                              ? Colors.green[100]
                                               : status == 'declined'
-                                                  ? Colors.red
-                                                  : Colors.orange,
+                                                  ? Colors.red[100]
+                                                  : Colors.orange[100],
                                           fontSize: 12,
                                           fontWeight: FontWeight.bold,
                                         ),
@@ -408,13 +412,13 @@ class _AdvertisementsScreenState extends State<AdvertisementsScreen> {
                                       Icon(
                                         Icons.calendar_today,
                                         size: 16,
-                                        color: Colors.grey[600],
+                                        color: Colors.white.withOpacity(0.6),
                                       ),
                                       const SizedBox(width: 4),
                                       Text(
                                         DateFormatter.format(createdOn),
                                         style: TextStyle(
-                                          color: Colors.grey[600],
+                                          color: Colors.white.withOpacity(0.6),
                                           fontSize: 14,
                                         ),
                                       ),
@@ -428,13 +432,14 @@ class _AdvertisementsScreenState extends State<AdvertisementsScreen> {
                                         Icon(
                                           Icons.location_on,
                                           size: 16,
-                                          color: Colors.grey[600],
+                                          color: Colors.white.withOpacity(0.6),
                                         ),
                                         const SizedBox(width: 4),
                                         Text(
                                           '${location['latitude']}, ${location['longitude']}',
                                           style: TextStyle(
-                                            color: Colors.grey[600],
+                                            color:
+                                                Colors.white.withOpacity(0.6),
                                             fontSize: 14,
                                           ),
                                         ),
@@ -451,8 +456,9 @@ class _AdvertisementsScreenState extends State<AdvertisementsScreen> {
                                   padding: const EdgeInsets.all(12),
                                   decoration: BoxDecoration(
                                     borderRadius: BorderRadius.circular(8),
-                                    border: Border.all(color: Colors.grey[300]!),
-                                    color: Colors.grey[50],
+                                    border: Border.all(
+                                        color: Colors.white.withOpacity(0.2)),
+                                    color: const Color(0xFF1A365D),
                                   ),
                                   child: InkWell(
                                     onTap: () => _launchUrl(documentUrl),
@@ -462,22 +468,22 @@ class _AdvertisementsScreenState extends State<AdvertisementsScreen> {
                                         Icon(
                                           _getDocumentIcon(documentUrl),
                                           size: 24,
-                                          color: AppTheme.primaryColor,
+                                          color: Colors.white,
                                         ),
                                         const SizedBox(width: 12),
-                                        Expanded(
-                                          child: const Text(
+                                        const Expanded(
+                                          child: Text(
                                             'View Business Document',
                                             style: TextStyle(
                                               fontWeight: FontWeight.bold,
-                                              color: Color(0xFF1E293B),
+                                              color: Colors.white,
                                             ),
                                           ),
                                         ),
                                         Icon(
                                           Icons.open_in_new,
                                           size: 20,
-                                          color: AppTheme.primaryColor,
+                                          color: Colors.white,
                                         ),
                                       ],
                                     ),

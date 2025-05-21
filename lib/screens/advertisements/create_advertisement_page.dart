@@ -13,7 +13,8 @@ class CreateAdvertisementPage extends StatefulWidget {
   const CreateAdvertisementPage({Key? key}) : super(key: key);
 
   @override
-  State<CreateAdvertisementPage> createState() => _CreateAdvertisementPageState();
+  State<CreateAdvertisementPage> createState() =>
+      _CreateAdvertisementPageState();
 }
 
 class _CreateAdvertisementPageState extends State<CreateAdvertisementPage> {
@@ -26,7 +27,28 @@ class _CreateAdvertisementPageState extends State<CreateAdvertisementPage> {
   File? _documentFile;
   bool _isLoading = false;
   final CloudinaryService _cloudinaryService = CloudinaryService();
-  
+
+  static const String _darkMapStyle = '''[
+    {"elementType":"geometry","stylers":[{"color":"#242f3e"}]},
+    {"elementType":"labels.text.fill","stylers":[{"color":"#746855"}]},
+    {"elementType":"labels.text.stroke","stylers":[{"color":"#242f3e"}]},
+    {"featureType":"administrative.locality","elementType":"labels.text.fill","stylers":[{"color":"#d59563"}]},
+    {"featureType":"poi","elementType":"labels.text.fill","stylers":[{"color":"#d59563"}]},
+    {"featureType":"poi.park","elementType":"geometry","stylers":[{"color":"#263c3f"}]},
+    {"featureType":"poi.park","elementType":"labels.text.fill","stylers":[{"color":"#6b9a76"}]},
+    {"featureType":"road","elementType":"geometry","stylers":[{"color":"#38414e"}]},
+    {"featureType":"road","elementType":"geometry.stroke","stylers":[{"color":"#212a37"}]},
+    {"featureType":"road","elementType":"labels.text.fill","stylers":[{"color":"#9ca5b3"}]},
+    {"featureType":"road.highway","elementType":"geometry","stylers":[{"color":"#746855"}]},
+    {"featureType":"road.highway","elementType":"geometry.stroke","stylers":[{"color":"#1f2835"}]},
+    {"featureType":"road.highway","elementType":"labels.text.fill","stylers":[{"color":"#f3d19c"}]},
+    {"featureType":"transit","elementType":"geometry","stylers":[{"color":"#2f3948"}]},
+    {"featureType":"transit.station","elementType":"labels.text.fill","stylers":[{"color":"#d59563"}]},
+    {"featureType":"water","elementType":"geometry","stylers":[{"color":"#17263c"}]},
+    {"featureType":"water","elementType":"labels.text.fill","stylers":[{"color":"#515c6d"}]},
+    {"featureType":"water","elementType":"labels.text.stroke","stylers":[{"color":"#17263c"}]}
+  ]''';
+
   // Map related variables
   bool _isMapVisible = false;
   LatLng? _selectedLocation;
@@ -128,7 +150,7 @@ class _CreateAdvertisementPageState extends State<CreateAdvertisementPage> {
   Future<void> _pickImages() async {
     final ImagePicker picker = ImagePicker();
     final List<XFile> images = await picker.pickMultiImage();
-    
+
     if (images.isNotEmpty) {
       setState(() {
         _imageFiles.addAll(images.map((image) => File(image.path)));
@@ -138,7 +160,7 @@ class _CreateAdvertisementPageState extends State<CreateAdvertisementPage> {
 
   Future<List<String>> _uploadImages() async {
     List<String> uploadedUrls = [];
-    
+
     for (var imageFile in _imageFiles) {
       try {
         // Use CloudinaryService instead of direct Firebase Storage
@@ -152,7 +174,7 @@ class _CreateAdvertisementPageState extends State<CreateAdvertisementPage> {
         );
       }
     }
-    
+
     return uploadedUrls;
   }
 
@@ -166,14 +188,14 @@ class _CreateAdvertisementPageState extends State<CreateAdvertisementPage> {
     try {
       final imageUrls = await _uploadImages();
       String? documentUrl;
-      
+
       // Upload document if one is selected
       if (_documentFile != null) {
         documentUrl = await _cloudinaryService.uploadDocument(_documentFile!);
       }
-      
+
       final userId = FirebaseAuth.instance.currentUser?.uid;
-      
+
       if (userId == null) {
         throw Exception('User not authenticated');
       }
@@ -226,10 +248,14 @@ class _CreateAdvertisementPageState extends State<CreateAdvertisementPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: const Color(0xFF1A365D),
       appBar: AppBar(
-        title: const Text('Create Advertisement'),
-        backgroundColor: Colors.white,
-        foregroundColor: Colors.black,
+        title: const Text(
+          'Create Advertisement',
+          style: TextStyle(color: Colors.white),
+        ),
+        backgroundColor: const Color(0xFF1A365D),
+        foregroundColor: Colors.white,
         elevation: 1,
       ),
       body: SingleChildScrollView(
@@ -261,9 +287,24 @@ class _CreateAdvertisementPageState extends State<CreateAdvertisementPage> {
               // Name Field
               TextFormField(
                 controller: _nameController,
-                decoration: const InputDecoration(
+                style: const TextStyle(color: Colors.white),
+                decoration: InputDecoration(
                   labelText: 'Name',
-                  border: OutlineInputBorder(),
+                  labelStyle: TextStyle(color: Colors.white.withOpacity(0.7)),
+                  border: OutlineInputBorder(
+                    borderSide:
+                        BorderSide(color: Colors.white.withOpacity(0.2)),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderSide:
+                        BorderSide(color: Colors.white.withOpacity(0.2)),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderSide:
+                        BorderSide(color: Colors.white.withOpacity(0.3)),
+                  ),
+                  filled: true,
+                  fillColor: const Color(0xFF1E3A8A),
                 ),
                 validator: (value) {
                   if (value == null || value.isEmpty) {
@@ -277,10 +318,26 @@ class _CreateAdvertisementPageState extends State<CreateAdvertisementPage> {
               // Phone number field
               TextFormField(
                 controller: _phoneController,
-                decoration: const InputDecoration(
+                style: const TextStyle(color: Colors.white),
+                decoration: InputDecoration(
                   labelText: 'Phone Number',
-                  border: OutlineInputBorder(),
-                  prefixIcon: Icon(Icons.phone),
+                  labelStyle: TextStyle(color: Colors.white.withOpacity(0.7)),
+                  border: OutlineInputBorder(
+                    borderSide:
+                        BorderSide(color: Colors.white.withOpacity(0.2)),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderSide:
+                        BorderSide(color: Colors.white.withOpacity(0.2)),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderSide:
+                        BorderSide(color: Colors.white.withOpacity(0.3)),
+                  ),
+                  prefixIcon:
+                      Icon(Icons.phone, color: Colors.white.withOpacity(0.7)),
+                  filled: true,
+                  fillColor: const Color(0xFF1E3A8A),
                 ),
                 keyboardType: TextInputType.phone,
                 validator: (value) {
@@ -298,14 +355,15 @@ class _CreateAdvertisementPageState extends State<CreateAdvertisementPage> {
                 style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
+                  color: Colors.white,
                 ),
               ),
               const SizedBox(height: 8),
-              const Text(
+              Text(
                 'Tap on the map to select location or provide coordinates',
                 style: TextStyle(
                   fontSize: 14,
-                  color: Colors.grey,
+                  color: Colors.white.withOpacity(0.6),
                 ),
               ),
               const SizedBox(height: 16),
@@ -313,30 +371,34 @@ class _CreateAdvertisementPageState extends State<CreateAdvertisementPage> {
                 height: 300,
                 width: double.infinity,
                 decoration: BoxDecoration(
-                  border: Border.all(color: Colors.grey.shade300),
+                  border: Border.all(color: Colors.white.withOpacity(0.2)),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(8),
                   child: _selectedLocation != null
-                    ? GoogleMap(
-                        initialCameraPosition: CameraPosition(
-                          target: _selectedLocation!,
-                          zoom: 15,
+                      ? GoogleMap(
+                          initialCameraPosition: CameraPosition(
+                            target: _selectedLocation!,
+                            zoom: 15,
+                          ),
+                          markers: _markers,
+                          myLocationEnabled: true,
+                          myLocationButtonEnabled: true,
+                          mapToolbarEnabled: false,
+                          zoomControlsEnabled: true,
+                          onMapCreated: (controller) {
+                            _mapController = controller;
+                            controller.setMapStyle(_darkMapStyle);
+                          },
+                          onTap: _handleMapTap,
+                        )
+                      : const Center(
+                          child: CircularProgressIndicator(
+                            valueColor:
+                                AlwaysStoppedAnimation<Color>(Colors.white),
+                          ),
                         ),
-                        markers: _markers,
-                        myLocationEnabled: true,
-                        myLocationButtonEnabled: true,
-                        mapToolbarEnabled: false,
-                        zoomControlsEnabled: true,
-                        onMapCreated: (controller) {
-                          _mapController = controller;
-                        },
-                        onTap: _handleMapTap,
-                      )
-                    : const Center(
-                        child: CircularProgressIndicator(),
-                      ),
                 ),
               ),
               const SizedBox(height: 16),
@@ -347,9 +409,25 @@ class _CreateAdvertisementPageState extends State<CreateAdvertisementPage> {
                   Expanded(
                     child: TextFormField(
                       controller: _latitudeController,
-                      decoration: const InputDecoration(
+                      style: const TextStyle(color: Colors.white),
+                      decoration: InputDecoration(
                         labelText: 'Latitude',
-                        border: OutlineInputBorder(),
+                        labelStyle:
+                            TextStyle(color: Colors.white.withOpacity(0.7)),
+                        border: OutlineInputBorder(
+                          borderSide:
+                              BorderSide(color: Colors.white.withOpacity(0.2)),
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderSide:
+                              BorderSide(color: Colors.white.withOpacity(0.2)),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderSide:
+                              BorderSide(color: Colors.white.withOpacity(0.3)),
+                        ),
+                        filled: true,
+                        fillColor: const Color(0xFF1E3A8A),
                       ),
                       keyboardType: TextInputType.number,
                       validator: (value) {
@@ -362,22 +440,24 @@ class _CreateAdvertisementPageState extends State<CreateAdvertisementPage> {
                         return null;
                       },
                       onChanged: (value) {
-                        if (value.isNotEmpty && _longitudeController.text.isNotEmpty) {
+                        if (value.isNotEmpty &&
+                            _longitudeController.text.isNotEmpty) {
                           try {
                             final lat = double.parse(value);
                             final lng = double.parse(_longitudeController.text);
-                            
+
                             setState(() {
                               _selectedLocation = LatLng(lat, lng);
                               _markers = {
                                 Marker(
                                   markerId: const MarkerId('selected_location'),
                                   position: _selectedLocation!,
-                                  infoWindow: const InfoWindow(title: 'Advertisement Location'),
+                                  infoWindow: const InfoWindow(
+                                      title: 'Advertisement Location'),
                                 ),
                               };
                             });
-                            
+
                             _mapController?.animateCamera(
                               CameraUpdate.newLatLng(_selectedLocation!),
                             );
@@ -392,9 +472,25 @@ class _CreateAdvertisementPageState extends State<CreateAdvertisementPage> {
                   Expanded(
                     child: TextFormField(
                       controller: _longitudeController,
-                      decoration: const InputDecoration(
+                      style: const TextStyle(color: Colors.white),
+                      decoration: InputDecoration(
                         labelText: 'Longitude',
-                        border: OutlineInputBorder(),
+                        labelStyle:
+                            TextStyle(color: Colors.white.withOpacity(0.7)),
+                        border: OutlineInputBorder(
+                          borderSide:
+                              BorderSide(color: Colors.white.withOpacity(0.2)),
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderSide:
+                              BorderSide(color: Colors.white.withOpacity(0.2)),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderSide:
+                              BorderSide(color: Colors.white.withOpacity(0.3)),
+                        ),
+                        filled: true,
+                        fillColor: const Color(0xFF1E3A8A),
                       ),
                       keyboardType: TextInputType.number,
                       validator: (value) {
@@ -407,22 +503,24 @@ class _CreateAdvertisementPageState extends State<CreateAdvertisementPage> {
                         return null;
                       },
                       onChanged: (value) {
-                        if (value.isNotEmpty && _latitudeController.text.isNotEmpty) {
+                        if (value.isNotEmpty &&
+                            _latitudeController.text.isNotEmpty) {
                           try {
                             final lat = double.parse(_latitudeController.text);
                             final lng = double.parse(value);
-                            
+
                             setState(() {
                               _selectedLocation = LatLng(lat, lng);
                               _markers = {
                                 Marker(
                                   markerId: const MarkerId('selected_location'),
                                   position: _selectedLocation!,
-                                  infoWindow: const InfoWindow(title: 'Advertisement Location'),
+                                  infoWindow: const InfoWindow(
+                                      title: 'Advertisement Location'),
                                 ),
                               };
                             });
-                            
+
                             _mapController?.animateCamera(
                               CameraUpdate.newLatLng(_selectedLocation!),
                             );
@@ -446,7 +544,9 @@ class _CreateAdvertisementPageState extends State<CreateAdvertisementPage> {
                   onPressed: _isLoading ? null : _createAdvertisement,
                   style: ElevatedButton.styleFrom(
                     padding: const EdgeInsets.symmetric(vertical: 16),
-                    backgroundColor: Theme.of(context).primaryColor,
+                    backgroundColor: const Color(0xFF1E3A8A),
+                    disabledBackgroundColor:
+                        const Color(0xFF1E3A8A).withOpacity(0.5),
                   ),
                   child: _isLoading
                       ? const SizedBox(
@@ -454,7 +554,8 @@ class _CreateAdvertisementPageState extends State<CreateAdvertisementPage> {
                           width: 20,
                           child: CircularProgressIndicator(
                             strokeWidth: 2,
-                            valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                            valueColor:
+                                AlwaysStoppedAnimation<Color>(Colors.white),
                           ),
                         )
                       : const Text(
@@ -473,4 +574,4 @@ class _CreateAdvertisementPageState extends State<CreateAdvertisementPage> {
       ),
     );
   }
-} 
+}

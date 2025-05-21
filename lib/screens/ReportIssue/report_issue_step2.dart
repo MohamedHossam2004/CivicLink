@@ -82,7 +82,8 @@ class _ReportIssueStep2State extends State<ReportIssueStep2> {
 
         // Update the location controller with a readable address
         // In a real implementation, you would use reverse geocoding here
-        _locationController.text = 'Current Location (${_selectedLocation!.latitude.toStringAsFixed(4)}, ${_selectedLocation!.longitude.toStringAsFixed(4)})';
+        _locationController.text =
+            'Current Location (${_selectedLocation!.latitude.toStringAsFixed(4)}, ${_selectedLocation!.longitude.toStringAsFixed(4)})';
       });
 
       // Move camera to the current location if map controller is available
@@ -118,21 +119,24 @@ class _ReportIssueStep2State extends State<ReportIssueStep2> {
       };
 
       // Update location text
-      _locationController.text = 'Selected Location (${tappedPoint.latitude.toStringAsFixed(4)}, ${tappedPoint.longitude.toStringAsFixed(4)})';
+      _locationController.text =
+          'Selected Location (${tappedPoint.latitude.toStringAsFixed(4)}, ${tappedPoint.longitude.toStringAsFixed(4)})';
     });
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: const Color(0xFF1A365D),
       appBar: AppBar(
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
+          icon: const Icon(Icons.arrow_back, color: Colors.white),
           onPressed: () => Navigator.pop(context),
         ),
-        title: const Text('Report an Issue'),
-        backgroundColor: Colors.white,
-        foregroundColor: Colors.black,
+        title: const Text('Report an Issue',
+            style: TextStyle(color: Colors.white)),
+        backgroundColor: const Color(0xFF1A365D),
+        foregroundColor: Colors.white,
         elevation: 0,
       ),
       body: Column(
@@ -146,16 +150,29 @@ class _ReportIssueStep2State extends State<ReportIssueStep2> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    const Text('Step 2 of 3'),
-                    Text('67% Complete'),
+                    const Text('Step 2 of 3',
+                        style: TextStyle(color: Colors.white)),
+                    const Text('67% Complete',
+                        style: TextStyle(color: Colors.white)),
                   ],
                 ),
                 const SizedBox(height: 8),
-                LinearProgressIndicator(
-                  value: 0.67,
-                  backgroundColor: Colors.grey[200],
-                  color: Colors.green,
-                  minHeight: 5,
+                Container(
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(4),
+                    gradient: const LinearGradient(
+                      colors: [Color(0xFF1E3A8A), Color(0xFF1A365D)],
+                      begin: Alignment.centerLeft,
+                      end: Alignment.centerRight,
+                    ),
+                  ),
+                  child: LinearProgressIndicator(
+                    value: 0.67,
+                    backgroundColor: Colors.white.withOpacity(0.1),
+                    valueColor:
+                        const AlwaysStoppedAnimation<Color>(Colors.transparent),
+                    minHeight: 5,
+                  ),
                 ),
               ],
             ),
@@ -173,6 +190,7 @@ class _ReportIssueStep2State extends State<ReportIssueStep2> {
                     style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
+                      color: Colors.white,
                     ),
                   ),
                   const SizedBox(height: 20),
@@ -180,10 +198,24 @@ class _ReportIssueStep2State extends State<ReportIssueStep2> {
                   // Location input field
                   TextField(
                     controller: _locationController,
+                    style: const TextStyle(color: Colors.white),
                     decoration: InputDecoration(
                       hintText: 'Enter address or location',
+                      hintStyle: TextStyle(color: Colors.white70),
+                      filled: true,
+                      fillColor: const Color(0xFF1E3A8A),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(4),
+                        borderSide: BorderSide(color: Colors.white, width: 1),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(4),
+                        borderSide:
+                            BorderSide(color: Colors.white.withOpacity(0.3)),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(4),
+                        borderSide: BorderSide(color: Colors.white),
                       ),
                       contentPadding: const EdgeInsets.symmetric(
                         horizontal: 12,
@@ -191,7 +223,6 @@ class _ReportIssueStep2State extends State<ReportIssueStep2> {
                       ),
                     ),
                     onChanged: (value) {
-                      // TODO: Implement address search/geocoding
                       if (value.isNotEmpty) {
                         setState(() {
                           _isMapVisible = true;
@@ -206,30 +237,198 @@ class _ReportIssueStep2State extends State<ReportIssueStep2> {
                     child: Container(
                       width: double.infinity,
                       decoration: BoxDecoration(
-                        border: Border.all(color: Colors.grey.shade300),
+                        border:
+                            Border.all(color: Colors.white.withOpacity(0.3)),
                         borderRadius: BorderRadius.circular(4),
                       ),
                       child: ClipRRect(
                         borderRadius: BorderRadius.circular(4),
                         child: _selectedLocation != null
                             ? GoogleMap(
-                          initialCameraPosition: CameraPosition(
-                            target: _selectedLocation!,
-                            zoom: 15,
-                          ),
-                          markers: _markers,
-                          myLocationEnabled: true,
-                          myLocationButtonEnabled: true,
-                          mapToolbarEnabled: false,
-                          zoomControlsEnabled: true,
-                          onMapCreated: (controller) {
-                            _mapController = controller;
-                          },
-                          onTap: _handleMapTap,
-                        )
+                                initialCameraPosition: CameraPosition(
+                                  target: _selectedLocation!,
+                                  zoom: 15,
+                                ),
+                                markers: _markers,
+                                myLocationEnabled: true,
+                                myLocationButtonEnabled: true,
+                                mapToolbarEnabled: false,
+                                zoomControlsEnabled: true,
+                                onMapCreated: (controller) {
+                                  _mapController = controller;
+                                  // Set dark map style
+                                  controller.setMapStyle('''
+                                    [
+                                      {
+                                        "elementType": "geometry",
+                                        "stylers": [
+                                          {
+                                            "color": "#242f3e"
+                                          }
+                                        ]
+                                      },
+                                      {
+                                        "elementType": "labels.text.fill",
+                                        "stylers": [
+                                          {
+                                            "color": "#746855"
+                                          }
+                                        ]
+                                      },
+                                      {
+                                        "elementType": "labels.text.stroke",
+                                        "stylers": [
+                                          {
+                                            "color": "#242f3e"
+                                          }
+                                        ]
+                                      },
+                                      {
+                                        "featureType": "administrative.locality",
+                                        "elementType": "labels.text.fill",
+                                        "stylers": [
+                                          {
+                                            "color": "#d59563"
+                                          }
+                                        ]
+                                      },
+                                      {
+                                        "featureType": "poi",
+                                        "elementType": "labels.text.fill",
+                                        "stylers": [
+                                          {
+                                            "color": "#d59563"
+                                          }
+                                        ]
+                                      },
+                                      {
+                                        "featureType": "poi.park",
+                                        "elementType": "geometry",
+                                        "stylers": [
+                                          {
+                                            "color": "#263c3f"
+                                          }
+                                        ]
+                                      },
+                                      {
+                                        "featureType": "poi.park",
+                                        "elementType": "labels.text.fill",
+                                        "stylers": [
+                                          {
+                                            "color": "#6b9a76"
+                                          }
+                                        ]
+                                      },
+                                      {
+                                        "featureType": "road",
+                                        "elementType": "geometry",
+                                        "stylers": [
+                                          {
+                                            "color": "#38414e"
+                                          }
+                                        ]
+                                      },
+                                      {
+                                        "featureType": "road",
+                                        "elementType": "geometry.stroke",
+                                        "stylers": [
+                                          {
+                                            "color": "#212a37"
+                                          }
+                                        ]
+                                      },
+                                      {
+                                        "featureType": "road",
+                                        "elementType": "labels.text.fill",
+                                        "stylers": [
+                                          {
+                                            "color": "#9ca5b3"
+                                          }
+                                        ]
+                                      },
+                                      {
+                                        "featureType": "road.highway",
+                                        "elementType": "geometry",
+                                        "stylers": [
+                                          {
+                                            "color": "#746855"
+                                          }
+                                        ]
+                                      },
+                                      {
+                                        "featureType": "road.highway",
+                                        "elementType": "geometry.stroke",
+                                        "stylers": [
+                                          {
+                                            "color": "#1f2835"
+                                          }
+                                        ]
+                                      },
+                                      {
+                                        "featureType": "road.highway",
+                                        "elementType": "labels.text.fill",
+                                        "stylers": [
+                                          {
+                                            "color": "#f3d19c"
+                                          }
+                                        ]
+                                      },
+                                      {
+                                        "featureType": "transit",
+                                        "elementType": "geometry",
+                                        "stylers": [
+                                          {
+                                            "color": "#2f3948"
+                                          }
+                                        ]
+                                      },
+                                      {
+                                        "featureType": "transit.station",
+                                        "elementType": "labels.text.fill",
+                                        "stylers": [
+                                          {
+                                            "color": "#d59563"
+                                          }
+                                        ]
+                                      },
+                                      {
+                                        "featureType": "water",
+                                        "elementType": "geometry",
+                                        "stylers": [
+                                          {
+                                            "color": "#17263c"
+                                          }
+                                        ]
+                                      },
+                                      {
+                                        "featureType": "water",
+                                        "elementType": "labels.text.fill",
+                                        "stylers": [
+                                          {
+                                            "color": "#515c6d"
+                                          }
+                                        ]
+                                      },
+                                      {
+                                        "featureType": "water",
+                                        "elementType": "labels.text.stroke",
+                                        "stylers": [
+                                          {
+                                            "color": "#17263c"
+                                          }
+                                        ]
+                                      }
+                                    ]
+                                  ''');
+                                },
+                                onTap: _handleMapTap,
+                              )
                             : const Center(
-                          child: CircularProgressIndicator(),
-                        ),
+                                child: CircularProgressIndicator(
+                                  valueColor: AlwaysStoppedAnimation<Color>(
+                                      Colors.white),
+                                ),
+                              ),
                       ),
                     ),
                   ),
@@ -244,31 +443,57 @@ class _ReportIssueStep2State extends State<ReportIssueStep2> {
                         onPressed: () {
                           Navigator.pop(context);
                         },
+                        style: TextButton.styleFrom(
+                          foregroundColor: Colors.white70,
+                        ),
                         child: const Text('Back'),
                       ),
-                      ElevatedButton(
-                        onPressed: _selectedLocation == null
-                            ? null // Disable button if no location is selected
-                            : () {
-                          // Navigate to next step
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => ReportIssueStep3(
-                                issueType: widget.issueType,
-                                description: widget.description,
-                                location: _locationController.text,
-                                coordinates: _selectedLocation,
+                      SizedBox(
+                        width: 120,
+                        height: 48,
+                        child: ElevatedButton(
+                          onPressed: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => ReportIssueStep3(
+                                  issueType: widget.issueType,
+                                  description: widget.description,
+                                  location: _locationController.text,
+                                  coordinates: _selectedLocation,
+                                ),
+                              ),
+                            );
+                          },
+                          style: ElevatedButton.styleFrom(
+                            padding: EdgeInsets.zero,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(24),
+                            ),
+                            backgroundColor: Colors.transparent,
+                            shadowColor: Colors.transparent,
+                          ),
+                          child: Ink(
+                            decoration: BoxDecoration(
+                              gradient: const LinearGradient(
+                                colors: [Color(0xFF1E3A8A), Color(0xFF1A365D)],
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
+                              ),
+                              borderRadius: BorderRadius.circular(24),
+                            ),
+                            child: const Center(
+                              child: Text(
+                                'Next',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 16,
+                                ),
                               ),
                             ),
-                          );
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.teal,
-                          foregroundColor: Colors.white,
-                          minimumSize: const Size(100, 40),
+                          ),
                         ),
-                        child: const Text('Next'),
                       ),
                     ],
                   ),

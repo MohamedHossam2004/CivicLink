@@ -24,7 +24,15 @@ class AnnouncementCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
-      color: Colors.white,
+      color: const Color(0xFF1E3A8A).withOpacity(0.2),
+      elevation: 0,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+        side: BorderSide(
+          color: Colors.white.withOpacity(0.15),
+          width: 1,
+        ),
+      ),
       child: InkWell(
         onTap: () {
           print('InkWell tapped'); // Debug print
@@ -47,11 +55,14 @@ class AnnouncementCard extends StatelessWidget {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text(
-                        title,
-                        style: const TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 16,
+                      Expanded(
+                        child: Text(
+                          title,
+                          style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16,
+                            color: Colors.white,
+                          ),
                         ),
                       ),
                       Container(
@@ -60,13 +71,13 @@ class AnnouncementCard extends StatelessWidget {
                           vertical: 4,
                         ),
                         decoration: BoxDecoration(
-                          color: Colors.grey.shade200,
+                          color: Colors.white.withOpacity(0.2),
                           borderRadius: BorderRadius.circular(50),
                         ),
                         child: Text(
                           category,
-                          style: TextStyle(
-                            color: Colors.grey.shade800,
+                          style: const TextStyle(
+                            color: Colors.white,
                             fontSize: 12,
                             fontWeight: FontWeight.w500,
                           ),
@@ -78,7 +89,7 @@ class AnnouncementCard extends StatelessWidget {
                   Text(
                     description,
                     style: const TextStyle(
-                      color: AppTheme.textSecondaryColor,
+                      color: Colors.white70,
                       fontSize: 14,
                     ),
                     maxLines: 2,
@@ -90,13 +101,13 @@ class AnnouncementCard extends StatelessWidget {
                       const Icon(
                         Icons.calendar_today,
                         size: 14,
-                        color: AppTheme.textSecondaryColor,
+                        color: Colors.white70,
                       ),
                       const SizedBox(width: 4),
                       Text(
                         'Posted on $date',
                         style: const TextStyle(
-                          color: AppTheme.textSecondaryColor,
+                          color: Colors.white70,
                           fontSize: 12,
                         ),
                       ),

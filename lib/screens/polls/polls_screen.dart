@@ -61,18 +61,18 @@ class _PollsScreenState extends State<PollsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppTheme.background,
+      backgroundColor: const Color(0xFF1A365D),
       appBar: AppBar(
         title: const Text(
           'Polls',
           style: TextStyle(
-            color: AppTheme.primary,
+            color: Colors.white,
             fontWeight: FontWeight.bold,
           ),
         ),
-        backgroundColor: Colors.white,
+        backgroundColor: const Color(0xFF1A365D),
         elevation: 0,
-        iconTheme: const IconThemeData(color: AppTheme.primary),
+        iconTheme: const IconThemeData(color: Colors.white),
         actions: [
           if (_isAdmin)
             IconButton(
@@ -142,14 +142,14 @@ class _PollsScreenState extends State<PollsScreen> {
                   Icon(
                     Icons.poll_outlined,
                     size: 64,
-                    color: AppTheme.primary.withOpacity(0.5),
+                    color: Colors.white.withOpacity(0.4),
                   ),
                   const SizedBox(height: 16),
                   Text(
                     'No active polls',
                     style: TextStyle(
                       fontSize: 18,
-                      color: AppTheme.text.withOpacity(0.7),
+                      color: Colors.white.withOpacity(0.7),
                     ),
                   ),
                 ],
@@ -179,7 +179,7 @@ class _PollsScreenState extends State<PollsScreen> {
                   return Card(
                     margin: const EdgeInsets.only(bottom: 16),
                     elevation: 2,
-                    color: Colors.white,
+                    color: const Color(0xFF1E3A8A),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
@@ -204,12 +204,12 @@ class _PollsScreenState extends State<PollsScreen> {
                                 Container(
                                   padding: const EdgeInsets.all(8),
                                   decoration: BoxDecoration(
-                                    color: AppTheme.primary.withOpacity(0.1),
+                                    color: Colors.white.withOpacity(0.1),
                                     borderRadius: BorderRadius.circular(8),
                                   ),
-                                  child: const Icon(
+                                  child: Icon(
                                     Icons.poll_outlined,
-                                    color: AppTheme.primary,
+                                    color: Colors.white.withOpacity(0.7),
                                   ),
                                 ),
                                 const SizedBox(width: 12),
@@ -219,7 +219,7 @@ class _PollsScreenState extends State<PollsScreen> {
                                     style: const TextStyle(
                                       fontSize: 18,
                                       fontWeight: FontWeight.bold,
-                                      color: AppTheme.text,
+                                      color: Colors.white,
                                     ),
                                   ),
                                 ),
@@ -231,7 +231,7 @@ class _PollsScreenState extends State<PollsScreen> {
                                 poll.description,
                                 style: TextStyle(
                                   fontSize: 14,
-                                  color: AppTheme.text.withOpacity(0.7),
+                                  color: Colors.white.withOpacity(0.7),
                                 ),
                               ),
                             ],
@@ -243,7 +243,7 @@ class _PollsScreenState extends State<PollsScreen> {
                                   'Expires: ${_formatDate(poll.expiresAt)}',
                                   style: TextStyle(
                                     fontSize: 12,
-                                    color: AppTheme.text.withOpacity(0.5),
+                                    color: Colors.white.withOpacity(0.5),
                                   ),
                                 ),
                                 Container(
@@ -252,14 +252,14 @@ class _PollsScreenState extends State<PollsScreen> {
                                     vertical: 4,
                                   ),
                                   decoration: BoxDecoration(
-                                    color: AppTheme.primary.withOpacity(0.1),
+                                    color: Colors.white.withOpacity(0.1),
                                     borderRadius: BorderRadius.circular(12),
                                   ),
                                   child: Text(
                                     '$choicesCount options',
-                                    style: const TextStyle(
+                                    style: TextStyle(
                                       fontSize: 12,
-                                      color: AppTheme.primary,
+                                      color: Colors.white.withOpacity(0.7),
                                       fontWeight: FontWeight.w500,
                                     ),
                                   ),

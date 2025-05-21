@@ -32,7 +32,15 @@ class TaskCard extends StatelessWidget {
 
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
-      color: Colors.white,
+      color: const Color(0xFF1E3A8A).withOpacity(0.2),
+      elevation: 0,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+        side: BorderSide(
+          color: Colors.white.withOpacity(0.15),
+          width: 1,
+        ),
+      ),
       child: InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(12),
@@ -47,14 +55,34 @@ class TaskCard extends StatelessWidget {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text(
-                        title,
-                        style: const TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 16,
+                      Expanded(
+                        child: Text(
+                          title,
+                          style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16,
+                            color: Colors.white,
+                          ),
                         ),
                       ),
-                      _buildCategoryBadge(category),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 4,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.2),
+                          borderRadius: BorderRadius.circular(50),
+                        ),
+                        child: Text(
+                          category,
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 12,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ),
                     ],
                   ),
                   const SizedBox(height: 8),
@@ -63,13 +91,13 @@ class TaskCard extends StatelessWidget {
                       const Icon(
                         Icons.location_on,
                         size: 14,
-                        color: AppTheme.textSecondaryColor,
+                        color: Colors.white70,
                       ),
                       const SizedBox(width: 4),
                       Text(
                         location,
                         style: const TextStyle(
-                          color: AppTheme.textSecondaryColor,
+                          color: Colors.white70,
                           fontSize: 12,
                         ),
                       ),
@@ -77,43 +105,63 @@ class TaskCard extends StatelessWidget {
                   ),
                   const SizedBox(height: 12),
                   Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Row(
-                        children: [
-                          const Icon(
-                            Icons.calendar_today,
-                            size: 14,
-                            color: AppTheme.textSecondaryColor,
-                          ),
-                          const SizedBox(width: 4),
-                          Text(
-                            '$date • $time',
-                            style: const TextStyle(
-                              color: AppTheme.textSecondaryColor,
-                              fontSize: 12,
-                            ),
-                          ),
-                        ],
+                      const Icon(
+                        Icons.calendar_today,
+                        size: 14,
+                        color: Colors.white70,
                       ),
+                      const SizedBox(width: 4),
                       Text(
-                        '$participants/$maxParticipants',
+                        date,
                         style: const TextStyle(
+                          color: Colors.white70,
                           fontSize: 12,
-                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                      const Icon(
+                        Icons.access_time,
+                        size: 14,
+                        color: Colors.white70,
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        time,
+                        style: const TextStyle(
+                          color: Colors.white70,
+                          fontSize: 12,
                         ),
                       ),
                     ],
                   ),
-                  const SizedBox(height: 8),
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(2),
-                    child: LinearProgressIndicator(
-                      value: progress,
-                      backgroundColor: Colors.grey.shade200,
-                      valueColor: AlwaysStoppedAnimation<Color>(color),
-                      minHeight: 6,
-                    ),
+                  const SizedBox(height: 12),
+                  Row(
+                    children: [
+                      const Icon(
+                        Icons.people,
+                        size: 14,
+                        color: Colors.white70,
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        '$participants/$maxParticipants Volunteers',
+                        style: const TextStyle(
+                          color: Colors.white70,
+                          fontSize: 12,
+                        ),
+                      ),
+                      const Spacer(),
+                      SizedBox(
+                        width: 100,
+                        child: LinearProgressIndicator(
+                          value: progress,
+                          backgroundColor: Colors.white.withOpacity(0.2),
+                          valueColor:
+                              const AlwaysStoppedAnimation<Color>(Colors.white),
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),

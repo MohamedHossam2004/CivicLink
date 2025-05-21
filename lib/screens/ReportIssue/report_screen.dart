@@ -18,7 +18,12 @@ class ReportScreen extends StatelessWidget {
         // Show loading state while fetching data
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Scaffold(
-            body: Center(child: CircularProgressIndicator()),
+            backgroundColor: Color(0xFF1A365D),
+            body: Center(
+              child: CircularProgressIndicator(
+                valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+              ),
+            ),
           );
         }
 
@@ -27,12 +32,16 @@ class ReportScreen extends StatelessWidget {
           print(
               "ReportScreen: Error from getUserDetails: ${snapshot.error}"); // Log the error
           return Scaffold(
+            backgroundColor: const Color(0xFF1A365D),
             appBar: AppBar(
-              title: const Text("Report Error"),
-              backgroundColor: Colors.white,
-              foregroundColor: Colors.black,
+              title: const Text(
+                "Report Error",
+                style: TextStyle(color: Colors.white),
+              ),
+              backgroundColor: const Color(0xFF1A365D),
+              foregroundColor: Colors.white,
               automaticallyImplyLeading: false,
-              elevation: 1,
+              elevation: 0,
             ),
             body: Center(
               child: Padding(
@@ -42,20 +51,19 @@ class ReportScreen extends StatelessWidget {
                   children: [
                     const Text(
                       'Error loading user details.',
-                      style: TextStyle(fontSize: 16),
+                      style: TextStyle(fontSize: 16, color: Colors.white),
                       textAlign: TextAlign.center,
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      'Details: ${snapshot.error}', // Show the specific error
-                      style:
-                          TextStyle(color: Colors.red.shade700, fontSize: 14),
+                      'Details: ${snapshot.error}',
+                      style: const TextStyle(color: Colors.red, fontSize: 14),
                       textAlign: TextAlign.center,
                     ),
                     const SizedBox(height: 20),
                     ElevatedButton(
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.teal,
+                        backgroundColor: const Color(0xFF1E3A8A),
                         foregroundColor: Colors.white,
                         padding: const EdgeInsets.symmetric(
                             horizontal: 24, vertical: 12),
@@ -80,11 +88,15 @@ class ReportScreen extends StatelessWidget {
         final user = snapshot.data;
         if (user == null) {
           return Scaffold(
+            backgroundColor: const Color(0xFF1A365D),
             appBar: AppBar(
-              title: const Text("Access Denied"),
-              backgroundColor: Colors.white,
-              foregroundColor: Colors.black,
-              elevation: 1,
+              title: const Text(
+                "Access Denied",
+                style: TextStyle(color: Colors.white),
+              ),
+              backgroundColor: const Color(0xFF1A365D),
+              foregroundColor: Colors.white,
+              elevation: 0,
             ),
             body: Center(
               child: Padding(
@@ -92,18 +104,18 @@ class ReportScreen extends StatelessWidget {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    const Icon(Icons.lock_outline,
-                        size: 60, color: Colors.grey),
+                    Icon(Icons.lock_outline,
+                        size: 60, color: Colors.white.withOpacity(0.7)),
                     const SizedBox(height: 16),
                     const Text(
                       'Please log in to access reporting.',
-                      style: TextStyle(fontSize: 18, color: Colors.black87),
+                      style: TextStyle(fontSize: 18, color: Colors.white),
                       textAlign: TextAlign.center,
                     ),
                     const SizedBox(height: 24),
                     ElevatedButton(
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.teal,
+                        backgroundColor: const Color(0xFF1E3A8A),
                         foregroundColor: Colors.white,
                         padding: const EdgeInsets.symmetric(
                             horizontal: 24, vertical: 12),

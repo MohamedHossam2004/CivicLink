@@ -18,23 +18,26 @@ class GovernmentChatListScreen extends StatelessWidget {
       return Scaffold(
         appBar: AppBar(
           title: const Text('Government Conversations'),
-          backgroundColor: Colors.white,
+          backgroundColor: const Color(0xFF1A365D),
           automaticallyImplyLeading: false,
-          foregroundColor: Colors.black,
+          foregroundColor: Colors.white,
           elevation: 1,
         ),
         body: Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Text('Please log in to view conversations.'),
+              Text(
+                'Please log in to view conversations.',
+                style: TextStyle(color: Colors.white.withOpacity(0.7)),
+              ),
               const SizedBox(height: 16),
               ElevatedButton(
                 onPressed: () {
                   Navigator.pushNamed(context, '/login');
                 },
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.teal,
+                  backgroundColor: const Color(0xFF1E3A8A),
                   foregroundColor: Colors.white,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(24),
@@ -51,8 +54,8 @@ class GovernmentChatListScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Conversations'),
-        backgroundColor: Colors.white,
-        foregroundColor: Colors.black,
+        backgroundColor: const Color(0xFF1A365D),
+        foregroundColor: Colors.white,
         elevation: 1,
       ),
       body: StreamBuilder<List<Conversation>>(
@@ -79,14 +82,14 @@ class GovernmentChatListScreen extends StatelessWidget {
                     Icon(
                       Icons.chat_bubble_outline,
                       size: 60,
-                      color: Colors.grey.shade400,
+                      color: Colors.white.withOpacity(0.4),
                     ),
                     const SizedBox(height: 16),
                     Text(
                       'No conversations yet.',
                       style: TextStyle(
                         fontSize: 18,
-                        color: Colors.grey.shade600,
+                        color: Colors.white.withOpacity(0.7),
                       ),
                     ),
                     const SizedBox(height: 8),
@@ -95,7 +98,7 @@ class GovernmentChatListScreen extends StatelessWidget {
                       textAlign: TextAlign.center,
                       style: TextStyle(
                         fontSize: 14,
-                        color: Colors.grey.shade500,
+                        color: Colors.white.withOpacity(0.5),
                       ),
                     ),
                   ],
@@ -116,14 +119,15 @@ class GovernmentChatListScreen extends StatelessWidget {
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
                 ),
+                color: const Color(0xFF1E3A8A),
                 child: ListTile(
                   leading: CircleAvatar(
-                    backgroundColor: Colors.teal.shade100,
+                    backgroundColor: const Color(0xFF1A365D),
                     child: Text(
                       conversation.citizenName?.isNotEmpty == true
                           ? conversation.citizenName![0].toUpperCase()
                           : 'C',
-                      style: TextStyle(color: Colors.teal.shade800),
+                      style: const TextStyle(color: Colors.white),
                     ),
                   ),
                   title: Text(
@@ -131,18 +135,19 @@ class GovernmentChatListScreen extends StatelessWidget {
                     style: const TextStyle(
                       fontWeight: FontWeight.bold,
                       fontSize: 16,
+                      color: Colors.white,
                     ),
                   ),
                   subtitle: Text(
                     conversation.lastMessageText ?? 'No messages',
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: TextStyle(color: Colors.grey.shade600),
+                    style: TextStyle(color: Colors.white.withOpacity(0.7)),
                   ),
                   trailing: Text(
                     _formatTime(conversation.lastMessageTimestamp?.toDate()),
                     style: TextStyle(
-                      color: Colors.grey.shade600,
+                      color: Colors.white.withOpacity(0.7),
                       fontSize: 12,
                     ),
                   ),

@@ -31,14 +31,16 @@ class _ReportIssueStep1State extends State<ReportIssueStep1> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: const Color(0xFF1A365D),
       appBar: AppBar(
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
+          icon: const Icon(Icons.arrow_back, color: Colors.white),
           onPressed: () => Navigator.pop(context),
         ),
-        title: const Text('Report an Issue'),
-        backgroundColor: Colors.white,
-        foregroundColor: Colors.black,
+        title: const Text('Report an Issue',
+            style: TextStyle(color: Colors.white)),
+        backgroundColor: const Color(0xFF1A365D),
+        foregroundColor: Colors.white,
         elevation: 0,
       ),
       body: Column(
@@ -52,16 +54,29 @@ class _ReportIssueStep1State extends State<ReportIssueStep1> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    const Text('Step 1 of 3'),
-                    Text('33% Complete'),
+                    const Text('Step 1 of 3',
+                        style: TextStyle(color: Colors.white)),
+                    const Text('33% Complete',
+                        style: TextStyle(color: Colors.white)),
                   ],
                 ),
                 const SizedBox(height: 8),
-                LinearProgressIndicator(
-                  value: 0.33,
-                  backgroundColor: Colors.grey[200],
-                  color: Colors.green,
-                  minHeight: 5,
+                Container(
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(4),
+                    gradient: const LinearGradient(
+                      colors: [Color(0xFF1E3A8A), Color(0xFF1A365D)],
+                      begin: Alignment.centerLeft,
+                      end: Alignment.centerRight,
+                    ),
+                  ),
+                  child: LinearProgressIndicator(
+                    value: 0.33,
+                    backgroundColor: Colors.white.withOpacity(0.1),
+                    valueColor:
+                        const AlwaysStoppedAnimation<Color>(Colors.transparent),
+                    minHeight: 5,
+                  ),
                 ),
               ],
             ),
@@ -79,6 +94,7 @@ class _ReportIssueStep1State extends State<ReportIssueStep1> {
                     style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
+                      color: Colors.white,
                     ),
                   ),
                   const SizedBox(height: 20),
@@ -86,19 +102,24 @@ class _ReportIssueStep1State extends State<ReportIssueStep1> {
                   // Dropdown for issue type
                   Container(
                     decoration: BoxDecoration(
-                      border: Border.all(color: Colors.grey),
+                      border: Border.all(color: Colors.white.withOpacity(0.3)),
                       borderRadius: BorderRadius.circular(4),
+                      color: const Color(0xFF1E3A8A),
                     ),
                     child: DropdownButtonHideUnderline(
                       child: DropdownButton<String>(
+                        dropdownColor: const Color(0xFF1E3A8A),
                         value: selectedIssueType,
                         isExpanded: true,
                         padding: const EdgeInsets.symmetric(horizontal: 12),
-                        icon: const Icon(Icons.keyboard_arrow_down),
+                        icon: const Icon(Icons.keyboard_arrow_down,
+                            color: Colors.white),
+                        style: const TextStyle(color: Colors.white),
                         items: issueTypes.map((String item) {
                           return DropdownMenuItem<String>(
                             value: item,
-                            child: Text(item),
+                            child: Text(item,
+                                style: const TextStyle(color: Colors.white)),
                           );
                         }).toList(),
                         onChanged: (String? newValue) {
@@ -120,16 +141,31 @@ class _ReportIssueStep1State extends State<ReportIssueStep1> {
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
+                      color: Colors.white,
                     ),
                   ),
                   const SizedBox(height: 8),
                   TextField(
                     controller: _descriptionController,
                     maxLines: 4,
+                    style: const TextStyle(color: Colors.white),
                     decoration: InputDecoration(
                       hintText: 'Please provide details about the issue...',
+                      hintStyle: TextStyle(color: Colors.white70),
+                      filled: true,
+                      fillColor: const Color(0xFF1E3A8A),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(4),
+                        borderSide: BorderSide(color: Colors.white, width: 1),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(4),
+                        borderSide:
+                            BorderSide(color: Colors.white.withOpacity(0.3)),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(4),
+                        borderSide: BorderSide(color: Colors.white),
                       ),
                       contentPadding: const EdgeInsets.all(12),
                     ),
@@ -140,25 +176,50 @@ class _ReportIssueStep1State extends State<ReportIssueStep1> {
                   // Next button
                   Align(
                     alignment: Alignment.centerRight,
-                    child: ElevatedButton(
-                      onPressed: () {
-                        // Navigate to next step
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => ReportIssueStep2(
-                              issueType: selectedIssueType,
-                              description: _descriptionController.text,
+                    child: SizedBox(
+                      width: 120,
+                      height: 48,
+                      child: ElevatedButton(
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => ReportIssueStep2(
+                                issueType: selectedIssueType,
+                                description: _descriptionController.text,
+                              ),
+                            ),
+                          );
+                        },
+                        style: ElevatedButton.styleFrom(
+                          padding: EdgeInsets.zero,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(24),
+                          ),
+                          backgroundColor: Colors.transparent,
+                          shadowColor: Colors.transparent,
+                        ),
+                        child: Ink(
+                          decoration: BoxDecoration(
+                            gradient: const LinearGradient(
+                              colors: [Color(0xFF1E3A8A), Color(0xFF1A365D)],
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                            ),
+                            borderRadius: BorderRadius.circular(24),
+                          ),
+                          child: const Center(
+                            child: Text(
+                              'Next',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 16,
+                              ),
                             ),
                           ),
-                        );
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.teal,
-                        foregroundColor: Colors.white,
-                        minimumSize: const Size(100, 40),
+                        ),
                       ),
-                      child: const Text('Next'),
                     ),
                   ),
                 ],

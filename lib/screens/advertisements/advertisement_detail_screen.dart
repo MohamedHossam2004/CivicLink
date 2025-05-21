@@ -35,6 +35,170 @@ class _AdvertisementDetailScreenState extends State<AdvertisementDetailScreen> {
   bool _isAdvertiser = false;
   bool _isOwner = false;
 
+  static const String _darkMapStyle = '''
+[
+  {
+    "elementType": "geometry",
+    "stylers": [
+      {
+        "color": "#242f3e"
+      }
+    ]
+  },
+  {
+    "elementType": "labels.text.fill",
+    "stylers": [
+      {
+        "color": "#746855"
+      }
+    ]
+  },
+  {
+    "elementType": "labels.text.stroke",
+    "stylers": [
+      {
+        "color": "#242f3e"
+      }
+    ]
+  },
+  {
+    "featureType": "administrative.locality",
+    "elementType": "labels.text.fill",
+    "stylers": [
+      {
+        "color": "#d59563"
+      }
+    ]
+  },
+  {
+    "featureType": "poi",
+    "elementType": "labels.text.fill",
+    "stylers": [
+      {
+        "color": "#d59563"
+      }
+    ]
+  },
+  {
+    "featureType": "poi.park",
+    "elementType": "geometry",
+    "stylers": [
+      {
+        "color": "#263c3f"
+      }
+    ]
+  },
+  {
+    "featureType": "poi.park",
+    "elementType": "labels.text.fill",
+    "stylers": [
+      {
+        "color": "#6b9a76"
+      }
+    ]
+  },
+  {
+    "featureType": "road",
+    "elementType": "geometry",
+    "stylers": [
+      {
+        "color": "#38414e"
+      }
+    ]
+  },
+  {
+    "featureType": "road",
+    "elementType": "geometry.stroke",
+    "stylers": [
+      {
+        "color": "#212a37"
+      }
+    ]
+  },
+  {
+    "featureType": "road",
+    "elementType": "labels.text.fill",
+    "stylers": [
+      {
+        "color": "#9ca5b3"
+      }
+    ]
+  },
+  {
+    "featureType": "road.highway",
+    "elementType": "geometry",
+    "stylers": [
+      {
+        "color": "#746855"
+      }
+    ]
+  },
+  {
+    "featureType": "road.highway",
+    "elementType": "geometry.stroke",
+    "stylers": [
+      {
+        "color": "#1f2835"
+      }
+    ]
+  },
+  {
+    "featureType": "road.highway",
+    "elementType": "labels.text.fill",
+    "stylers": [
+      {
+        "color": "#f3d19c"
+      }
+    ]
+  },
+  {
+    "featureType": "transit",
+    "elementType": "geometry",
+    "stylers": [
+      {
+        "color": "#2f3948"
+      }
+    ]
+  },
+  {
+    "featureType": "transit.station",
+    "elementType": "labels.text.fill",
+    "stylers": [
+      {
+        "color": "#d59563"
+      }
+    ]
+  },
+  {
+    "featureType": "water",
+    "elementType": "geometry",
+    "stylers": [
+      {
+        "color": "#17263c"
+      }
+    ]
+  },
+  {
+    "featureType": "water",
+    "elementType": "labels.text.fill",
+    "stylers": [
+      {
+        "color": "#515c6d"
+      }
+    ]
+  },
+  {
+    "featureType": "water",
+    "elementType": "labels.text.stroke",
+    "stylers": [
+      {
+        "color": "#17263c"
+      }
+    ]
+  }
+]
+''';
+
   @override
   void initState() {
     super.initState();
@@ -128,7 +292,7 @@ class _AdvertisementDetailScreenState extends State<AdvertisementDetailScreen> {
 
       // Note: We don't need to delete images from Firebase Storage anymore
       // as we're using Cloudinary for image storage
-      
+
       // Delete document from Firestore
       await _firestore
           .collection('advertisements')
@@ -161,7 +325,7 @@ class _AdvertisementDetailScreenState extends State<AdvertisementDetailScreen> {
       // Extract filename from Cloudinary URL
       Uri uri = Uri.parse(documentUrl);
       String filename = uri.pathSegments.last;
-      
+
       // Check if there's a format/extension in the URL params
       String format = '';
       if (uri.queryParameters.containsKey('format')) {
@@ -173,7 +337,7 @@ class _AdvertisementDetailScreenState extends State<AdvertisementDetailScreen> {
           format = filename.substring(extensionIndex + 1).toLowerCase();
         }
       }
-      
+
       // Determine icon based on format
       switch (format) {
         case 'pdf':
@@ -204,7 +368,7 @@ class _AdvertisementDetailScreenState extends State<AdvertisementDetailScreen> {
       // Extract filename from Cloudinary URL
       Uri uri = Uri.parse(documentUrl);
       String filename = uri.pathSegments.last;
-      
+
       // Check if there's a format in the URL params
       String format = '';
       if (uri.queryParameters.containsKey('format')) {
@@ -216,7 +380,7 @@ class _AdvertisementDetailScreenState extends State<AdvertisementDetailScreen> {
           format = filename.substring(extensionIndex + 1).toLowerCase();
         }
       }
-      
+
       // Determine document type based on format
       switch (format) {
         case 'pdf':
@@ -247,9 +411,10 @@ class _AdvertisementDetailScreenState extends State<AdvertisementDetailScreen> {
   Widget build(BuildContext context) {
     if (_isLoading) {
       return const Scaffold(
+        backgroundColor: Color(0xFF1A365D),
         body: Center(
           child: CircularProgressIndicator(
-            valueColor: AlwaysStoppedAnimation<Color>(AppTheme.primaryColor),
+            valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
           ),
         ),
       );
@@ -259,11 +424,16 @@ class _AdvertisementDetailScreenState extends State<AdvertisementDetailScreen> {
       return Scaffold(
         appBar: AppBar(
           title: const Text('Advertisement Details'),
-          backgroundColor: Colors.white,
+          backgroundColor: const Color(0xFF1A365D),
+          foregroundColor: Colors.white,
           elevation: 0,
         ),
+        backgroundColor: const Color(0xFF1A365D),
         body: const Center(
-          child: Text('Advertisement not found'),
+          child: Text(
+            'Advertisement not found',
+            style: TextStyle(color: Colors.white),
+          ),
         ),
       );
     }
@@ -281,21 +451,22 @@ class _AdvertisementDetailScreenState extends State<AdvertisementDetailScreen> {
         : null;
 
     return Scaffold(
+      backgroundColor: const Color(0xFF1A365D),
       appBar: AppBar(
         title: const Text(
           'Advertisement Details',
           style: TextStyle(
-            color: Color(0xFF1E293B),
+            color: Colors.white,
             fontSize: 20,
             fontWeight: FontWeight.bold,
           ),
         ),
-        backgroundColor: Colors.white,
+        backgroundColor: const Color(0xFF1A365D),
         elevation: 0,
         actions: [
           if (_isAdvertiser && _isOwner) ...[
             IconButton(
-              icon: const Icon(Icons.edit, color: Color(0xFF1E293B)),
+              icon: const Icon(Icons.edit, color: Colors.white),
               onPressed: () {
                 Navigator.push(
                   context,
@@ -339,11 +510,11 @@ class _AdvertisementDetailScreenState extends State<AdvertisementDetailScreen> {
                           fit: BoxFit.cover,
                           errorBuilder: (context, error, stackTrace) {
                             return Container(
-                              color: Colors.grey[100],
-                              child: const Icon(
+                              color: const Color(0xFF1A365D),
+                              child: Icon(
                                 Icons.image_not_supported,
                                 size: 48,
-                                color: Colors.grey,
+                                color: Colors.white.withOpacity(0.4),
                               ),
                             );
                           },
@@ -376,8 +547,8 @@ class _AdvertisementDetailScreenState extends State<AdvertisementDetailScreen> {
                               decoration: BoxDecoration(
                                 shape: BoxShape.circle,
                                 color: currentPage == index
-                                    ? AppTheme.primaryColor
-                                    : Colors.white.withOpacity(0.5),
+                                    ? Colors.white
+                                    : Colors.white.withOpacity(0.3),
                               ),
                             );
                           },
@@ -399,7 +570,7 @@ class _AdvertisementDetailScreenState extends State<AdvertisementDetailScreen> {
                     style: const TextStyle(
                       fontSize: 24,
                       fontWeight: FontWeight.bold,
-                      color: Color(0xFF1E293B),
+                      color: Colors.white,
                     ),
                   ),
                   const SizedBox(height: 16),
@@ -410,13 +581,13 @@ class _AdvertisementDetailScreenState extends State<AdvertisementDetailScreen> {
                       Icon(
                         Icons.calendar_today,
                         size: 20,
-                        color: Colors.grey[600],
+                        color: Colors.white.withOpacity(0.6),
                       ),
                       const SizedBox(width: 8),
                       Text(
                         DateFormatter.format(createdOn),
                         style: TextStyle(
-                          color: Colors.grey[600],
+                          color: Colors.white.withOpacity(0.6),
                           fontSize: 16,
                         ),
                       ),
@@ -431,7 +602,7 @@ class _AdvertisementDetailScreenState extends State<AdvertisementDetailScreen> {
                       style: TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
-                        color: Color(0xFF1E293B),
+                        color: Colors.white,
                       ),
                     ),
                     const SizedBox(height: 8),
@@ -440,7 +611,7 @@ class _AdvertisementDetailScreenState extends State<AdvertisementDetailScreen> {
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(12),
                         border: Border.all(
-                          color: Colors.grey[300]!,
+                          color: Colors.white.withOpacity(0.2),
                           width: 1,
                         ),
                       ),
@@ -453,6 +624,7 @@ class _AdvertisementDetailScreenState extends State<AdvertisementDetailScreen> {
                           ),
                           onMapCreated: (controller) {
                             _mapController = controller;
+                            controller.setMapStyle(_darkMapStyle);
                           },
                           markers: {
                             Marker(
@@ -482,7 +654,7 @@ class _AdvertisementDetailScreenState extends State<AdvertisementDetailScreen> {
                       style: TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
-                        color: Color(0xFF1E293B),
+                        color: Colors.white,
                       ),
                     ),
                     const SizedBox(height: 8),
@@ -494,27 +666,30 @@ class _AdvertisementDetailScreenState extends State<AdvertisementDetailScreen> {
                         }
                       },
                       child: Container(
-                        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+                        padding: const EdgeInsets.symmetric(
+                            vertical: 12, horizontal: 16),
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(8),
-                          border: Border.all(color: Colors.grey[300]!),
+                          border:
+                              Border.all(color: Colors.white.withOpacity(0.2)),
+                          color: const Color(0xFF1E3A8A),
                         ),
                         child: Row(
                           children: [
-                            Icon(Icons.phone, color: AppTheme.primaryColor),
+                            const Icon(Icons.phone, color: Colors.white),
                             const SizedBox(width: 12),
                             Text(
                               _advertisement!['phoneNumber'],
                               style: const TextStyle(
                                 fontSize: 16,
-                                color: Color(0xFF1E293B),
+                                color: Colors.white,
                               ),
                             ),
                             const Spacer(),
-                            Text(
+                            const Text(
                               'Call',
                               style: TextStyle(
-                                color: AppTheme.primaryColor,
+                                color: Colors.white,
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
@@ -533,7 +708,7 @@ class _AdvertisementDetailScreenState extends State<AdvertisementDetailScreen> {
                       style: TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
-                        color: Color(0xFF1E293B),
+                        color: Colors.white,
                       ),
                     ),
                     const SizedBox(height: 8),
@@ -541,8 +716,9 @@ class _AdvertisementDetailScreenState extends State<AdvertisementDetailScreen> {
                       padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(8),
-                        border: Border.all(color: Colors.grey[300]!),
-                        color: Colors.grey[50],
+                        border:
+                            Border.all(color: Colors.white.withOpacity(0.2)),
+                        color: const Color(0xFF1E3A8A),
                       ),
                       child: InkWell(
                         onTap: () => _launchUrl(documentUrl),
@@ -551,7 +727,7 @@ class _AdvertisementDetailScreenState extends State<AdvertisementDetailScreen> {
                             Icon(
                               _getDocumentIcon(documentUrl),
                               size: 36,
-                              color: AppTheme.primaryColor,
+                              color: Colors.white,
                             ),
                             const SizedBox(width: 16),
                             Expanded(
@@ -563,20 +739,21 @@ class _AdvertisementDetailScreenState extends State<AdvertisementDetailScreen> {
                                     style: const TextStyle(
                                       fontWeight: FontWeight.bold,
                                       fontSize: 16,
+                                      color: Colors.white,
                                     ),
                                   ),
-                                  const Text(
+                                  Text(
                                     'Tap to view document',
                                     style: TextStyle(
-                                      color: Colors.grey,
+                                      color: Colors.white.withOpacity(0.6),
                                     ),
                                   ),
                                 ],
                               ),
                             ),
-                            Icon(
+                            const Icon(
                               Icons.open_in_new,
-                              color: AppTheme.primaryColor,
+                              color: Colors.white,
                             ),
                           ],
                         ),

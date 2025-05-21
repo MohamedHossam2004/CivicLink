@@ -219,18 +219,30 @@ class _PollDetailScreenState extends State<PollDetailScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppTheme.background,
+      backgroundColor: const Color(0xFF1A365D),
       appBar: AppBar(
         title: const Text(
           'Poll Details',
           style: TextStyle(
-            color: AppTheme.primary,
+            color: Colors.white,
             fontWeight: FontWeight.bold,
           ),
         ),
-        backgroundColor: Colors.white,
+        backgroundColor: const Color(0xFF1A365D),
         elevation: 0,
-        iconTheme: const IconThemeData(color: AppTheme.primary),
+        iconTheme: const IconThemeData(color: Colors.white),
+        flexibleSpace: Container(
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [
+                Color(0xFF1A365D),
+                Color(0xFF1E3A8A),
+              ],
+            ),
+          ),
+        ),
       ),
       body: StreamBuilder<DocumentSnapshot>(
         stream: FirebaseFirestore.instance
@@ -267,42 +279,54 @@ class _PollDetailScreenState extends State<PollDetailScreen> {
                         margin: const EdgeInsets.symmetric(horizontal: 4),
                         child: Card(
                           elevation: 2,
-                          color: Colors.white,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12),
                           ),
-                          child: Padding(
-                            padding: const EdgeInsets.all(24),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  poll.title,
-                                  style: const TextStyle(
-                                    fontSize: 24,
-                                    fontWeight: FontWeight.bold,
-                                    color: AppTheme.text,
-                                  ),
-                                ),
-                                if (poll.description.isNotEmpty) ...[
-                                  const SizedBox(height: 12),
+                          child: Container(
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(12),
+                              gradient: const LinearGradient(
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
+                                colors: [
+                                  Color(0xFF1E3A8A),
+                                  Color(0xFF1A365D),
+                                ],
+                              ),
+                            ),
+                            child: Padding(
+                              padding: const EdgeInsets.all(24),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
                                   Text(
-                                    poll.description,
+                                    poll.title,
+                                    style: const TextStyle(
+                                      fontSize: 24,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                  if (poll.description.isNotEmpty) ...[
+                                    const SizedBox(height: 12),
+                                    Text(
+                                      poll.description,
+                                      style: TextStyle(
+                                        fontSize: 16,
+                                        color: Colors.white.withOpacity(0.7),
+                                      ),
+                                    ),
+                                  ],
+                                  const SizedBox(height: 20),
+                                  Text(
+                                    'Expires: ${_formatDate(poll.expiresAt)}',
                                     style: TextStyle(
-                                      fontSize: 16,
-                                      color: AppTheme.text.withOpacity(0.7),
+                                      fontSize: 14,
+                                      color: Colors.white.withOpacity(0.5),
                                     ),
                                   ),
                                 ],
-                                const SizedBox(height: 20),
-                                Text(
-                                  'Expires: ${_formatDate(poll.expiresAt)}',
-                                  style: TextStyle(
-                                    fontSize: 14,
-                                    color: AppTheme.text.withOpacity(0.5),
-                                  ),
-                                ),
-                              ],
+                              ),
                             ),
                           ),
                         ),
@@ -315,7 +339,7 @@ class _PollDetailScreenState extends State<PollDetailScreen> {
                         style: TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
-                          color: AppTheme.text,
+                          color: Colors.white,
                         ),
                       ),
                       const SizedBox(height: 16),
@@ -346,12 +370,16 @@ class _PollDetailScreenState extends State<PollDetailScreen> {
                                         _selectedChoiceId = value;
                                       });
                                     },
-                                    title: Text(choice.text),
-                                    activeColor: AppTheme.primary,
+                                    title: Text(
+                                      choice.text,
+                                      style:
+                                          const TextStyle(color: Colors.white),
+                                    ),
+                                    activeColor: Colors.white,
                                     shape: RoundedRectangleBorder(
                                       borderRadius: BorderRadius.circular(12),
                                       side: BorderSide(
-                                        color: Colors.grey.shade200,
+                                        color: Colors.white.withOpacity(0.2),
                                       ),
                                     ),
                                   ),
@@ -368,7 +396,11 @@ class _PollDetailScreenState extends State<PollDetailScreen> {
                               builder: (context, snapshot) {
                                 if (!snapshot.hasData) {
                                   return const Center(
-                                      child: CircularProgressIndicator());
+                                    child: CircularProgressIndicator(
+                                      valueColor: AlwaysStoppedAnimation<Color>(
+                                          Colors.white),
+                                    ),
+                                  );
                                 }
 
                                 final votes = snapshot.data!.docs;
@@ -395,12 +427,12 @@ class _PollDetailScreenState extends State<PollDetailScreen> {
                                       margin: const EdgeInsets.only(bottom: 12),
                                       padding: const EdgeInsets.all(16),
                                       decoration: BoxDecoration(
-                                        color: Colors.grey.shade50,
+                                        color: const Color(0xFF1E3A8A),
                                         borderRadius: BorderRadius.circular(12),
                                         border: Border.all(
                                           color: _selectedChoiceId == choice.id
-                                              ? AppTheme.primary
-                                              : Colors.grey.shade200,
+                                              ? Colors.white
+                                              : Colors.white.withOpacity(0.2),
                                           width: 2,
                                         ),
                                       ),
@@ -413,6 +445,7 @@ class _PollDetailScreenState extends State<PollDetailScreen> {
                                             style: const TextStyle(
                                               fontSize: 16,
                                               fontWeight: FontWeight.w500,
+                                              color: Colors.white,
                                             ),
                                           ),
                                           const SizedBox(height: 8),
@@ -421,10 +454,11 @@ class _PollDetailScreenState extends State<PollDetailScreen> {
                                                 ? votes / totalVotes
                                                 : 0,
                                             backgroundColor:
-                                                Colors.grey.shade200,
+                                                Colors.white.withOpacity(0.1),
                                             valueColor:
-                                                AlwaysStoppedAnimation<Color>(
-                                              AppTheme.primary,
+                                                const AlwaysStoppedAnimation<
+                                                    Color>(
+                                              Colors.white,
                                             ),
                                           ),
                                           const SizedBox(height: 4),
@@ -432,8 +466,8 @@ class _PollDetailScreenState extends State<PollDetailScreen> {
                                             '$percentage% ($votes votes)',
                                             style: TextStyle(
                                               fontSize: 12,
-                                              color: AppTheme.text
-                                                  .withOpacity(0.5),
+                                              color:
+                                                  Colors.white.withOpacity(0.5),
                                             ),
                                           ),
                                         ],
@@ -464,39 +498,64 @@ class _PollDetailScreenState extends State<PollDetailScreen> {
                               return const SizedBox.shrink();
                             }
 
-                            return SizedBox(
-                              width: double.infinity,
-                              child: ElevatedButton(
-                                onPressed: _isSubmitting ? null : _submitVote,
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: AppTheme.primary,
-                                  foregroundColor: Colors.white,
-                                  padding:
-                                      const EdgeInsets.symmetric(vertical: 16),
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(12),
+                            return Center(
+                              child: SizedBox(
+                                width: 200,
+                                child: ElevatedButton(
+                                  onPressed: _isSubmitting ? null : _submitVote,
+                                  style: ElevatedButton.styleFrom(
+                                    padding: const EdgeInsets.symmetric(
+                                        vertical: 20),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                    backgroundColor: Colors.transparent,
+                                    shadowColor: Colors.transparent,
+                                    disabledBackgroundColor: Colors.transparent,
                                   ),
-                                  disabledBackgroundColor:
-                                      AppTheme.primary.withOpacity(0.5),
-                                ),
-                                child: _isSubmitting
-                                    ? const SizedBox(
-                                        height: 20,
-                                        width: 20,
-                                        child: CircularProgressIndicator(
-                                          strokeWidth: 2,
-                                          valueColor:
-                                              AlwaysStoppedAnimation<Color>(
-                                                  Colors.white),
-                                        ),
-                                      )
-                                    : const Text(
-                                        'Submit Vote',
-                                        style: TextStyle(
-                                          fontSize: 16,
-                                          fontWeight: FontWeight.bold,
-                                        ),
+                                  child: Container(
+                                    height: 50,
+                                    decoration: BoxDecoration(
+                                      borderRadius: BorderRadius.circular(12),
+                                      gradient: LinearGradient(
+                                        begin: Alignment.topLeft,
+                                        end: Alignment.bottomRight,
+                                        colors: _isSubmitting
+                                            ? [
+                                                const Color(0xFF1E3A8A)
+                                                    .withOpacity(0.5),
+                                                const Color(0xFF1A365D)
+                                                    .withOpacity(0.5),
+                                              ]
+                                            : [
+                                                const Color(0xFF1E3A8A),
+                                                const Color(0xFF1A365D),
+                                              ],
                                       ),
+                                    ),
+                                    child: _isSubmitting
+                                        ? const SizedBox(
+                                            height: 20,
+                                            width: 20,
+                                            child: CircularProgressIndicator(
+                                              strokeWidth: 2,
+                                              valueColor:
+                                                  AlwaysStoppedAnimation<Color>(
+                                                      Colors.white),
+                                            ),
+                                          )
+                                        : const Center(
+                                            child: Text(
+                                              'Submit Vote',
+                                              style: TextStyle(
+                                                fontSize: 16,
+                                                fontWeight: FontWeight.bold,
+                                                color: Colors.white,
+                                              ),
+                                            ),
+                                          ),
+                                  ),
+                                ),
                               ),
                             );
                           },
@@ -510,7 +569,7 @@ class _PollDetailScreenState extends State<PollDetailScreen> {
                         style: TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
-                          color: AppTheme.text,
+                          color: Colors.white,
                         ),
                       ),
                       const SizedBox(height: 16),
@@ -553,80 +612,161 @@ class _PollDetailScreenState extends State<PollDetailScreen> {
 
                               return Card(
                                 elevation: 2,
-                                color: Colors.white,
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(12),
                                 ),
-                                child: Padding(
-                                  padding: const EdgeInsets.all(16),
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      TextField(
-                                        controller: _commentController,
-                                        maxLines: 3,
-                                        decoration: InputDecoration(
-                                          hintText: 'Write your comment...',
-                                          border: OutlineInputBorder(
-                                            borderRadius:
-                                                BorderRadius.circular(8),
-                                          ),
-                                        ),
-                                      ),
-                                      const SizedBox(height: 12),
-                                      ValueListenableBuilder<bool>(
-                                        valueListenable: _isAnonymousController,
-                                        builder: (context, isAnonymous, child) {
-                                          return Row(
-                                            children: [
-                                              Checkbox(
-                                                value: isAnonymous,
-                                                onChanged: (value) {
-                                                  _isAnonymousController.value =
-                                                      value!;
-                                                },
-                                                activeColor: AppTheme.primary,
-                                              ),
-                                              const Text('Post anonymously'),
-                                            ],
-                                          );
-                                        },
-                                      ),
-                                      const SizedBox(height: 12),
-                                      SizedBox(
-                                        width: double.infinity,
-                                        child: ElevatedButton(
-                                          onPressed: _isSubmitting
-                                              ? null
-                                              : _submitComment,
-                                          style: ElevatedButton.styleFrom(
-                                            backgroundColor: AppTheme.primary,
-                                            foregroundColor: Colors.white,
-                                            padding: const EdgeInsets.symmetric(
-                                                vertical: 12),
-                                            shape: RoundedRectangleBorder(
+                                child: Container(
+                                  decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.circular(12),
+                                    gradient: const LinearGradient(
+                                      begin: Alignment.topLeft,
+                                      end: Alignment.bottomRight,
+                                      colors: [
+                                        Color(0xFF1E3A8A),
+                                        Color(0xFF1A365D),
+                                      ],
+                                    ),
+                                  ),
+                                  child: Padding(
+                                    padding: const EdgeInsets.all(16),
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        TextField(
+                                          controller: _commentController,
+                                          maxLines: 3,
+                                          style: const TextStyle(
+                                              color: Colors.white),
+                                          decoration: InputDecoration(
+                                            hintText: 'Write your comment...',
+                                            hintStyle: TextStyle(
+                                                color: Colors.white
+                                                    .withOpacity(0.5)),
+                                            border: OutlineInputBorder(
                                               borderRadius:
                                                   BorderRadius.circular(8),
+                                              borderSide: BorderSide(
+                                                  color: Colors.white
+                                                      .withOpacity(0.2)),
+                                            ),
+                                            enabledBorder: OutlineInputBorder(
+                                              borderRadius:
+                                                  BorderRadius.circular(8),
+                                              borderSide: BorderSide(
+                                                  color: Colors.white
+                                                      .withOpacity(0.2)),
+                                            ),
+                                            focusedBorder: OutlineInputBorder(
+                                              borderRadius:
+                                                  BorderRadius.circular(8),
+                                              borderSide: BorderSide(
+                                                  color: Colors.white
+                                                      .withOpacity(0.3)),
+                                            ),
+                                            filled: true,
+                                            fillColor: const Color(0xFF1A365D),
+                                          ),
+                                        ),
+                                        const SizedBox(height: 12),
+                                        ValueListenableBuilder<bool>(
+                                          valueListenable:
+                                              _isAnonymousController,
+                                          builder:
+                                              (context, isAnonymous, child) {
+                                            return Row(
+                                              children: [
+                                                Checkbox(
+                                                  value: isAnonymous,
+                                                  onChanged: (value) {
+                                                    _isAnonymousController
+                                                        .value = value!;
+                                                  },
+                                                  activeColor: Colors.white,
+                                                  checkColor:
+                                                      const Color(0xFF1E3A8A),
+                                                ),
+                                                const Text(
+                                                  'Post anonymously',
+                                                  style: TextStyle(
+                                                      color: Colors.white),
+                                                ),
+                                              ],
+                                            );
+                                          },
+                                        ),
+                                        const SizedBox(height: 12),
+                                        SizedBox(
+                                          width: double.infinity,
+                                          child: ElevatedButton(
+                                            onPressed: _isSubmitting
+                                                ? null
+                                                : _submitComment,
+                                            style: ElevatedButton.styleFrom(
+                                              padding:
+                                                  const EdgeInsets.symmetric(
+                                                      vertical: 20),
+                                              shape: RoundedRectangleBorder(
+                                                borderRadius:
+                                                    BorderRadius.circular(8),
+                                              ),
+                                              backgroundColor:
+                                                  Colors.transparent,
+                                              shadowColor: Colors.transparent,
+                                              disabledBackgroundColor:
+                                                  Colors.transparent,
+                                            ),
+                                            child: Container(
+                                              height: 50,
+                                              decoration: BoxDecoration(
+                                                borderRadius:
+                                                    BorderRadius.circular(8),
+                                                gradient: LinearGradient(
+                                                  begin: Alignment.topLeft,
+                                                  end: Alignment.bottomRight,
+                                                  colors: _isSubmitting
+                                                      ? [
+                                                          const Color(
+                                                                  0xFF1E3A8A)
+                                                              .withOpacity(0.5),
+                                                          const Color(
+                                                                  0xFF1A365D)
+                                                              .withOpacity(0.5),
+                                                        ]
+                                                      : [
+                                                          const Color(
+                                                              0xFF1E3A8A),
+                                                          const Color(
+                                                              0xFF1A365D),
+                                                        ],
+                                                ),
+                                              ),
+                                              child: _isSubmitting
+                                                  ? const SizedBox(
+                                                      height: 20,
+                                                      width: 20,
+                                                      child:
+                                                          CircularProgressIndicator(
+                                                        strokeWidth: 2,
+                                                        valueColor:
+                                                            AlwaysStoppedAnimation<
+                                                                    Color>(
+                                                                Colors.white),
+                                                      ),
+                                                    )
+                                                  : const Center(
+                                                      child: Text(
+                                                        'Post Comment',
+                                                        style: TextStyle(
+                                                          color: Colors.white,
+                                                        ),
+                                                      ),
+                                                    ),
                                             ),
                                           ),
-                                          child: _isSubmitting
-                                              ? const SizedBox(
-                                                  height: 20,
-                                                  width: 20,
-                                                  child:
-                                                      CircularProgressIndicator(
-                                                    strokeWidth: 2,
-                                                    valueColor:
-                                                        AlwaysStoppedAnimation<
-                                                                Color>(
-                                                            Colors.white),
-                                                  ),
-                                                )
-                                              : const Text('Post Comment'),
                                         ),
-                                      ),
-                                    ],
+                                      ],
+                                    ),
                                   ),
                                 ),
                               );
@@ -652,7 +792,10 @@ class _PollDetailScreenState extends State<PollDetailScreen> {
                           if (commentsSnapshot.connectionState ==
                               ConnectionState.waiting) {
                             return const Center(
-                              child: CircularProgressIndicator(),
+                              child: CircularProgressIndicator(
+                                valueColor:
+                                    AlwaysStoppedAnimation<Color>(Colors.white),
+                              ),
                             );
                           }
 
@@ -669,7 +812,7 @@ class _PollDetailScreenState extends State<PollDetailScreen> {
                                   'No comments yet. Be the first to comment!',
                                   style: TextStyle(
                                     fontSize: 14,
-                                    color: AppTheme.text.withOpacity(0.7),
+                                    color: Colors.white.withOpacity(0.7),
                                   ),
                                   textAlign: TextAlign.center,
                                 ),
@@ -686,56 +829,68 @@ class _PollDetailScreenState extends State<PollDetailScreen> {
                               return Card(
                                 margin: const EdgeInsets.only(bottom: 8),
                                 elevation: 1,
-                                color: Colors.white,
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(8),
                                 ),
-                                child: Padding(
-                                  padding: const EdgeInsets.all(12),
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Row(
-                                        children: [
-                                          Icon(
-                                            Icons.person,
-                                            size: 16,
-                                            color:
-                                                AppTheme.text.withOpacity(0.5),
-                                          ),
-                                          const SizedBox(width: 4),
-                                          Text(
-                                            comment.isAnonymous
-                                                ? 'Anonymous'
-                                                : '${comment.firstName} ${comment.lastName}',
-                                            style: TextStyle(
-                                              fontSize: 12,
-                                              fontWeight: FontWeight.w500,
-                                              color: AppTheme.text
-                                                  .withOpacity(0.7),
+                                child: Container(
+                                  decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.circular(8),
+                                    gradient: const LinearGradient(
+                                      begin: Alignment.topLeft,
+                                      end: Alignment.bottomRight,
+                                      colors: [
+                                        Color(0xFF1E3A8A),
+                                        Color(0xFF1A365D),
+                                      ],
+                                    ),
+                                  ),
+                                  child: Padding(
+                                    padding: const EdgeInsets.all(12),
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Row(
+                                          children: [
+                                            Icon(
+                                              Icons.person,
+                                              size: 16,
+                                              color:
+                                                  Colors.white.withOpacity(0.5),
                                             ),
-                                          ),
-                                          const Spacer(),
-                                          Text(
-                                            _formatDate(comment.createdAt),
-                                            style: TextStyle(
-                                              fontSize: 12,
-                                              color: AppTheme.text
-                                                  .withOpacity(0.5),
+                                            const SizedBox(width: 4),
+                                            Text(
+                                              comment.isAnonymous
+                                                  ? 'Anonymous'
+                                                  : '${comment.firstName} ${comment.lastName}',
+                                              style: TextStyle(
+                                                fontSize: 12,
+                                                fontWeight: FontWeight.w500,
+                                                color: Colors.white
+                                                    .withOpacity(0.7),
+                                              ),
                                             ),
-                                          ),
-                                        ],
-                                      ),
-                                      const SizedBox(height: 8),
-                                      Text(
-                                        comment.content,
-                                        style: const TextStyle(
-                                          fontSize: 14,
-                                          color: AppTheme.text,
+                                            const Spacer(),
+                                            Text(
+                                              _formatDate(comment.createdAt),
+                                              style: TextStyle(
+                                                fontSize: 12,
+                                                color: Colors.white
+                                                    .withOpacity(0.5),
+                                              ),
+                                            ),
+                                          ],
                                         ),
-                                      ),
-                                    ],
+                                        const SizedBox(height: 8),
+                                        Text(
+                                          comment.content,
+                                          style: const TextStyle(
+                                            fontSize: 14,
+                                            color: Colors.white,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
                                   ),
                                 ),
                               );

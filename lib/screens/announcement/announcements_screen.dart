@@ -110,18 +110,19 @@ class _AnnouncementsScreenState extends State<AnnouncementsScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF8FAFC),
+      backgroundColor: const Color(0xFF1A365D),
       appBar: AppBar(
         title: const Text(
           'Announcements',
           style: TextStyle(
             fontWeight: FontWeight.bold,
             fontSize: 20,
+            color: Colors.white,
           ),
         ),
-        backgroundColor: Colors.white,
-        foregroundColor: Colors.black,
-        elevation: 1,
+        backgroundColor: const Color(0xFF1A365D),
+        foregroundColor: Colors.white,
+        elevation: 0,
         actions: [
           IconButton(
             icon: const Icon(Icons.filter_list),
@@ -129,14 +130,14 @@ class _AnnouncementsScreenState extends State<AnnouncementsScreen>
               showDialog(
                 context: context,
                 builder: (context) => AlertDialog(
-                  backgroundColor: Colors.white,
+                  backgroundColor: const Color(0xFF1A365D),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(16),
                   ),
                   title: const Text(
                     'Filter by Department',
                     style: TextStyle(
-                      color: Color(0xFF1E293B),
+                      color: Colors.white,
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
                     ),
@@ -163,12 +164,12 @@ class _AnnouncementsScreenState extends State<AnnouncementsScreen>
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: const Color(0xFF1A365D),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.05),
-                  blurRadius: 2,
-                  offset: const Offset(0, 1),
+                  color: Colors.black.withOpacity(0.2),
+                  blurRadius: 4,
+                  offset: const Offset(0, 2),
                 ),
               ],
             ),
@@ -180,7 +181,7 @@ class _AnnouncementsScreenState extends State<AnnouncementsScreen>
                   style: TextStyle(
                     fontSize: 24,
                     fontWeight: FontWeight.bold,
-                    color: Color(0xFF1E293B),
+                    color: Colors.white,
                   ),
                 ),
                 const SizedBox(height: 8),
@@ -188,24 +189,32 @@ class _AnnouncementsScreenState extends State<AnnouncementsScreen>
                   'Get the latest news and updates from your community',
                   style: TextStyle(
                     fontSize: 14,
-                    color: Colors.grey[600],
+                    color: Colors.white.withOpacity(0.8),
                   ),
                 ),
                 const SizedBox(height: 16),
                 // Search Bar
                 Container(
                   decoration: BoxDecoration(
-                    color: const Color(0xFFF1F5F9),
+                    color: Colors.white.withOpacity(0.1),
                     borderRadius: BorderRadius.circular(30),
+                    border: Border.all(
+                      color: Colors.white.withOpacity(0.2),
+                      width: 1,
+                    ),
                   ),
                   child: TextField(
                     controller: _searchController,
                     onChanged: _onSearchChanged,
+                    style: const TextStyle(color: Colors.white),
                     decoration: InputDecoration(
                       hintText: 'Search announcements...',
-                      prefixIcon: const Icon(
+                      hintStyle: TextStyle(
+                        color: Colors.white.withOpacity(0.5),
+                      ),
+                      prefixIcon: Icon(
                         Icons.search,
-                        color: Color(0xFF64748B),
+                        color: Colors.white.withOpacity(0.8),
                       ),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(30),
@@ -227,23 +236,22 @@ class _AnnouncementsScreenState extends State<AnnouncementsScreen>
             padding: const EdgeInsets.all(16),
             child: Container(
               decoration: BoxDecoration(
-                color: const Color(0xFFF1F5F9),
+                color: Colors.white.withOpacity(0.1),
                 borderRadius: BorderRadius.circular(32),
+                border: Border.all(
+                  color: Colors.white.withOpacity(0.2),
+                  width: 1,
+                ),
               ),
               child: TabBar(
                 controller: _tabController,
-                labelColor: const Color(0xFF8B5CF6),
-                unselectedLabelColor: const Color(0xFF64748B),
-                indicator: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(24),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.05),
-                      blurRadius: 2,
-                      offset: const Offset(0, 1),
-                    ),
-                  ],
+                labelColor: Colors.white,
+                unselectedLabelColor: Colors.white.withOpacity(0.6),
+                indicatorSize: TabBarIndicatorSize.label,
+                dividerColor: Colors.transparent,
+                indicator: const BoxDecoration(
+                  color: Color(0xFF1E3A8A),
+                  borderRadius: BorderRadius.all(Radius.circular(24)),
                 ),
                 labelStyle: const TextStyle(
                   fontSize: 14,
@@ -461,70 +469,58 @@ class _AnnouncementsScreenState extends State<AnnouncementsScreen>
           ),
         ],
       ),
-      floatingActionButton: _isAdmin 
-        ? FloatingActionButton.extended(
-            onPressed: () async {
-              final created = await Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => CreateAnnouncementPage(
-                    userId: FirebaseAuth.instance.currentUser?.uid ?? '',
+      floatingActionButton: _isAdmin
+          ? FloatingActionButton.extended(
+              onPressed: () async {
+                final created = await Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => CreateAnnouncementPage(
+                      userId: FirebaseAuth.instance.currentUser?.uid ?? '',
+                    ),
                   ),
-                ),
-              );
-              if (created == true) {
-                // Refresh announcements
-                setState(() {
-                  switch (_currentFilter) {
-                    case 'All':
-                      _announcementsStream = _service.getAllAnnouncements();
-                      break;
-                    case 'Important':
-                      _announcementsStream = _service.getImportantAnnouncements();
-                      break;
-                    case 'Saved':
-                      _announcementsStream = _service.getSavedAnnouncements();
-                      break;
-                    default:
-                      _announcementsStream = _service.filterByDepartment(_currentFilter);
-                  }
-                });
-              }
-            },
-            label: const Text('Create Announcement'),
-            icon: const Icon(Icons.add),
-            backgroundColor: const Color(0xFF8B5CF6),
-          )
-        : null,
+                );
+                if (created == true) {
+                  // Refresh announcements
+                  setState(() {
+                    switch (_currentFilter) {
+                      case 'All':
+                        _announcementsStream = _service.getAllAnnouncements();
+                        break;
+                      case 'Important':
+                        _announcementsStream =
+                            _service.getImportantAnnouncements();
+                        break;
+                      case 'Saved':
+                        _announcementsStream = _service.getSavedAnnouncements();
+                        break;
+                      default:
+                        _announcementsStream =
+                            _service.filterByDepartment(_currentFilter);
+                    }
+                  });
+                }
+              },
+              label: const Text('Create Announcement'),
+              icon: const Icon(Icons.add),
+              backgroundColor: const Color(0xFF8B5CF6),
+            )
+          : null,
     );
   }
 
-  Widget _buildFilterOption(String label) {
-    final isSelected = _currentFilter == label;
+  Widget _buildFilterOption(String department) {
     return ListTile(
       title: Text(
-        label,
-        style: TextStyle(
-          color: isSelected ? const Color(0xFF8B5CF6) : const Color(0xFF64748B),
-          fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+        department,
+        style: const TextStyle(
+          color: Colors.white,
+          fontSize: 16,
         ),
       ),
-      trailing: isSelected
-          ? const Icon(
-              Icons.check,
-              color: Color(0xFF8B5CF6),
-            )
-          : null,
       onTap: () {
+        _onDepartmentSelected(department);
         Navigator.pop(context);
-        if (label == 'All') {
-          setState(() {
-            _currentFilter = 'All';
-            _announcementsStream = _service.getAllAnnouncements();
-          });
-        } else {
-          _onDepartmentSelected(label);
-        }
       },
     );
   }
@@ -535,9 +531,13 @@ class _AnnouncementsScreenState extends State<AnnouncementsScreen>
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
       elevation: 0,
-      color: Colors.white,
+      color: const Color(0xFF1E3A8A).withOpacity(0.2),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
+        side: BorderSide(
+          color: Colors.white.withOpacity(0.2),
+          width: 1,
+        ),
       ),
       child: InkWell(
         onTap: () {
@@ -568,6 +568,7 @@ class _AnnouncementsScreenState extends State<AnnouncementsScreen>
                           style: const TextStyle(
                             fontWeight: FontWeight.bold,
                             fontSize: 16,
+                            color: Colors.white,
                           ),
                         ),
                       ),
@@ -577,13 +578,13 @@ class _AnnouncementsScreenState extends State<AnnouncementsScreen>
                           vertical: 4,
                         ),
                         decoration: BoxDecoration(
-                          color: categoryColor.withOpacity(0.1),
+                          color: Colors.white.withOpacity(0.15),
                           borderRadius: BorderRadius.circular(50),
                         ),
                         child: Text(
                           announcement.label,
                           style: TextStyle(
-                            color: categoryColor,
+                            color: Colors.white.withOpacity(0.9),
                             fontSize: 12,
                             fontWeight: FontWeight.w500,
                           ),
@@ -594,8 +595,8 @@ class _AnnouncementsScreenState extends State<AnnouncementsScreen>
                   const SizedBox(height: 8),
                   Text(
                     announcement.description,
-                    style: const TextStyle(
-                      color: Color(0xFF64748B),
+                    style: TextStyle(
+                      color: Colors.white.withOpacity(0.8),
                       fontSize: 14,
                     ),
                     maxLines: 2,
@@ -604,16 +605,16 @@ class _AnnouncementsScreenState extends State<AnnouncementsScreen>
                   const SizedBox(height: 8),
                   Row(
                     children: [
-                      const Icon(
+                      Icon(
                         Icons.calendar_today,
                         size: 14,
-                        color: Color(0xFF64748B),
+                        color: Colors.white.withOpacity(0.8),
                       ),
                       const SizedBox(width: 4),
                       Text(
                         'Posted on ${DateFormatter.format(announcement.createdOn)}',
-                        style: const TextStyle(
-                          color: Color(0xFF64748B),
+                        style: TextStyle(
+                          color: Colors.white.withOpacity(0.8),
                           fontSize: 12,
                         ),
                       ),
@@ -625,13 +626,13 @@ class _AnnouncementsScreenState extends State<AnnouncementsScreen>
                             vertical: 4,
                           ),
                           decoration: BoxDecoration(
-                            color: const Color(0xFF8B5CF6).withOpacity(0.1),
+                            color: Colors.white.withOpacity(0.15),
                             borderRadius: BorderRadius.circular(50),
                           ),
-                          child: const Text(
+                          child: Text(
                             'Important',
                             style: TextStyle(
-                              color: Color(0xFF8B5CF6),
+                              color: Colors.white.withOpacity(0.9),
                               fontSize: 12,
                               fontWeight: FontWeight.w500,
                             ),
@@ -641,22 +642,6 @@ class _AnnouncementsScreenState extends State<AnnouncementsScreen>
                     ],
                   ),
                 ],
-              ),
-            ),
-            // Colored bar on the left
-            Positioned(
-              left: 0,
-              top: 0,
-              bottom: 0,
-              child: Container(
-                width: 6,
-                decoration: BoxDecoration(
-                  color: categoryColor,
-                  borderRadius: const BorderRadius.only(
-                    topLeft: Radius.circular(12),
-                    bottomLeft: Radius.circular(12),
-                  ),
-                ),
               ),
             ),
           ],
@@ -670,15 +655,22 @@ class _AnnouncementsScreenState extends State<AnnouncementsScreen>
       margin: const EdgeInsets.only(bottom: 16),
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        gradient: LinearGradient(
+        gradient: const LinearGradient(
           colors: [
-            const Color(0xFF8B5CF6),
-            const Color(0xFF8B5CF6).withOpacity(0.8),
+            Color(0xFF1A365D),
+            Color(0xFF0A1929),
           ],
           begin: Alignment.centerLeft,
           end: Alignment.centerRight,
         ),
         borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.2),
+            blurRadius: 4,
+            offset: const Offset(0, 2),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -772,7 +764,7 @@ class _AnnouncementsScreenState extends State<AnnouncementsScreen>
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.white,
-                  foregroundColor: const Color(0xFF8B5CF6),
+                  foregroundColor: const Color(0xFF1A365D),
                   padding: const EdgeInsets.symmetric(
                     horizontal: 16,
                     vertical: 8,
@@ -791,16 +783,15 @@ class _AnnouncementsScreenState extends State<AnnouncementsScreen>
   }
 
   Color _getCategoryColor(String category) {
-    final colors = {
-      'Environment': const Color(0xFF10B981),
-      'Community': const Color(0xFF8B5CF6),
-      'Healthcare': const Color(0xFFEF4444),
-      'Education': const Color(0xFF3B82F6),
-      'Transportation': const Color(0xFFF59E0B),
-      'Water and Sewage': const Color(0xFF06B6D4),
-      'Environmental Services': const Color(0xFF10B981),
-    };
-
-    return colors[category] ?? const Color(0xFF8B5CF6);
+    switch (category.toLowerCase()) {
+      case 'urgent':
+        return Colors.red;
+      case 'important':
+        return Colors.orange;
+      case 'general':
+        return Colors.green;
+      default:
+        return Colors.blue;
+    }
   }
 }

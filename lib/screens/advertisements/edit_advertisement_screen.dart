@@ -36,11 +36,32 @@ class _EditAdvertisementScreenState extends State<EditAdvertisementScreen> {
   String? _existingDocumentUrl;
   bool _isLoading = false;
   final CloudinaryService _cloudinaryService = CloudinaryService();
-  
+
   // Map related variables
   LatLng? _selectedLocation;
   Set<Marker> _markers = {};
   GoogleMapController? _mapController;
+
+  static const String _darkMapStyle = '''[
+    {"elementType":"geometry","stylers":[{"color":"#242f3e"}]},
+    {"elementType":"labels.text.fill","stylers":[{"color":"#746855"}]},
+    {"elementType":"labels.text.stroke","stylers":[{"color":"#242f3e"}]},
+    {"featureType":"administrative.locality","elementType":"labels.text.fill","stylers":[{"color":"#d59563"}]},
+    {"featureType":"poi","elementType":"labels.text.fill","stylers":[{"color":"#d59563"}]},
+    {"featureType":"poi.park","elementType":"geometry","stylers":[{"color":"#263c3f"}]},
+    {"featureType":"poi.park","elementType":"labels.text.fill","stylers":[{"color":"#6b9a76"}]},
+    {"featureType":"road","elementType":"geometry","stylers":[{"color":"#38414e"}]},
+    {"featureType":"road","elementType":"geometry.stroke","stylers":[{"color":"#212a37"}]},
+    {"featureType":"road","elementType":"labels.text.fill","stylers":[{"color":"#9ca5b3"}]},
+    {"featureType":"road.highway","elementType":"geometry","stylers":[{"color":"#746855"}]},
+    {"featureType":"road.highway","elementType":"geometry.stroke","stylers":[{"color":"#1f2835"}]},
+    {"featureType":"road.highway","elementType":"labels.text.fill","stylers":[{"color":"#f3d19c"}]},
+    {"featureType":"transit","elementType":"geometry","stylers":[{"color":"#2f3948"}]},
+    {"featureType":"transit.station","elementType":"labels.text.fill","stylers":[{"color":"#d59563"}]},
+    {"featureType":"water","elementType":"geometry","stylers":[{"color":"#17263c"}]},
+    {"featureType":"water","elementType":"labels.text.fill","stylers":[{"color":"#515c6d"}]},
+    {"featureType":"water","elementType":"labels.text.stroke","stylers":[{"color":"#17263c"}]}
+  ]''';
 
   @override
   void initState() {
@@ -55,12 +76,12 @@ class _EditAdvertisementScreenState extends State<EditAdvertisementScreen> {
     _phoneController.text = widget.advertisement['phoneNumber'] ?? '';
     _existingImageUrls =
         List<String>.from(widget.advertisement['imageUrls'] ?? []);
-        
+
     // Initialize map location
     if (widget.advertisement['location'] != null) {
       final lat = widget.advertisement['location']['latitude'];
       final lng = widget.advertisement['location']['longitude'];
-      
+
       if (lat != null && lng != null) {
         _selectedLocation = LatLng(lat, lng);
         _markers = {
@@ -135,10 +156,10 @@ class _EditAdvertisementScreenState extends State<EditAdvertisementScreen> {
     try {
       final newImageUrls = await _uploadNewImages();
       final allImageUrls = [..._existingImageUrls, ...newImageUrls];
-      
+
       // Handle document upload or keep existing URL
       String? documentUrl = _existingDocumentUrl;
-      
+
       if (_documentFile != null) {
         // Upload new document
         documentUrl = await _cloudinaryService.uploadDocument(_documentFile!);
@@ -193,10 +214,14 @@ class _EditAdvertisementScreenState extends State<EditAdvertisementScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: const Color(0xFF1A365D),
       appBar: AppBar(
-        title: const Text('Edit Advertisement'),
-        backgroundColor: Colors.white,
-        foregroundColor: Colors.black,
+        title: const Text(
+          'Edit Advertisement',
+          style: TextStyle(color: Colors.white),
+        ),
+        backgroundColor: const Color(0xFF1A365D),
+        foregroundColor: Colors.white,
         elevation: 1,
       ),
       body: SingleChildScrollView(
@@ -223,7 +248,7 @@ class _EditAdvertisementScreenState extends State<EditAdvertisementScreen> {
                 allowMultipleImages: true,
                 documentLabel: 'Business Document',
               ),
-              
+
               // Existing Images
               if (_existingImageUrls.isNotEmpty) ...[
                 const SizedBox(height: 24),
@@ -232,6 +257,7 @@ class _EditAdvertisementScreenState extends State<EditAdvertisementScreen> {
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
+                    color: Colors.white,
                   ),
                 ),
                 const SizedBox(height: 8),
@@ -284,7 +310,7 @@ class _EditAdvertisementScreenState extends State<EditAdvertisementScreen> {
                   ),
                 ),
               ],
-              
+
               // Show existing document URL if any
               if (_existingDocumentUrl != null && _documentFile == null) ...[
                 const SizedBox(height: 16),
@@ -293,28 +319,32 @@ class _EditAdvertisementScreenState extends State<EditAdvertisementScreen> {
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
+                    color: Colors.white,
                   ),
                 ),
                 const SizedBox(height: 8),
                 Container(
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    border: Border.all(color: Colors.grey),
+                    border: Border.all(color: Colors.white.withOpacity(0.2)),
                     borderRadius: BorderRadius.circular(8),
-                    color: Colors.grey[100],
+                    color: const Color(0xFF1E3A8A),
                   ),
                   child: Row(
                     children: [
                       Icon(
                         Icons.description,
                         size: 36,
-                        color: Theme.of(context).primaryColor,
+                        color: Colors.white.withOpacity(0.7),
                       ),
                       const SizedBox(width: 12),
                       Expanded(
                         child: Text(
                           'Business Document',
-                          style: const TextStyle(fontWeight: FontWeight.bold),
+                          style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          ),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                         ),
@@ -334,15 +364,30 @@ class _EditAdvertisementScreenState extends State<EditAdvertisementScreen> {
                   ),
                 ),
               ],
-              
+
               const SizedBox(height: 24),
 
               // Name Field
               TextFormField(
                 controller: _nameController,
-                decoration: const InputDecoration(
+                style: const TextStyle(color: Colors.white),
+                decoration: InputDecoration(
                   labelText: 'Name',
-                  border: OutlineInputBorder(),
+                  labelStyle: TextStyle(color: Colors.white.withOpacity(0.7)),
+                  border: OutlineInputBorder(
+                    borderSide:
+                        BorderSide(color: Colors.white.withOpacity(0.2)),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderSide:
+                        BorderSide(color: Colors.white.withOpacity(0.2)),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderSide:
+                        BorderSide(color: Colors.white.withOpacity(0.3)),
+                  ),
+                  filled: true,
+                  fillColor: const Color(0xFF1E3A8A),
                 ),
                 validator: (value) {
                   if (value == null || value.isEmpty) {
@@ -356,10 +401,26 @@ class _EditAdvertisementScreenState extends State<EditAdvertisementScreen> {
               // Phone number field
               TextFormField(
                 controller: _phoneController,
-                decoration: const InputDecoration(
+                style: const TextStyle(color: Colors.white),
+                decoration: InputDecoration(
                   labelText: 'Phone Number',
-                  border: OutlineInputBorder(),
-                  prefixIcon: Icon(Icons.phone),
+                  labelStyle: TextStyle(color: Colors.white.withOpacity(0.7)),
+                  border: OutlineInputBorder(
+                    borderSide:
+                        BorderSide(color: Colors.white.withOpacity(0.2)),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderSide:
+                        BorderSide(color: Colors.white.withOpacity(0.2)),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderSide:
+                        BorderSide(color: Colors.white.withOpacity(0.3)),
+                  ),
+                  prefixIcon:
+                      Icon(Icons.phone, color: Colors.white.withOpacity(0.7)),
+                  filled: true,
+                  fillColor: const Color(0xFF1E3A8A),
                 ),
                 keyboardType: TextInputType.phone,
                 validator: (value) {
@@ -377,14 +438,15 @@ class _EditAdvertisementScreenState extends State<EditAdvertisementScreen> {
                 style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
+                  color: Colors.white,
                 ),
               ),
               const SizedBox(height: 8),
-              const Text(
+              Text(
                 'Tap on the map to update location',
                 style: TextStyle(
                   fontSize: 14,
-                  color: Colors.grey,
+                  color: Colors.white.withOpacity(0.6),
                 ),
               ),
               const SizedBox(height: 16),
@@ -392,30 +454,34 @@ class _EditAdvertisementScreenState extends State<EditAdvertisementScreen> {
                 height: 300,
                 width: double.infinity,
                 decoration: BoxDecoration(
-                  border: Border.all(color: Colors.grey.shade300),
+                  border: Border.all(color: Colors.white.withOpacity(0.2)),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(8),
                   child: _selectedLocation != null
-                    ? GoogleMap(
-                        initialCameraPosition: CameraPosition(
-                          target: _selectedLocation!,
-                          zoom: 15,
+                      ? GoogleMap(
+                          initialCameraPosition: CameraPosition(
+                            target: _selectedLocation!,
+                            zoom: 15,
+                          ),
+                          markers: _markers,
+                          myLocationEnabled: true,
+                          myLocationButtonEnabled: true,
+                          mapToolbarEnabled: false,
+                          zoomControlsEnabled: true,
+                          onMapCreated: (controller) {
+                            _mapController = controller;
+                            controller.setMapStyle(_darkMapStyle);
+                          },
+                          onTap: _handleMapTap,
+                        )
+                      : const Center(
+                          child: CircularProgressIndicator(
+                            valueColor:
+                                AlwaysStoppedAnimation<Color>(Colors.white),
+                          ),
                         ),
-                        markers: _markers,
-                        myLocationEnabled: true,
-                        myLocationButtonEnabled: true,
-                        mapToolbarEnabled: false,
-                        zoomControlsEnabled: true,
-                        onMapCreated: (controller) {
-                          _mapController = controller;
-                        },
-                        onTap: _handleMapTap,
-                      )
-                    : const Center(
-                        child: CircularProgressIndicator(),
-                      ),
                 ),
               ),
               const SizedBox(height: 16),
@@ -426,9 +492,25 @@ class _EditAdvertisementScreenState extends State<EditAdvertisementScreen> {
                   Expanded(
                     child: TextFormField(
                       controller: _latitudeController,
-                      decoration: const InputDecoration(
+                      style: const TextStyle(color: Colors.white),
+                      decoration: InputDecoration(
                         labelText: 'Latitude',
-                        border: OutlineInputBorder(),
+                        labelStyle:
+                            TextStyle(color: Colors.white.withOpacity(0.7)),
+                        border: OutlineInputBorder(
+                          borderSide:
+                              BorderSide(color: Colors.white.withOpacity(0.2)),
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderSide:
+                              BorderSide(color: Colors.white.withOpacity(0.2)),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderSide:
+                              BorderSide(color: Colors.white.withOpacity(0.3)),
+                        ),
+                        filled: true,
+                        fillColor: const Color(0xFF1E3A8A),
                       ),
                       keyboardType: TextInputType.number,
                       validator: (value) {
@@ -446,9 +528,25 @@ class _EditAdvertisementScreenState extends State<EditAdvertisementScreen> {
                   Expanded(
                     child: TextFormField(
                       controller: _longitudeController,
-                      decoration: const InputDecoration(
+                      style: const TextStyle(color: Colors.white),
+                      decoration: InputDecoration(
                         labelText: 'Longitude',
-                        border: OutlineInputBorder(),
+                        labelStyle:
+                            TextStyle(color: Colors.white.withOpacity(0.7)),
+                        border: OutlineInputBorder(
+                          borderSide:
+                              BorderSide(color: Colors.white.withOpacity(0.2)),
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderSide:
+                              BorderSide(color: Colors.white.withOpacity(0.2)),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderSide:
+                              BorderSide(color: Colors.white.withOpacity(0.3)),
+                        ),
+                        filled: true,
+                        fillColor: const Color(0xFF1E3A8A),
                       ),
                       keyboardType: TextInputType.number,
                       validator: (value) {
@@ -473,7 +571,9 @@ class _EditAdvertisementScreenState extends State<EditAdvertisementScreen> {
                   onPressed: _isLoading ? null : _updateAdvertisement,
                   style: ElevatedButton.styleFrom(
                     padding: const EdgeInsets.symmetric(vertical: 16),
-                    backgroundColor: Theme.of(context).primaryColor,
+                    backgroundColor: const Color(0xFF1E3A8A),
+                    disabledBackgroundColor:
+                        const Color(0xFF1E3A8A).withOpacity(0.5),
                   ),
                   child: _isLoading
                       ? const SizedBox(

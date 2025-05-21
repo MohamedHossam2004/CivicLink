@@ -81,10 +81,11 @@ class _ChatScreenState extends State<CitizenChatScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: const Color(0xFF1A365D),
       appBar: AppBar(
         title: const Text('Chat with Government'),
-        backgroundColor: Colors.white,
-        foregroundColor: Colors.black,
+        backgroundColor: const Color(0xFF1A365D),
+        foregroundColor: Colors.white,
         automaticallyImplyLeading: false,
         elevation: 1,
       ),
@@ -134,17 +135,19 @@ class _ChatScreenState extends State<CitizenChatScreen> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(Icons.chat_bubble_outline,
-                size: 60, color: Colors.grey.shade400),
+                size: 60, color: Colors.white.withOpacity(0.4)),
             const SizedBox(height: 16),
             Text(
               'No messages yet.',
-              style: TextStyle(fontSize: 18, color: Colors.grey.shade600),
+              style:
+                  TextStyle(fontSize: 18, color: Colors.white.withOpacity(0.7)),
             ),
             const SizedBox(height: 8),
             Text(
               'Send a message to start the conversation.',
               textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 14, color: Colors.grey.shade500),
+              style:
+                  TextStyle(fontSize: 14, color: Colors.white.withOpacity(0.5)),
             ),
           ],
         ),
@@ -172,7 +175,9 @@ class _ChatScreenState extends State<CitizenChatScreen> {
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
               decoration: BoxDecoration(
-                color: isSentByMe ? Colors.teal : Colors.grey.shade200,
+                color: isSentByMe
+                    ? const Color(0xFF1E3A8A)
+                    : const Color(0xFF1A365D),
                 borderRadius: BorderRadius.only(
                   topLeft: const Radius.circular(18),
                   topRight: const Radius.circular(18),
@@ -192,7 +197,7 @@ class _ChatScreenState extends State<CitizenChatScreen> {
                   Text(
                     message.text,
                     style: TextStyle(
-                      color: isSentByMe ? Colors.white : Colors.black87,
+                      color: Colors.white,
                       fontSize: 15,
                     ),
                   ),
@@ -200,9 +205,7 @@ class _ChatScreenState extends State<CitizenChatScreen> {
                   Text(
                     _formatTime(message.timestamp.toDate()),
                     style: TextStyle(
-                      color: isSentByMe
-                          ? Colors.white.withOpacity(0.8)
-                          : Colors.black54,
+                      color: Colors.white.withOpacity(0.7),
                       fontSize: 11,
                     ),
                   ),
@@ -213,12 +216,12 @@ class _ChatScreenState extends State<CitizenChatScreen> {
           if (isSentByMe) ...[
             const SizedBox(width: 8),
             CircleAvatar(
-              backgroundColor: Colors.teal.shade100,
+              backgroundColor: const Color(0xFF1E3A8A),
               child: Text(
                 _currentUser?['firstName']?.isNotEmpty == true
                     ? _currentUser!['firstName']![0].toUpperCase()
                     : 'C',
-                style: TextStyle(color: Colors.teal.shade800),
+                style: const TextStyle(color: Colors.white),
               ),
             ),
           ],
@@ -230,10 +233,10 @@ class _ChatScreenState extends State<CitizenChatScreen> {
   Widget _buildMessageInputArea() {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: const Color(0xFF1A365D),
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withOpacity(0.15),
+            color: Colors.black.withOpacity(0.2),
             spreadRadius: 1,
             blurRadius: 5,
             offset: const Offset(0, -2),
@@ -255,20 +258,22 @@ class _ChatScreenState extends State<CitizenChatScreen> {
               controller: _messageController,
               decoration: InputDecoration(
                 hintText: 'Type a message...',
+                hintStyle: TextStyle(color: Colors.white.withOpacity(0.5)),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(24),
-                  borderSide: BorderSide(color: Colors.grey.shade300),
+                  borderSide: BorderSide(color: Colors.white.withOpacity(0.2)),
                 ),
                 enabledBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(24),
-                  borderSide: BorderSide(color: Colors.grey.shade300),
+                  borderSide: BorderSide(color: Colors.white.withOpacity(0.2)),
                 ),
                 focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(24),
-                  borderSide: const BorderSide(color: Colors.teal, width: 1.5),
+                  borderSide: BorderSide(
+                      color: Colors.white.withOpacity(0.3), width: 1.5),
                 ),
                 filled: true,
-                fillColor: Colors.white,
+                fillColor: const Color(0xFF1E3A8A),
                 contentPadding: const EdgeInsets.symmetric(
                   horizontal: 16,
                   vertical: 10,
@@ -284,7 +289,7 @@ class _ChatScreenState extends State<CitizenChatScreen> {
           Container(
             margin: const EdgeInsets.only(right: 4),
             decoration: const BoxDecoration(
-              color: Colors.teal,
+              color: Color(0xFF1E3A8A),
               shape: BoxShape.circle,
             ),
             child: IconButton(

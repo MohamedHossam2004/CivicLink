@@ -150,10 +150,19 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
         hasJoined = updatedTask.volunteeredUsers.contains(widget.userId);
 
         return Scaffold(
+          backgroundColor: const Color(0xFF1A365D),
           appBar: AppBar(
-            title: Text(updatedTask.name),
-            backgroundColor: Colors.white,
+            title: Text(
+              updatedTask.name,
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 20,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            backgroundColor: const Color(0xFF1A365D),
             elevation: 0,
+            iconTheme: const IconThemeData(color: Colors.white),
           ),
           body: SingleChildScrollView(
             child: Column(
@@ -162,14 +171,15 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
                 // Header with gradient background
                 Container(
                   padding: const EdgeInsets.all(20),
-                  decoration: BoxDecoration(
+                  decoration: const BoxDecoration(
                     gradient: LinearGradient(
                       colors: [
-                        departmentColor,
-                        departmentColor.withOpacity(0.8),
+                        Color(0xFF1A365D),
+                        Color(0xFF0A1929),
                       ],
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
+                      stops: [0.0, 0.7],
                     ),
                   ),
                   child: Column(
@@ -186,8 +196,8 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
                       const SizedBox(height: 8),
                       Text(
                         updatedTask.label,
-                        style: const TextStyle(
-                          color: Colors.white70,
+                        style: TextStyle(
+                          color: Colors.white.withOpacity(0.8),
                           fontSize: 16,
                         ),
                       ),
@@ -195,21 +205,23 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
                       Row(
                         children: [
                           Icon(Icons.calendar_today,
-                              color: Colors.white70, size: 16),
+                              color: Colors.white.withOpacity(0.8), size: 16),
                           const SizedBox(width: 8),
                           Text(
                             dateFormat.format(updatedTask.startTime),
-                            style: const TextStyle(
-                                color: Colors.white, fontSize: 14),
+                            style: TextStyle(
+                                color: Colors.white.withOpacity(0.8),
+                                fontSize: 14),
                           ),
                           const SizedBox(width: 16),
                           Icon(Icons.access_time,
-                              color: Colors.white70, size: 16),
+                              color: Colors.white.withOpacity(0.8), size: 16),
                           const SizedBox(width: 8),
                           Text(
                             '${timeFormat.format(updatedTask.startTime)} - ${timeFormat.format(updatedTask.endTime)}',
-                            style: const TextStyle(
-                                color: Colors.white, fontSize: 14),
+                            style: TextStyle(
+                                color: Colors.white.withOpacity(0.8),
+                                fontSize: 14),
                           ),
                         ],
                       ),
@@ -217,8 +229,19 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
                   ),
                 ),
                 // Content
-                Padding(
+                Container(
                   padding: const EdgeInsets.all(20),
+                  decoration: const BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [
+                        Color(0xFF0A1929),
+                        Color(0xFF1A365D),
+                      ],
+                      begin: Alignment.topRight,
+                      end: Alignment.bottomLeft,
+                      stops: [0.0, 0.7],
+                    ),
+                  ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -227,13 +250,13 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
                         padding: const EdgeInsets.symmetric(
                             horizontal: 12, vertical: 6),
                         decoration: BoxDecoration(
-                          color: departmentColor.withOpacity(0.1),
+                          color: Colors.white.withOpacity(0.15),
                           borderRadius: BorderRadius.circular(20),
                         ),
                         child: Text(
                           updatedTask.department.toString().split('.').last,
-                          style: TextStyle(
-                            color: departmentColor,
+                          style: const TextStyle(
+                            color: Colors.white,
                             fontWeight: FontWeight.w500,
                           ),
                         ),
@@ -245,13 +268,14 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
                         style: TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
+                          color: Colors.white,
                         ),
                       ),
                       const SizedBox(height: 8),
                       Text(
                         updatedTask.description,
                         style: TextStyle(
-                          color: Colors.grey[600],
+                          color: Colors.white.withOpacity(0.8),
                           fontSize: 16,
                         ),
                       ),
@@ -262,13 +286,14 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
                         style: TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
+                          color: Colors.white,
                         ),
                       ),
                       const SizedBox(height: 8),
                       Text(
                         updatedTask.requirements,
                         style: TextStyle(
-                          color: Colors.grey[600],
+                          color: Colors.white.withOpacity(0.8),
                           fontSize: 16,
                         ),
                       ),
@@ -279,17 +304,19 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
                         style: TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
+                          color: Colors.white,
                         ),
                       ),
                       const SizedBox(height: 8),
                       Row(
                         children: [
-                          Icon(Icons.phone, color: Colors.grey[600], size: 20),
+                          Icon(Icons.phone,
+                              color: Colors.white.withOpacity(0.8), size: 20),
                           const SizedBox(width: 8),
                           Text(
                             updatedTask.phone,
                             style: TextStyle(
-                              color: Colors.grey[600],
+                              color: Colors.white.withOpacity(0.8),
                               fontSize: 16,
                             ),
                           ),
@@ -298,12 +325,13 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
                       const SizedBox(height: 8),
                       Row(
                         children: [
-                          Icon(Icons.email, color: Colors.grey[600], size: 20),
+                          Icon(Icons.email,
+                              color: Colors.white.withOpacity(0.8), size: 20),
                           const SizedBox(width: 8),
                           Text(
                             updatedTask.email,
                             style: TextStyle(
-                              color: Colors.grey[600],
+                              color: Colors.white.withOpacity(0.8),
                               fontSize: 16,
                             ),
                           ),
@@ -316,20 +344,21 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
                         style: TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
+                          color: Colors.white,
                         ),
                       ),
                       const SizedBox(height: 8),
                       LinearProgressIndicator(
                         value: progress,
-                        backgroundColor: Colors.grey[200],
+                        backgroundColor: Colors.white.withOpacity(0.15),
                         valueColor:
-                            AlwaysStoppedAnimation<Color>(departmentColor),
+                            const AlwaysStoppedAnimation<Color>(Colors.white),
                       ),
                       const SizedBox(height: 4),
                       Text(
                         '${updatedTask.currVolunteers} / ${updatedTask.maxVolunteers} volunteers',
                         style: TextStyle(
-                          color: Colors.grey[600],
+                          color: Colors.white.withOpacity(0.8),
                           fontSize: 14,
                         ),
                       ),
@@ -418,10 +447,10 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
               ? Container(
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
-                    color: Colors.white,
+                    color: const Color(0xFF1E3A8A),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withOpacity(0.1),
+                        color: Colors.black.withOpacity(0.2),
                         blurRadius: 4,
                         offset: const Offset(0, -2),
                       ),
@@ -431,9 +460,15 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        CircularProgressIndicator(),
+                        CircularProgressIndicator(
+                          valueColor:
+                              AlwaysStoppedAnimation<Color>(Colors.white),
+                        ),
                         SizedBox(height: 8),
-                        Text('Loading...'),
+                        Text(
+                          'Loading...',
+                          style: TextStyle(color: Colors.white),
+                        ),
                       ],
                     ),
                   ),
@@ -442,10 +477,10 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
                   ? Container(
                       padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
-                        color: Colors.white,
+                        color: const Color(0xFF1E3A8A),
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.black.withOpacity(0.1),
+                            color: Colors.black.withOpacity(0.2),
                             blurRadius: 4,
                             offset: const Offset(0, -2),
                           ),
@@ -463,7 +498,10 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
                                   ? Colors.grey
                                   : hasJoined
                                       ? Colors.red
-                                      : departmentColor,
+                                      : Colors.white,
+                          foregroundColor: hasJoined
+                              ? Colors.white
+                              : const Color(0xFF1E3A8A),
                           padding: const EdgeInsets.symmetric(vertical: 16),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(8),
@@ -480,9 +518,9 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
                                 ),
                               )
                             : updatedTask.status == TaskStatus.Completed
-                                ? Text(
+                                ? const Text(
                                     'Task Completed',
-                                    style: const TextStyle(
+                                    style: TextStyle(
                                       color: Colors.white,
                                       fontSize: 16,
                                       fontWeight: FontWeight.bold,
@@ -492,8 +530,10 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
                                     hasJoined
                                         ? 'Withdraw from Task'
                                         : 'Volunteer for Task',
-                                    style: const TextStyle(
-                                      color: Colors.white,
+                                    style: TextStyle(
+                                      color: hasJoined
+                                          ? Colors.white
+                                          : const Color(0xFF1E3A8A),
                                       fontSize: 16,
                                       fontWeight: FontWeight.bold,
                                     ),

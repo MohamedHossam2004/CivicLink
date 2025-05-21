@@ -16,19 +16,20 @@ class ReportConfirmation extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: const Color(0xFF1A365D),
       appBar: AppBar(
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
+          icon: const Icon(Icons.arrow_back, color: Colors.white),
           onPressed: () => Navigator.pop(context),
         ),
-        title: const Text('Report an Issue'),
-        backgroundColor: Colors.white,
-        foregroundColor: Colors.black,
+        title: const Text('Report an Issue',
+            style: TextStyle(color: Colors.white)),
+        backgroundColor: const Color(0xFF1A365D),
+        foregroundColor: Colors.white,
         elevation: 0,
       ),
       body: Column(
         children: [
-          // Main content
           Expanded(
             child: Padding(
               padding: const EdgeInsets.all(20.0),
@@ -41,12 +42,17 @@ class ReportConfirmation extends StatelessWidget {
                     width: 60,
                     height: 60,
                     decoration: BoxDecoration(
-                      color: Colors.green[100],
+                      gradient: const LinearGradient(
+                        colors: [Color(0xFF1E3A8A), Color(0xFF1A365D)],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
                       shape: BoxShape.circle,
+                      border: Border.all(color: Colors.white.withOpacity(0.3)),
                     ),
                     child: const Icon(
                       Icons.check,
-                      color: Colors.green,
+                      color: Colors.white,
                       size: 32,
                     ),
                   ),
@@ -58,18 +64,19 @@ class ReportConfirmation extends StatelessWidget {
                     style: TextStyle(
                       fontSize: 24,
                       fontWeight: FontWeight.bold,
+                      color: Colors.white,
                     ),
                   ),
                   const SizedBox(height: 10),
                   const Text(
                     'Your report has been submitted successfully.',
                     textAlign: TextAlign.center,
-                    style: TextStyle(fontSize: 16),
+                    style: TextStyle(fontSize: 16, color: Colors.white),
                   ),
                   const Text(
                     'We\'ll review it and take appropriate action.',
                     textAlign: TextAlign.center,
-                    style: TextStyle(fontSize: 16),
+                    style: TextStyle(fontSize: 16, color: Colors.white),
                   ),
                   const SizedBox(height: 30),
 
@@ -78,9 +85,13 @@ class ReportConfirmation extends StatelessWidget {
                     width: double.infinity,
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
-                      color: Colors.grey[50],
+                      gradient: const LinearGradient(
+                        colors: [Color(0xFF1E3A8A), Color(0xFF1A365D)],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
                       borderRadius: BorderRadius.circular(8),
-                      border: Border.all(color: Colors.grey.shade200),
+                      border: Border.all(color: Colors.white.withOpacity(0.3)),
                     ),
                     child: Column(
                       children: [
@@ -92,8 +103,8 @@ class ReportConfirmation extends StatelessWidget {
                         _buildDetailRow(
                           'Status:',
                           'Pending',
-                          valueColor: Colors.orange,
-                          valueBackground: Colors.orange[50],
+                          valueColor: Colors.orange[200],
+                          valueBackground: Colors.orange.withOpacity(0.1),
                         ),
                       ],
                     ),
@@ -104,34 +115,77 @@ class ReportConfirmation extends StatelessWidget {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      ElevatedButton(
-                        onPressed: () {
-                          Navigator.pushReplacement(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => const ReportIssueStep1(),
+                      SizedBox(
+                        width: 120,
+                        height: 48,
+                        child: ElevatedButton(
+                          onPressed: () {
+                            Navigator.pushReplacement(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => const ReportIssueStep1(),
+                              ),
+                            );
+                          },
+                          style: ElevatedButton.styleFrom(
+                            padding: EdgeInsets.zero,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(24),
+                              side: BorderSide(
+                                  color: Colors.white.withOpacity(0.3)),
                             ),
-                          );
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.white,
-                          foregroundColor: Colors.black,
-                          side: const BorderSide(color: Colors.grey),
-                          minimumSize: const Size(120, 40),
+                            backgroundColor: Colors.transparent,
+                            shadowColor: Colors.transparent,
+                          ),
+                          child: const Center(
+                            child: Text(
+                              'New Report',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 16,
+                              ),
+                            ),
+                          ),
                         ),
-                        child: const Text('New Report'),
                       ),
                       const SizedBox(width: 16),
-                      ElevatedButton(
-                        onPressed: () {
-                          Navigator.pushNamed(context, '/home');
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.teal,
-                          foregroundColor: Colors.white,
-                          minimumSize: const Size(120, 40),
+                      SizedBox(
+                        width: 120,
+                        height: 48,
+                        child: ElevatedButton(
+                          onPressed: () {
+                            Navigator.pushNamed(context, '/home');
+                          },
+                          style: ElevatedButton.styleFrom(
+                            padding: EdgeInsets.zero,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(24),
+                            ),
+                            backgroundColor: Colors.transparent,
+                            shadowColor: Colors.transparent,
+                          ),
+                          child: Ink(
+                            decoration: BoxDecoration(
+                              gradient: const LinearGradient(
+                                colors: [Color(0xFF1E3A8A), Color(0xFF1A365D)],
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
+                              ),
+                              borderRadius: BorderRadius.circular(24),
+                            ),
+                            child: const Center(
+                              child: Text(
+                                'Go to Home',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 16,
+                                ),
+                              ),
+                            ),
+                          ),
                         ),
-                        child: const Text('Go to Home'),
                       ),
                     ],
                   ),
@@ -151,9 +205,9 @@ class ReportConfirmation extends StatelessWidget {
       children: [
         Text(
           label,
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 14,
-            color: Colors.grey,
+            color: Colors.white.withOpacity(0.7),
           ),
         ),
         valueBackground != null
@@ -162,6 +216,7 @@ class ReportConfirmation extends StatelessWidget {
                 decoration: BoxDecoration(
                   color: valueBackground,
                   borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: Colors.white.withOpacity(0.1)),
                 ),
                 child: Text(
                   value,
@@ -177,6 +232,7 @@ class ReportConfirmation extends StatelessWidget {
                 style: const TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.bold,
+                  color: Colors.white,
                 ),
               ),
       ],
