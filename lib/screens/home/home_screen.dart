@@ -429,7 +429,7 @@ class _HomeScreenState extends State<HomeScreen> {
               const SizedBox(width: 16),
               _buildServiceItem(
                 icon: Icons.warning_amber_outlined,
-                label: 'Emergency\nNumbers',
+                label: 'Contacts',
                 color: Colors.red,
                 bgColor: Colors.red.shade100,
                 onTap: () {
