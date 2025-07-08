@@ -1,3 +1,5 @@
+#CivicLink
+
 CivicLink is a Flutter-powered mobile app that streamlines communication between citizens and their local government. It provides three roles—**Citizens**, a single **Government Admin**, and **Advertisers**—each with tailored functionality for announcements, polls, messaging, problem reporting, volunteering, and ad management. It also integrates Firebase and Google Cloud APIs to deliver real-time data, push notifications, maps, file uploads, and basic AI moderation.
 
 ---
@@ -107,6 +109,79 @@ CivicLink is a Flutter-powered mobile app that streamlines communication between
 ## ⚙️ Configuration & Setup
 
 1. **Clone the repo**  
-   ```bash
+   ```sh
    git clone https://github.com/MohamedHossam2004/CivicLink.git
    cd CivicLink
+   ```
+  
+2.  **Create Environment File**: In the root of the project, create a `.env` file and populate it with your API keys.
+    ```dotenv
+    FIREBASE_API_KEY=...
+    FIREBASE_APP_ID=...
+    FIREBASE_MESSAGING_SENDER_ID=...
+    FIREBASE_PROJECT_ID=...
+    GOOGLE_MAPS_API_KEY=...
+    GEOCODING_API_KEY=...
+    VISION_API_KEY=...
+    ```
+
+3.  **Firebase Setup**:
+    * Enable **Email/Password Authentication** in the Firebase console.
+    * Set up **Firestore** or **Realtime Database**.
+    * Configure **Cloud Storage** buckets.
+    * Enable **Cloud Messaging**.
+    * (Optional) Deploy **Cloud Functions** for features like content moderation.
+    * Place the `google-services.json` file in the `android/app/` directory.
+    * Place the `GoogleService-Info.plist` file in the `ios/Runner/` directory.
+
+4.  **Google Cloud APIs**:
+    * In the Google Cloud Platform console, enable the **Maps SDK**, **Geocoding API**, and **Vision API**.
+    * Ensure the API keys are correctly referenced in `AndroidManifest.xml` (for Android) and `Info.plist` (for iOS), or loaded from your environment variables.
+
+### 🧪 Installation & Running
+
+1.  **Fetch Dependencies**:
+    Open your terminal in the project root and run:
+    ```sh
+    flutter pub get
+    ```
+
+2.  **Run the App**:
+    Execute the following command to run the application on an emulator or a connected device:
+    ```sh
+    flutter run
+    ```
+
+### 📦 Build for Release
+
+To create a release build of the application, use the following commands:
+
+* **Android**:
+    ```sh
+    flutter build apk
+    ```
+
+* **iOS** (requires Xcode):
+    ```sh
+    flutter build ios
+    ```
+
+---
+
+## 📁 Project Structure
+
+The source code is organized into the following directories within `lib/`:
+
+* `main.dart`: The main entry point of the application.
+* `models/`: Contains all the data model classes (e.g., `Announcement`, `Poll`, `Report`, `Ad`, `User`).
+* `providers/`: Handles app-wide state management.
+* `screens/`: Includes all the main screen UIs, typically organized by feature or user role.
+* `services/`: Contains the business logic for interacting with Firebase and other APIs.
+* `widgets/`: Stores reusable UI components (widgets) that are shared across multiple screens.
+---
+
+## 📝 License
+
+This project is licensed under the MIT License. See the `LICENSE` file for more details.
+
+
