@@ -1,4 +1,4 @@
-#CivicLink
+# CivicLink
 
 CivicLink is a Flutter-powered mobile app that streamlines communication between citizens and their local government. It provides three roles—**Citizens**, a single **Government Admin**, and **Advertisers**—each with tailored functionality for announcements, polls, messaging, problem reporting, volunteering, and ad management. It also integrates Firebase and Google Cloud APIs to deliver real-time data, push notifications, maps, file uploads, and basic AI moderation.
 
