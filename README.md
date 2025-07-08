@@ -182,6 +182,6 @@ The source code is organized into the following directories within `lib/`:
 
 ## 📝 License
 
-This project is licensed under the MIT License. See the `LICENSE` file for more details.
+This project is licensed under the MIT License.
 
 
