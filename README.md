@@ -1,71 +1,112 @@
-CivicLink is a mobile application designed to foster seamless communication and interaction between citizens and their local government. The platform aims to organize and enhance civic life by providing a centralized hub for announcements, community feedback, problem reporting, and local information.
-It features three distinct roles: Citizens, a single Government Admin, and Advertisers, each with a tailored set of functionalities.
+CivicLink is a Flutter-powered mobile app that streamlines communication between citizens and their local government. It provides three roles—**Citizens**, a single **Government Admin**, and **Advertisers**—each with tailored functionality for announcements, polls, messaging, problem reporting, volunteering, and ad management. It also integrates Firebase and Google Cloud APIs to deliver real-time data, push notifications, maps, file uploads, and basic AI moderation.
 
-⸻
+---
 
-Key Features
+## 🔑 Key Features
 
-For Citizens 👨‍👩‍👧‍👦
-	•	Stay Informed: View a live feed of government announcements, such as maintenance schedules or local news, complete with any attached images or documents.
-	•	Voice Your Opinion: Participate in anonymous government polls on community matters, with the option to add public or anonymous comments to provide context for your vote. You can also view the results of completed polls to see the community’s collective opinion.
-	•	Report Issues: Easily report neighborhood problems like a broken streetlight by providing a description, uploading photos, and pinpointing the exact location on a map. You can also track the status of your submitted reports.
-	•	Direct Communication: Send private messages directly to the government for confidential inquiries or feedback.
-	•	Community Engagement: Discover and sign up for local volunteer opportunities to contribute to your community and track your participation history.
-	•	Local Discovery: View approved advertisements from local businesses to stay aware of relevant services and offers.
-	•	Essential Contacts: Quickly access a list of important emergency and official phone numbers.
+### For Citizens 👨‍👩‍👧‍👦
+- **Announcements & Comments**  
+  – View a live feed of government posts (text, images, PDFs)  
+  – Comment publicly or anonymously  
+- **Polls & Results**  
+  – Vote once per poll (anonymous)  
+  – Add optional comments (public or anonymous)  
+  – View real-time and historic poll results  
+- **Report Problems**  
+  – Describe issues, upload photos, mark location on map  
+  – Track status (Received → In Progress → Resolved)  
+- **Private Messaging**  
+  – Send and receive confidential messages to/from government  
+- **Emergency & Official Contacts**  
+  – One-tap calling of police, ambulance, municipality, etc.  
+- **Volunteer Tasks & Calendar**  
+  – Browse and sign up for local initiatives  
+  – Track your participation history  
+  – View public calendar of maintenance, events, volunteer dates  
+- **Local Ads**  
+  – See approved neighborhood advertisements  
 
-For the Government Admin 🏛️
-	•	Secure Management: Log in to a single, secure admin account to manage all app content and functionalities.
-	•	Broadcast Information: Create, edit, delete, and categorize announcements to effectively communicate with citizens.
-	•	Gather Feedback: Create polls with specific questions and timeframes, and analyze real-time results and comments to gauge public opinion.
-	•	Manage Communications: View and respond to private messages from citizens and manage all incoming problem reports. This includes updating the status of a report from “Received” to “Resolved”.
-	•	Content Control: Review, approve, or reject advertisements submitted by businesses to ensure they meet community standards.
-	•	Organize Community Efforts: Post and manage volunteer tasks, view lists of participants, and mark tasks as complete.
+### For Government Admin 🏛️
+- **Single Secure Admin Account**  
+  – Role-based login  
+- **Announcements & File Uploads**  
+  – Create, categorize, edit, delete (text + images/PDFs)  
+- **Poll Management**  
+  – Create polls with date ranges and options  
+  – Monitor votes and comments in real time  
+  – Archive or close polls  
+- **Report & Message Handling**  
+  – View details, images, and map locations of reports  
+  – Update report status  
+  – Read and reply to private citizen messages  
+- **Contact & Ad Moderation**  
+  – Manage emergency/official numbers  
+  – Approve, reject, edit or remove advertiser submissions  
+- **Volunteer Task Administration**  
+  – Post tasks with descriptions, dates, locations  
+  – Track sign-ups and mark completion  
+- **Calendar Management**  
+  – Add, edit, delete public calendar events  
+- **AI-Powered Content Moderation**  
+  – Automatically flag offensive comments (Arabic & English)  
+  – Configure auto-delete or manual review  
 
-For Advertisers 📢
-	•	Promote Your Business: Register for an account to create and submit advertisements, including text and images, for government approval.
-	•	Track Your Ads: View the status of your submissions (e.g., Pending, Approved, Rejected) and receive notifications when the status changes.
-	•	Manage Your Content: Edit your ads before they are approved or delete them from the system.
+### For Advertisers 📢
+- **Account Registration & Login**  
+- **Ad Creation & Submission**  
+  – Upload text + images; await admin approval  
+- **Submission Tracking**  
+  – View status: Pending, Approved, Rejected  
+  – Receive push notifications on status changes  
+- **Edit or Delete Ads**  
+  – Modify or remove ads pre- or post-approval  
 
-⸻
+---
 
-Technical Features
-	•	Backend: The application is powered by Firebase for a real-time, online database to dynamically store and retrieve all data.
-	•	Authentication: Secure, role-based user authentication is implemented for all three user types.
-	•	Push Notifications: The system uses push notifications to alert users in a timely manner about important updates, such as new announcements, poll results, or status changes on their reports.
-	•	Map Integration: Leverages map services to allow citizens to accurately pinpoint the location of a problem they are reporting.
-	•	Intuitive UI/UX: Designed with a focus on a high-quality, user-friendly, and visually appealing interface to ensure a positive user experience. The app features intuitive navigation like a bottom navigation bar or tabs.
-	•	Error Handling: The app gracefully handles potential issues like network connectivity problems or invalid user input, providing clear feedback to the user.
+## ⚙️ Technical Stack
 
-⸻
+- **Flutter** – Cross-platform UI  
+- **Firebase**  
+  - Realtime Database  
+  - Firestore  
+  - Authentication (email/password)  
+  - Cloud Storage (images, PDFs)  
+  - Cloud Messaging (push notifications)  
+  - Cloud Functions (AI moderation)  
+- **Google Cloud APIs**  
+  - Maps SDK (location picker)  
+  - Geocoding (reverse lookup)  
+  - AI Vision / Natural Language (offensive-text detection)  
+- **Environment & Secrets**  
+  - API keys for Google services stored via `flutter_dotenv` or native config files  
+- **State Management**  
+  - Provider / Riverpod (depending on branch)  
+- **CI/CD (optional)**  
+  - GitHub Actions for build & tests  
 
-✨ Bonus Feature: AI Moderation
-	•	The application includes an AI-powered system to automatically detect and flag potentially offensive comments in both Arabic and English within announcements and polls. The admin can configure this system to automatically delete or prevent the posting of such comments to maintain a respectful environment.
+---
 
-⸻
+## 🚀 Getting Started
 
-🚀 Getting Started
+### Prerequisites
 
-To get a local copy up and running, follow these simple steps.
+1. **Flutter SDK** (≥ 3.0)  
+2. **Android Studio** or **VS Code** (+ Flutter & Dart plugins)  
+3. **Git**  
+4. **A Firebase project** with:  
+   - Authentication enabled (Email/Password)  
+   - Firestore or Realtime Database rules configured  
+   - Cloud Storage bucket  
+   - Cloud Messaging enabled  
+   - (Optional) Cloud Functions deployed for AI moderation  
+5. **Google Cloud project** enabled for Maps, Geocoding, and Vision/NLP APIs  
+6. **API Keys** for all Google services  
 
-Prerequisites
-	•	Flutter SDK
-	•	An editor like VS Code or Android Studio
-	•	A configured Firebase project
+---
 
-Installation
-	•	Clone the repo
-git clone https://github.com/MohamedHossam2004/CivicLink.git
-	•	Navigate to the project directory
-cd CivicLink
-	•	Install packages
-flutter pub get
-	•	Run the app
-flutter run
+## ⚙️ Configuration & Setup
 
-⸻
-
-Built With
-	•	Flutter – The UI toolkit for building natively compiled applications for mobile, web, and desktop from a single codebase.
-	•	Firebase – The backend platform for building web and mobile applications.
-	•	Figma – Used for the initial UI/UX design process.
+1. **Clone the repo**  
+   ```bash
+   git clone https://github.com/MohamedHossam2004/CivicLink.git
+   cd CivicLink
