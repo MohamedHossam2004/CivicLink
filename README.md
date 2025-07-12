@@ -96,8 +96,6 @@ For Android users who want to try the app without building from source:
 
 **[Download CivicLink APK](https://drive.google.com/file/d/1ejaqHCRpiwxByPsZGMRcCwcw5yfwxOQU/view?usp=sharing)**
 
-> **Note**: Replace `YOUR_GOOGLE_DRIVE_LINK_HERE` with your actual Google Drive link containing the APK file.
-
 ### Prerequisites
 
 1. **Flutter SDK** (≥ 3.0)  
